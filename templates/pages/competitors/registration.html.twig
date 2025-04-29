@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau competiteur{% endblock %}
+
+{% block body %}    
+    <div class="container mt-4">
+        <h3 class="mx-auto text-center fw-bold" style="width: 400px">Nouveau competiteur</h3>
+        {{ form_start(form) }}
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    {{ form_row(form.lastname) }}
+                </div>
+                <div class="col-4">
+                    {{ form_row(form.firstname) }}
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    {{ form_row(form.ffaLicence) }}
+               </div>                    
+               <div class="col-4">
+                    {{ form_row(form.dateBirth) }}
+               </div>                          
+            </div>
+            <div class="row justify-content-center">
+               <div class="col-4">
+                    {{ form_row(form.email) }}
+               </div>                  
+                <div class="col-4">
+                    {{ form_row(form.phone) }}
+               </div>                    
+           </div>
+            <div class="row justify-content-center">
+               <div class="col-4">
+                    {{ form_row(form.flyingclub) }}
+               </div>                             
+             </div>
+            <div class="row justify-content-center">
+               <div class="col-4">
+                    {{ form_row(form.gender) }}
+               </div>                          
+                <div class="col-3">
+                    {{ form_row(form.committee) }}
+               </div>                    
+               <div class="col-3">
+                    {{ form_row(form.poloSize) }} 
+               </div>                          
+            </div>
+             <div class="row justify-content-center">
+                <div class="col-4">                  
+                    {{ form_row(form.submit) }}                      
+                    <a href ="{{ path(link_origin) }}" class="btn btn-info btn-sm mt-4">
+                        Annuler
+                    </a>    
+                </div>   
+            </div>
+        {{ form_end(form) }}           
+    </div>   
+{% endblock %}

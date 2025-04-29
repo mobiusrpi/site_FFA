@@ -1,0 +1,54 @@
+<nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="https://www.ffa-aero.fr/">
+      <img src="{{ asset('images/logo_ffa_T100.png') }}" alt="FFA" width="100" height="37">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarColor02">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if app.request.attributes.get('_route') == 'home' %}active{% endif %}" 
+            href="{{ path('home') }}">
+            Accueil
+            <span class="visually-hidden">(current)</span> 
+          </a>      
+        </li>
+        <li class="nav-item">
+           <a class="nav-link {% if app.request.attributes.get('_route') == 'home' %}active{% endif %}" 
+            href="{{ path('competitions.list') }}">
+              Compétitions
+          </a>        
+        </li>
+        <div class="dropdown">
+          <a class="btn btn-dark dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+            Admin
+          </a>
+          <ul class="dropdown-menu nav-item" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="#">Events</a></li>
+            <li><a class="dropdown-item" href="#">Competitors</a></li>
+           <li><a class="dropdown-item" href="#">Teams</a></li>
+          </ul>
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') %}        
+          <li class="nav-item">
+            <a class="nav-link {% if app.request.attributes.get('_route') == 'user.list' %}active{% endif %}" 
+              href="#">
+              Admin
+            </a>
+          </li>
+        {% endif %}
+      </ul>        
+      <form class="d-flex">
+          {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+              <a class="me-3" href="{{ path('app_login') }}">Mon compte</a>
+              <a href="{{ path('app_logout') }}">Déconnexion</a>
+          {% else %}
+              <a href="{{ path('app_login') }}">Connexion</a>
+          {% endif %}
+      </form>
+    </div>
+  </div>
+</nav>

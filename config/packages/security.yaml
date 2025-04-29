@@ -4,14 +4,34 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\Users
+                property: email
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                enable_csrf: true
+            logout:
+                path: app_logout
+                # where to redirect after logout
+                # target: app_any_route
+
+            # by default, the feature allows 5 login attempts per minute
+            login_throttling: null
+
+            # configure the maximum login attempts
+            login_throttling:
+                max_attempts: 3          # per minute ...
+                interval: '15 minutes' # ... or in a custom period
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -22,8 +42,14 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+         - { path: ^/admin, roles: ROLE_ADMIN }
+         - { path: ^/registration, roles: ROLE_USER }
+    role_hierarchy:
+        ROLE_MANAGER: [ROLE_USER]
+        ROLE_JUDGE: [ROLE_MANAGER]
+        ROLE_ROUTEUR: [ROLE_JUDGE]
+        ROLE_ADMIN: [ROLE_ROUTEUR]
+
 
 when@test:
     security:
