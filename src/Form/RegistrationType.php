@@ -42,21 +42,6 @@ class RegistrationType extends AbstractType
         $builder->addEventSubscriber($this->preSubmitSubscriber);
 
         $builder            
-            ->add('competition', EntityType::class, [
-                'class' => Competitions::class,
-                'query_builder' => function (EntityRepository $er) use($compet) {
-                    return $er->getEventChoice($compet->getId());
-                },
-                'attr' => [
-                    'class' => 'form-control'                    ,            
-                ],
-                'multiple' => false,
-                'choice_label' => 'typecompetition.typecomp',
-                'label' => 'Type de compétition',
-                'label_attr' => [
-                    'class' => 'form-label'
-                ]
-            ])
             ->add('pilot', EntityType::class, [
                 'class' => Competitors::class,   
                 'query_builder' => function (EntityRepository $er) use($compet) {

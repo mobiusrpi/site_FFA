@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitorsRepository;
 use App\Repository\CompetitionsRepository;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -122,13 +123,15 @@ final class CompetitionsController extends AbstractController
     public function registration(  
         int $id,
         CompetitionsRepository $repository,         
+        TypeCompetitionRepository $repositoryTypecomp,         
         Request $request,   
     ) : Response{
         
         $event = $repository->find($id);
-        $session = $request->getSession();
+        $typecomp = $repositoryTypecomp->findOneBy(['id' =>$event->getTypeCompetition()->getId()]);
+        $event->setTypecompetition($typecomp);
+        $session = $request->getSession($typecomp);
         $session->set('event',$event);
-
         return $this->redirectToRoute('crews.registration');
     }
 

@@ -7,10 +7,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitorsRepository;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -51,7 +49,7 @@ class ImportCompetitorsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->uploadCompetitor();
+        $this->uploadCompetitors();
 
         return Command::SUCCESS;
     }
@@ -78,7 +76,7 @@ class ImportCompetitorsCommand extends Command
         return $data;
     }
 
-    private function uploadCompetitor(): void
+    private function uploadCompetitors(): void
     {
         $competitorCreated = 0;
         foreach($this->getdataFromFile() as $row){          

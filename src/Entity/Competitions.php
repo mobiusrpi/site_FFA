@@ -33,6 +33,9 @@ class Competitions
     #[ORM\Column(length: 50)]
     private ?string $location = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $selectable = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -101,6 +104,18 @@ class Competitions
     public function setLocation(string $location): static
     {
         $this->location = $location;
+
+        return $this;
+    }
+
+    public function isSelectable(): ?bool
+    {
+        return $this->selectable;
+    }
+
+    public function setSelectable(bool $selectable): static
+    {
+        $this->selectable = $selectable;
 
         return $this;
     }

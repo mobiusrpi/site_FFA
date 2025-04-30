@@ -7,7 +7,7 @@ use App\Form\CrewsType;
 use App\Form\RegistrationType;
 use App\Repository\CrewsRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\CompetitionsRepository;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -86,14 +86,15 @@ final class CrewsController extends AbstractController
     #[Route(path :'/registration/crews', name: 'crews.registration', methods:['GET','POST'])]
     public function registration(
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        CrewsRepository $crewsRepository
      ): Response{
         $session = $request->getSession();
-        $event = $session->get('event'); 
+        $competition = $session->get('event');
+        $crew = new Crews;        
+        $crew->setCompetition($crewsRepository->find($session->get('event'))); 
 
-        $crew = new Crews;
-        $formOption = array('compet' => $event);     
-        
+        $formOption = array('compet' => $session->get('event'));          
         $form = $this->createForm(RegistrationType::class, $crew, $formOption);
 
         $form->handleRequest($request);
@@ -107,8 +108,8 @@ final class CrewsController extends AbstractController
         }
 
         return $this->render('pages/crews/registration.html.twig', [
-            'event' => $event,  
-            'form' => $form,      
+            'compet' => $competition,
+            'form' => $form     
         ]);
     }
 }

@@ -11,9 +11,12 @@
         </div>   
       {% endfor %}  
       <div>
-        <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ event.location }}</strong>
-        du <strong>{{ event.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
-        au <strong>{{ event.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+        <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ compet.location }}</strong>
+        du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+        au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+      </div>
+      <div class= 'text-center'>
+        <p>Compétition de <strong>{{ compet.typecompetition.typecomp }}</strong></p>
       </div>
       <div class="mx-auto" style="width: 800px;">
           {{ form_start(form) }}
@@ -21,13 +24,7 @@
                 <div class="alert alert-danger">
                   {{ form_errors(form) }}
                 </div>
-              {% endif %}
-              <div class="row justify-content-center">
-                <div class='col-3'>
-                  {{ form_widget(form.competition) }}
-                </div>        
-              </div> 
-               
+              {% endif %}             
         <div class='col-12'>
             <hr class="bg-danger border-4 border-top border-danger" />
         </div>

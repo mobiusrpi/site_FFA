@@ -11,6 +11,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class CompetitionsType extends AbstractType
 {
@@ -57,6 +58,17 @@ class CompetitionsType extends AbstractType
                 ],
                 'label' => 'Lieu de la compétition',   
             ])
+            ->add('selectable',CheckboxType::class,[
+                'attr' => [
+                    'class' => 'form-check-input',                    
+                    'role' => 'switch',
+                ],                
+                'required' => false,
+                'label'    => 'Selection pour le championnat de France',
+                'label_attr' => [
+                    'class' => 'form-check-label'
+                ],
+             ])
             ->add('typecompetition', EntityType::class, [
                 'class' => TypeCompetition::class,
                 'choice_label' => 'typeComp',

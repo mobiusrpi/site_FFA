@@ -14,6 +14,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CompetitorsRepository::class)]
 #[UniqueEntity('ffaLicence')]
+#[UniqueEntity(
+    fields:['email'],
+    message: 'Email déjà utilisé',
+    errorPath: 'ffaLicence'
+)]
 class Competitors
 {
     #[ORM\Id]
@@ -40,7 +45,7 @@ class Competitors
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $flyingclub = null;
 
-    #[ORM\Column(length: 128)]
+    #[ORM\Column(length: 128, unique: true)]
     #[Assert\NotBlank()]
     private ?string $email = null;
 
@@ -56,6 +61,10 @@ class Competitors
     #[ORM\Column(nullable: true, enumType: Polosize::class)]
     private ?Polosize $poloSize = null;
 
+    #[ORM\Column()] 
+    #[Assert\NotBlank()]
+    private ?\DateTimeImmutable $createdAt = null;
+
     /**
      * @var Collection<int, Crews>
      */
@@ -69,7 +78,8 @@ class Competitors
     private Collection $navigator;
 
     public function __construct()
-    {
+    {        
+        $this->createdAt = new \DateTimeImmutable();
         $this->pilot = new ArrayCollection();
         $this->navigator = new ArrayCollection();
     }
@@ -199,6 +209,18 @@ class Competitors
     public function setPoloSize(?Polosize $poloSize): static
     {
         $this->poloSize = $poloSize;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
