@@ -47,6 +47,7 @@ class RegistrationType extends AbstractType
                 'query_builder' => function (EntityRepository $er) use($compet) {
                     return $er->getCompetitorsList($compet->getId());
                 },
+                'required' => true,
                 'attr' => [            
                     'class' => 'form-select',                     
                     'id' => 'pilotSelect',        
@@ -57,7 +58,8 @@ class RegistrationType extends AbstractType
                 'label_attr' => [
                     'for' => 'exampleSelect1',                          
                     'class' => 'form-label fw-bold',
-                ]
+                ],
+                'placeholder' => 'Selelectionner dans la liste'
             ])
 
             // additionnal runner field according to type event
@@ -71,14 +73,15 @@ class RegistrationType extends AbstractType
                     return $value->getLabel();  
                 },
                 'attr' => [
-                    'class' => 'form-control',                    
+                    'class' => 'form-select',                    
                     'id' => 'Select1',            
                 ],
+                'required' => true,
                 'label' => 'Catégorie',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],               
-//                'placeholder'=>'Selectionner une catégorie'
+                'placeholder'=>'Selectionner une catégorie'
             ])
             ->add('callsign',TextType::class,[
                 'attr' => [
@@ -99,13 +102,15 @@ class RegistrationType extends AbstractType
                     return $value->getLabel();  
                 },
                 'attr' => [
-                'class' => 'form-control',                    
-                ],
-            'label' => 'Vitesse en kt',
+                    'class' => 'form-control',                    
+                ],                
+                'required' => true,
+                'label' => 'Vitesse en kt',
                 'label_attr' => [
                     'class' => 'form-label'
-                ]                
-            ])
+                ],                
+                'placeholder'=>'Choisir sa vitesse'
+             ])
             ->add('aircraftType',TextType::class,[
                 'attr' => [
                     'class' => 'form-control',                    

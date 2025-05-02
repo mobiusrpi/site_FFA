@@ -8,24 +8,44 @@
         {{ form_start(form) }}
             <div class="row justify-content-center">
                 <div class="col-4">
-                    {{ form_row(form.lastname) }}
+                    {{ form_label(form.lastname) }}
+                    {% if form.vars.required %}
+                        <span class="required-asterisk text-danger">*</span>
+                    {% endif %}
+                    {{ form_widget(form.lastname) }}
+                    {{ form_errors(form.lastname) }}
                 </div>
                 <div class="col-4">
-                    {{ form_row(form.firstname) }}
+                    {{ form_label(form.firstname) }}
+                    {% if form.vars.required %}
+                        <span class="required-asterisk text-danger">*</span>
+                    {% endif %}
+                    {{ form_widget(form.firstname) }}
+                    {{ form_errors(form.firstname) }}
                 </div>
             </div>
             <div class="row justify-content-center">
                 <div class="col-4">
-                    {{ form_row(form.ffaLicence) }}
+                    {{ form_label(form.ffaLicence) }}
+                    {% if form.vars.required %}
+                        <span class="required-asterisk text-danger">*</span>
+                    {% endif %}
+                    {{ form_widget(form.ffaLicence) }}
+                    {{ form_errors(form.ffaLicence) }}
                </div>                    
                <div class="col-4">
-                    {{ form_row(form.dateBirth) }}
+                    {{ form_label(form.email) }}
+                    {% if form.vars.required %}
+                        <span class="required-asterisk text-danger">*</span>
+                    {% endif %}
+                    {{ form_widget(form.email) }}
+                    {{ form_errors(form.email) }}
                </div>                          
             </div>
             <div class="row justify-content-center">
                <div class="col-4">
-                    {{ form_row(form.email) }}
-               </div>                  
+                    {{ form_row(form.dateBirth) }}
+                </div>                  
                 <div class="col-4">
                     {{ form_row(form.phone) }}
                </div>                    

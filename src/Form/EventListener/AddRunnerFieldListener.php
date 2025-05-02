@@ -42,7 +42,7 @@ class AddRunnerFieldListener implements EventSubscriberInterface
         $compet = $session->get('event');
 
         $form = $event->getForm();
-//Check if is a mixte relay type of event ( id 2 - hard coding !!!)       
+      
         if ( $compet->getTypecompetition()->getId() <> 2) {
 
             $form->add('navigator', EntityType::class, [
@@ -54,14 +54,15 @@ class AddRunnerFieldListener implements EventSubscriberInterface
                     'class' => 'form-select',                   
                     'id' => 'navigatorSelect',    
                 ],
+                'required' => true,
                 'choice_label' =>function (Competitors $competitor): string {
                     return sprintf("%s %s", $competitor->getLastName(), $competitor->getFirstName());},
                  'label' => 'Navigateur',              
                  'label_attr' => [
                     'for' => 'exampleSelect1',                         
                     'class' => 'form-label fw-bold'
-                 ]
-
+                 ],
+                'placeholder' => 'Selelectionner dans la liste'
             ]);
         }
     }

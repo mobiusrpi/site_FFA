@@ -37,6 +37,7 @@ class CrewsType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',                    
                 ],
+                'required' => true,
                 'label' => 'Pilote',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
@@ -51,8 +52,9 @@ class CrewsType extends AbstractType
                 },			
                 'choice_label' => 'fullname',                
                 'attr' => [
-                'class' => 'form-control',                    
+                    'class' => 'form-control',                    
                 ],                
+                'required' => true,
                 'label' => 'Navigateur',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
@@ -73,17 +75,17 @@ class CrewsType extends AbstractType
                 'choice_label' => function (
                     mixed $value
                 ): TranslatableMessage|string {
-                    return $value;  
+                    return $value->getLabel();  
                 },
                 'attr' => [
-                    'class' => 'form-control',                    
-                    'id' => 'Select1',            
+                    'class' => 'form-select', 
+                    'id' => 'select1'                             
                 ],
                 'label' => 'Catégorie',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],               
-//                'placeholder'=>'Selectionner une catégorie'
+                'placeholder'=>'Selectionner une catégorie'
             ])
             ->add('callsign',TextType::class,[
                 'attr' => [

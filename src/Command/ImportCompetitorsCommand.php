@@ -55,8 +55,8 @@ class ImportCompetitorsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-//         $this->uploadPilots();
-       $this->uploadNavigators();
+  //        $this->uploadPilots();
+      $this->uploadNavigators();
 
         return Command::SUCCESS;
     }

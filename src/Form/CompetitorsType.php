@@ -104,8 +104,9 @@ class CompetitorsType extends AbstractType
                 'label' => 'Sexe',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
-                ]
-            ])
+                ],
+                'placeholder' => 'Selelectionner dans la liste'
+             ])
             ->add('committee',EnumType::class,[
                 'class' => CRAList::class,                
                 'choice_label' => function (
@@ -141,8 +142,9 @@ class CompetitorsType extends AbstractType
                 'label' => 'Taille polo',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
-                ]
-            ])
+                ],
+                'placeholder' => 'Selelectionner dans la liste'
+             ])
             ->add('submit', SubmitType::class, [             
                 'attr' => [
                     'class' => 'btn btn-primary mt-4'              

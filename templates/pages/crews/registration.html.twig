@@ -18,45 +18,73 @@
       <div class= 'text-center'>
         <p>Compétition de <strong>{{ compet.typecompetition.typecomp }}</strong></p>
       </div>
-      <div class="mx-auto" style="width: 800px;">
           {{ form_start(form) }}
+            <div class="mx-auto" style="width: 800px;">
               {% if form_errors(form) is not empty %}
                 <div class="alert alert-danger">
                   {{ form_errors(form) }}
                 </div>
               {% endif %}             
-        <div class='col-12'>
-            <hr class="bg-danger border-4 border-top border-danger" />
-        </div>
-      </div>  
-      <div class="mx-auto" style="width: 400px;">
-        <div class=""> 
-            {{ form_row(form.pilot) }}
-              <a href ="{{ path('competitors.registration', {'origin':app.request.attributes.get('_route')}) }}" class="btn btn-primary">
-                Nouveau compétiteur
-              </a>                  
-              {% if form.navigator is defined %}
-                {{ form_row(form.navigator) }}
-              {% endif %}              
-              <div class='form-group mt-4'>
-                {{ form_row(form.category) }} 
-              </div>                            
-            <div class="form-group border border-primary mt-4">     
-              <div class="row justify-content-center fw-bold">
-                <p class='text-center'>
-                  Avion
-                </p>
-              </div>         
-              {{ form_row(form.callsign) }}  
-              {{ form_row(form.aircraftFlyingclub) }}              
-              {{ form_row(form.aircraftType) }}
-              {{ form_row(form.aircraftSpeed) }}
-              <div class="form-check form-switch text-start">
-                {{ form_row(form.aircraftSharing) }}
+              <div class='col-12'>
+                  <hr class="bg-danger border-4 border-top border-danger" />
               </div>
-              {{ form_row(form.pilotShared) }}              
-            </div>                                         
-            {{ form_row(form._token) }}    
+            </div>  
+            <div class="mx-auto" style="width: 400px;">
+              <div class=""> 
+                {{ form_label(form.pilot) }}
+                {% if form.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(form.pilot) }}
+                {{ form_errors(form.pilot) }}
+              </div>
+              <div class= 'my-3'>
+                <a href ="{{ path('competitors.registration', {'origin':app.request.attributes.get('_route')}) }}" class="btn btn-primary">
+                  Nouveau compétiteur
+                </a>  
+              </div>
+              <div>                
+                {% if form.navigator is defined %}
+                  {{ form_label(form.navigator) }}
+                  {% if form.vars.required %}
+                      <span class="required-asterisk text-danger">*</span>
+                  {% endif %}
+                  {{ form_widget(form.navigator) }}
+                  {{ form_errors(form.navigator) }}
+                {% endif %}              
+              </div>
+              <div class="form-group border rounded-4 border-primary mt-4 p-3">   
+                {{ form_label(form.category) }}
+                {% if form.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(form.category) }}
+                {{ form_errors(form.category) }}
+              </div>                            
+              <div class="form-group border rounded-4 border-primary mt-4 p-3">     
+                <div class="row justify-content-center fw-bold">
+                  <p class='text-center'>
+                    Avion
+                  </p>
+                </div>         
+                {{ form_row(form.callsign) }}  
+                {{ form_row(form.aircraftFlyingclub) }}              
+                {{ form_row(form.aircraftType) }}
+                <div>
+                  {{ form_label(form.aircraftSpeed) }}
+                  {% if form.vars.required %}
+                      <span class="required-asterisk text-danger">*</span>
+                  {% endif %}
+                  {{ form_widget(form.aircraftSpeed) }}
+                  {{ form_errors(form.aircraftSpeed) }}
+                </div>
+                <div class="form-check form-switch text-start">
+                  {{ form_row(form.aircraftSharing) }}
+                </div>
+                {{ form_row(form.pilotShared) }}              
+              </div>                                         
+           </div>            
+           {{ form_row(form._token) }}    
             <div class="row justify-content-center">
               <div class="col-10 text-center">                 
                 {{ form_row(form.submit) }}                       
@@ -65,11 +93,7 @@
                 </a>    
               </div>   
             </div>
-            <div>
-              </br> </br> </br>
-            </div>
-          {{  form_end(form) }}   
-        </div>         
+          {{  form_end(form) }}           
         </div>
       </div>  
   </div>

@@ -33,6 +33,7 @@ class RegistrationController extends AbstractController
         SendMailService $mail,
         JWTService $jwt
     ): Response {
+
         $user = new Users();
         $user->setCreatedAt( new \DateTimeImmutable());
         $user->setUpdatedAt( new \DateTimeImmutable());  
@@ -49,15 +50,6 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // generate a signed url and email it to the user
-/*           $this->emailVerifier->sendEmailConfirmation('app_verify_email', $user,
-*                (new TemplatedEmail())
-*                    ->from(new Address('no-reply@monsite.net', 'FFA-sport'))
-*                    ->to((string) $user->getEmail())
-*                    ->subject('Please Confirm your Email')
-*                    ->htmlTemplate('registration/confirmation_email.html.twig')
-*            );
-*/
             $header = [
                 'type' => 'JWT',
                 'alg' => 'HS256',
@@ -69,14 +61,12 @@ class RegistrationController extends AbstractController
 
             $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
 
-            dd($token);
-
             // do anything else you need here, like send an email
             $mail->send(
                 'no-reply@monsite.net',
                 $user->getEmail(),'activation de votre compte sur le site sport-ffa-aero',
                 'register',
-                compact('user')
+                compact('user','token')
             );
 
             return $this->redirectToRoute('home');
@@ -87,33 +77,88 @@ class RegistrationController extends AbstractController
         ]);
     }
 
-    #[Route('/verify/email', name: 'app_verify_email')]
-    public function verifyUserEmail(Request $request, TranslatorInterface $translator, UsersRepository $usersRepository): Response
-    {
-        $id = $request->query->get('id');
+    #[Route('/verify/{token}', name: 'verify_user')]
+    public function verifyUser(
+        $token,
+        JWTService $jwt,
+        UsersRepository $usersRepository,
+        EntityManagerInterface $em
+    ): Response{
+        if ($jwt->isValid($token) && !$jwt->isExpired($token) &&
+        $jwt->check($token, $this->getParameter('app.jwtsecret')))
+        { 
+            $payload = $jwt->getPayload($token);
+            $user =$usersRepository->find($payload['user_id']);
 
-        if (null === $id) {
-            return $this->redirectToRoute('app_register');
+            if ($user && !$user->isVerified())
+            {  
+                $user->setIsVerified(true);
+                $em->flush($user);
+
+                $this->addFlash('succes','Cet utilisateur a été validé ');
+
+                return $this->redirectToRoute(('home'));
+            } 
+            if ($user){
+                $this->addFlash('succes','Cet utilisateur est inconnu');
+            }
+            else{
+                $this->addFlash('danger','Utilisateur déjà vérifié !');
+            }       
+            
+            return $this->redirectToRoute(('app_login'));   
         }
 
-        $user = $usersRepository->find($id);
+        $this->addFlash('danger','Le token est invalide ou il a expiré');
 
-        if (null === $user) {
-            return $this->redirectToRoute('app_register');
+        return $this->redirectToRoute(('app_login'));
+    }
+
+    #[Route('/resendVerif', name: 'resend_verif')]
+    public function resendVerif( 
+        JWTService $jwt,        
+        Request $request, 
+        SendMailService $mail,
+        UsersRepository $usersRepository
+    ): Response{
+
+        $user = $this->getUser();
+
+        if (!$user){
+
+            $this->addFlash('danger','Vous devez être connecté pour accéder à cette page');
+            
+            return $this->redirectToRoute('app_login');
         }
 
-        // validate email confirmation link, sets User::isVerified=true and persists
-        try {
-            $this->emailVerifier->handleEmailConfirmation($request, $user);
-        } catch (VerifyEmailExceptionInterface $exception) {
-            $this->addFlash('verify_email_error', $translator->trans($exception->getReason(), [], 'VerifyEmailBundle'));
+        if ($user->isVerified()){
 
-            return $this->redirectToRoute('app_register');
+            $this->addFlash('warning','Cet utilisateur est déjà activé');
+            
+            return $this->redirectToRoute('app_login');
         }
 
-        // @TODO Change the redirect on success and handle or remove the flash message in your templates
-        $this->addFlash('success', 'Your email address has been verified.');
+        $header = [
+            'type' => 'JWT',
+            'alg' => 'HS256',
+        ];
 
-        return $this->redirectToRoute('app_register');
+        $payload = [
+            'user_id' => $user->getId()
+        ];
+
+        $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
+
+        // do anything else you need here, like send an email
+        $mail->send(
+            'no-reply@monsite.net',
+            $user->getEmail(),'activation de votre compte sur le site sport-ffa-aero',
+            'register',
+            compact('user','token')
+        );
+
+        $this->addFlash('sucess','Email de vérification envoyé');
+
+        return $this->redirectToRoute('app_login');
     }
 }
