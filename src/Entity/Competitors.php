@@ -42,7 +42,7 @@ class Competitors
     #[Assert\NotBlank()]
     private ?\DateTimeImmutable $dateBirth = null;
 
-    #[ORM\Column(length: 30, nullable: true)]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $flyingclub = null;
 
     #[ORM\Column(length: 128, unique: true)]

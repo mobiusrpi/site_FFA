@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des inscrits{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h3 class='mx-auto text-center fw-bold'>Liste des inscrits</h3>
+
+        {% for message in app.flashes('success') %}
+          <div class="alert alert-success mt-4">
+            {{message}}
+          </div> 
+        {% endfor %}
+        
+        <table class="table table-light table-striped w-auto">
+            <thead class='table-light'>
+              <tr>
+                <th class="text-center" scope="col">Categorie</th>
+                <th class="text-center" scope="col">Immatriculation</th>
+                <th class="text-center" scope="col">Vp</th>                
+                <th class="text-center" scope="col">Nom prénom</th> 
+                <th class="text-center" scope="col">Aéroclub</th>                 
+                <th class="text-center" scope="col">Licence FFA</th>
+                <th class="text-center" scope="col">Email</th>                 
+                <th class="text-center" scope="col">Téléphone</th>                
+                <th class="text-center" scope="col">CRA</th>                 
+
+              </tr>                
+           </thead>
+            <tbody>      
+                {% for registant in registants %}                  
+                    {% if registant.category is defined %} 
+                         <tr>    
+                            <td rowspan="2">{{ registant.category.value }} </td>                            
+                            <td rowspan="2">{{ registant.callsign }} </td>                                             
+                            <td rowspan="2"> </td>                       
+                            <td>
+                                {{ registant.pilot.lastname }}  {{ registant.pilot.firstname }}  
+                            </td>
+                            <td>
+                                {{ registant.pilot.flyingclub }}  
+                            </td> 
+                            <td>
+                                {{ registant.pilot.ffalicence }}                        
+                            </td> 
+                            <td>
+                                {{ registant.pilot.email }}                         
+                            </td> 
+                            <td>
+                                {{ registant.pilot.phone }}                          
+                            </td> 
+                            <td></td> 
+                        </tr>
+                        <tr>             
+                            <td>    
+                                {{ registant.navigator.lastname }}  {{ registant.navigator.firstname }}                         
+                            </td>
+                            <td>
+                                {{ registant.navigator.flyingclub }}  
+                            </td> 
+                            <td>
+                                {{ registant.navigator.ffalicence }}                        
+                            </td> 
+                            <td>
+                                {{ registant.navigator.email }}                         
+                            <td> 
+                            </td>
+                                {{ registant.navigator.phone }}                          
+                            </td>                                    
+                            <td></td> 
+                       </tr>                   
+                    {% else %}                    
+                    {% endif %}
+
+                {% endfor %} 
+            </tbody>
+        </table>
+    </div>       
+    <div>          
+  {% endblock %}

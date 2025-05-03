@@ -87,14 +87,11 @@ final class CrewsController extends AbstractController
     public function registration(
         Request $request,
         EntityManagerInterface $entityManager,
-        CrewsRepository $crewsRepository
      ): Response{
         $session = $request->getSession();
-        $competition = $session->get('event');
-        $crew = new Crews;        
-        $crew->setCompetition($crewsRepository->find($session->get('event'))); 
-
-        $formOption = array('compet' => $session->get('event'));          
+        $competition = $session->get('event');   
+        $crew = new Crews;              
+        $formOption = array('compet' => $competition);          
         $form = $this->createForm(RegistrationType::class, $crew, $formOption);
 
         $form->handleRequest($request);

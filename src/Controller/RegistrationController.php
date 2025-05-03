@@ -157,7 +157,7 @@ class RegistrationController extends AbstractController
             compact('user','token')
         );
 
-        $this->addFlash('sucess','Email de vérification envoyé');
+        $this->addFlash('success','Email de vérification envoyé');
 
         return $this->redirectToRoute('app_login');
     }

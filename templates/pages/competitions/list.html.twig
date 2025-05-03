@@ -40,6 +40,9 @@
             <tbody>      
               {% for compet in competition_list %}
                 <tr>
+                
+                
+                {{ dump(compet) }}
                   <th scope="row">{{ compet.name }}</td>
 	                <td>{{ compet.typecompetition.typeComp }}</td> 
                   <td>{{ compet.location }}</td>

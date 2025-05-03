@@ -21,21 +21,10 @@
               Compétitions
           </a>        
         </li>
-        <div class="dropdown">
-          <a class="btn btn-dark dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-            Admin
-          </a>
-          <ul class="dropdown-menu nav-item" aria-labelledby="dropdownMenuButton1">
-            <li><a class="dropdown-item" href="#">Events</a></li>
-            <li><a class="dropdown-item" href="#">Competitors</a></li>
-           <li><a class="dropdown-item" href="#">Teams</a></li>
-          </ul>
-        </div>
-
-        {% if is_granted('ROLE_ADMIN') %}        
+        {% if is_granted('ROLE_USER') %}        
           <li class="nav-item">
             <a class="nav-link {% if app.request.attributes.get('_route') == 'user.list' %}active{% endif %}" 
-              href="#">
+              href="{{ path('admin') }}">            
               Admin
             </a>
           </li>

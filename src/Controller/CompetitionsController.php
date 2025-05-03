@@ -134,5 +134,20 @@ final class CompetitionsController extends AbstractController
         $session->set('event',$event);
         return $this->redirectToRoute('crews.registration');
     }
+    
+    #[Route(path :'/registration/competitions/list/{id}', name: 'competitions.registration.list', methods:['GET','POST'])]
+    public function registration_list(  
+        int $id,
+        CompetitionsRepository $repository,         
+        TypeCompetitionRepository $repositoryTypecomp,         
+        Request $request,    
+    ): Response 
+    {       
+        $registants = $repository->getQueryCrews($id);
+
+        return $this->render('pages/competitions/registantslist.html.twig', [
+            'registants' => $registants,            
+        ]);
+    }
 
 }

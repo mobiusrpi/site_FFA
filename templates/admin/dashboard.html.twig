@@ -1,0 +1,28 @@
+{# templates/admin/popup_menu.html.twig #}
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block content %}
+    {{ parent() }}
+    <button id="popup-button">Open Popup</button>
+    <div id="popup-menu" style="display:none;">
+        <!-- Popup menu content goes here -->
+        <ul>
+            <li><a href="#">Menu Item 1</a></li>
+            <li><a href="#">Menu Item 2</a></li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.getElementById('popup-button').addEventListener('click', function() {
+            var popupMenu = document.getElementById('popup-menu');
+            if (popupMenu.style.display === 'none') {
+                popupMenu.style.display = 'block';
+            } else {
+                popupMenu.style.display = 'none';
+            }
+        });
+    </script>
+{% endblock %}

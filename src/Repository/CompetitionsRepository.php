@@ -40,6 +40,50 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    public function getQueryCrewsPilot($eventId)
+    {    
+        return $this->createQueryBuilder('event')  
+            ->select('competitor')                  
+            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = event.id')        
+            ->innerJoin('App\Entity\Competitors', 'competitor','WITH','crew.pilot = competitor.id')          
+            ->where('event.id = :eventId') 
+            ->setParameter('eventId',$eventId)            
+            ->orderBy('competitor.lastname', 'ASC')        
+            ->getQuery()
+            ->getResult()
+        ;
+    }    
+    
+    public function getQueryCrewsNavigator($eventId)
+    {    
+        return $this->createQueryBuilder('event')  
+            ->select('competitor')                  
+            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = event.id')        
+            ->innerJoin('App\Entity\Competitors', 'competitor','WITH','crew.navigator = competitor.id')          
+            ->where('event.id = :eventId') 
+            ->setParameter('eventId',$eventId)            
+            ->orderBy('competitor.lastname', 'ASC')        
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+    
+    public function getQueryCrews($eventId)
+    {    
+        return $this->createQueryBuilder('event')  
+            ->select('event,crew,pilot,navigator')                  
+            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = event.id')        
+            ->innerJoin('App\Entity\Competitors', 'pilot','WITH','crew.pilot = pilot.id')          
+            ->innerJoin('App\Entity\Competitors', 'navigator','WITH','crew.navigator = navigator.id')          
+            ->where('event.id = :eventId') 
+            ->setParameter('eventId',$eventId)            
+            ->orderBy('pilot.lastname', 'ASC')  
+            ->groupBy('crew.id')      
+            ->getQuery()
+            ->getResult()
+        ;
+    }
  
     //    /**
     //     * @return Competitions[] Returns an array of Competitions objects
