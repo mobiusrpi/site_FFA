@@ -3,9 +3,11 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Competitions;
+use App\Repository\CompetitionsRepository;
 use App\Controller\Admin\CrewsCrudController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use App\Controller\Admin\Trait\BlockDeleteTrait;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -48,6 +50,13 @@ class CompetitionsCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        $customAction = Action::new('customAction', 'Liste des inscrits')
+            ->linkToRoute('admin_registered_crews',function (Competitions $entity) {
+                return [
+                    'id' =>$entity->getId(),
+                ];
+            });
+
         $registrationAction = Action::new('registrationAction', 'Inscription')
             ->linkToRoute('competitions.registration',function (Competitions $entity) {
                 return [
@@ -55,15 +64,29 @@ class CompetitionsCrudController extends AbstractCrudController
                 ];
             });
         
-        $registrationListAction = Action::new('customAction', 'Liste des inscrits')
-            ->linkToRoute('competitions.registration.list',function (Competitions $entity) {
-                return [
-                    'id' =>$entity->getId(),
-                ];
-            });
 
         return $actions
-            ->add(Crud::PAGE_INDEX, $registrationListAction)
-            ->add(Crud::PAGE_INDEX, $registrationAction);
+        ->add(Crud::PAGE_INDEX, $customAction)
+//        ->add(Crud::PAGE_INDEX, $registrationListAction)
+        ->add(Crud::PAGE_INDEX, $registrationAction);
     }
+
+    // Define the route and controller method to handle the custom action
+//The route admin_registered_crews is redirected to this function in the file
+//config/routes/easyadmin.yaml
+    public function customAction( 
+        int $id,
+        CompetitionsRepository $repository,  
+        Request $request,
+        AdminUrlGenerator $adminUrlGenerator
+    ): Response
+    {
+        $registants = $repository->getQueryCrews($id);
+        return $this->render('pages/competitions/registantslist.html.twig', [
+            'registants' => $registants,          
+        ]);            
+        $referrer = $request->headers->get('referer');
+        return $this->redirect($referrer ?? $adminUrlGenerator->setController(CrewsCrudController::class)->generateUrl());
+    }
+        
 }

@@ -30,7 +30,6 @@
                 {% for registant in registants %}                  
                     {% if registant.category is defined %} 
                         <tr>   
-                        {{ dump(registant) }}
                             <td rowspan="2">{{ registant.category.value }} </td>                            
                             <td rowspan="2">{{ registant.callsign }} </td>                                             
                             <td rowspan="2">{{ registant.aircraftSpeed.value }} </td>                       
@@ -41,7 +40,7 @@
                             <td>{{ registant.pilot.phone }}</td> 
                             <td>{{ registant.pilot.committee.value }}</td> 
                             <td>
-                                <form action="{{ path('admin.crews.edit',{'id': registant.id}) }}" method="post">
+                                <form name="edit-form" action="{{ path('admin.crews.edit',{'id': registant.id}) }}" method="post">
                                     <input type="hidden" name="_method" value="EDIT">
                                     <button type="submit" class= 'btn btn-outline-success btn-sm'>Modifier</button>
                                 </form>     
@@ -55,7 +54,7 @@
                             <td>{{ registant.navigator.phone }}</td>                                    
                             <td>{{ registant.pilot.committee.value }}</td> 
                             <td>  
-                                <form action="{{ path('admin.crews.delete',{'id': registant.id}) }}" method="post">
+                                <form name="delete-form" action="{{ path('admin.crews.delete',{'id': registant.id}) }}" method="post">
                                     <input type="hidden" name="_method" value="DELETE">
                                     <button type="submit" class= 'btn btn-outline-danger btn-sm'>Supprimer</button>
                                 </form>     
