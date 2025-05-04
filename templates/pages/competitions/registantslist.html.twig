@@ -11,12 +11,11 @@
             {{message}}
           </div> 
         {% endfor %}
-        
         <table class="table table-light table-striped w-auto">
             <thead class='table-light'>
-              <tr>
+            <tr>
                 <th class="text-center" scope="col">Categorie</th>
-                <th class="text-center" scope="col">Immatriculation</th>
+                <th class="text-center" scope="col">Immat.</th>
                 <th class="text-center" scope="col">Vp</th>                
                 <th class="text-center" scope="col">Nom prénom</th> 
                 <th class="text-center" scope="col">Aéroclub</th>                 
@@ -24,54 +23,45 @@
                 <th class="text-center" scope="col">Email</th>                 
                 <th class="text-center" scope="col">Téléphone</th>                
                 <th class="text-center" scope="col">CRA</th>                 
-
-              </tr>                
-           </thead>
+                <th class="text-center" scope="col">Action</th>                 
+            </tr>                
+        </thead>
             <tbody>      
                 {% for registant in registants %}                  
                     {% if registant.category is defined %} 
-                         <tr>    
+                        <tr>   
+                        {{ dump(registant) }}
                             <td rowspan="2">{{ registant.category.value }} </td>                            
                             <td rowspan="2">{{ registant.callsign }} </td>                                             
-                            <td rowspan="2"> </td>                       
+                            <td rowspan="2">{{ registant.aircraftSpeed.value }} </td>                       
+                            <td>{{ registant.pilot.lastname }}  {{ registant.pilot.firstname }}</td>
+                            <td>{{ registant.pilot.flyingclub }}</td> 
+                            <td>{{ registant.pilot.ffalicence }}</td> 
+                            <td>{{ registant.pilot.email }}</td> 
+                            <td>{{ registant.pilot.phone }}</td> 
+                            <td>{{ registant.pilot.committee.value }}</td> 
                             <td>
-                                {{ registant.pilot.lastname }}  {{ registant.pilot.firstname }}  
-                            </td>
-                            <td>
-                                {{ registant.pilot.flyingclub }}  
+                                <form action="{{ path('admin.crews.edit',{'id': registant.id}) }}" method="post">
+                                    <input type="hidden" name="_method" value="EDIT">
+                                    <button type="submit" class= 'btn btn-outline-success btn-sm'>Modifier</button>
+                                </form>     
                             </td> 
-                            <td>
-                                {{ registant.pilot.ffalicence }}                        
-                            </td> 
-                            <td>
-                                {{ registant.pilot.email }}                         
-                            </td> 
-                            <td>
-                                {{ registant.pilot.phone }}                          
-                            </td> 
-                            <td></td> 
                         </tr>
                         <tr>             
-                            <td>    
-                                {{ registant.navigator.lastname }}  {{ registant.navigator.firstname }}                         
-                            </td>
-                            <td>
-                                {{ registant.navigator.flyingclub }}  
+                            <td>{{ registant.navigator.lastname }}  {{ registant.navigator.firstname }}</td>
+                            <td>{{ registant.navigator.flyingclub }}</td> 
+                            <td>{{ registant.navigator.ffalicence }}</td> 
+                            <td>{{ registant.navigator.email }}</td> 
+                            <td>{{ registant.navigator.phone }}</td>                                    
+                            <td>{{ registant.pilot.committee.value }}</td> 
+                            <td>  
+                                <form action="{{ path('admin.crews.delete',{'id': registant.id}) }}" method="post">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class= 'btn btn-outline-danger btn-sm'>Supprimer</button>
+                                </form>     
                             </td> 
-                            <td>
-                                {{ registant.navigator.ffalicence }}                        
-                            </td> 
-                            <td>
-                                {{ registant.navigator.email }}                         
-                            <td> 
-                            </td>
-                                {{ registant.navigator.phone }}                          
-                            </td>                                    
-                            <td></td> 
-                       </tr>                   
-                    {% else %}                    
+                        </tr>        
                     {% endif %}
-
                 {% endfor %} 
             </tbody>
         </table>

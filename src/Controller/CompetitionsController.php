@@ -121,7 +121,7 @@ final class CompetitionsController extends AbstractController
 
     #[Route(path :'/registration/competitions/{id}', name: 'competitions.registration', methods:['GET','POST'])]
     public function registration(  
-        int $id,
+        int $id, 
         CompetitionsRepository $repository,         
         TypeCompetitionRepository $repositoryTypecomp,         
         Request $request,   

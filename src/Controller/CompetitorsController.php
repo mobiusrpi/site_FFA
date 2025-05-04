@@ -12,7 +12,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Form\Extension\Validator\Constraints\Form;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('')]final class CompetitorsController extends AbstractController
+#[Route('')]
+final class CompetitorsController extends AbstractController
 {
     #[Route('/competitors', name: 'admin.competitors.list', methods: ['GET'])]
     public function list(CompetitorsRepository $competitorsRepository): Response

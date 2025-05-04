@@ -53,7 +53,7 @@ final class CrewsController extends AbstractController
         ]);
     }
 
-    #[Route('/crews/{id}/edit', name: 'crews.edit', methods: ['GET', 'POST'])]
+    #[Route('/crews/{id}/edit', name: 'admin.crews.edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(CrewsType::class, $crew);
@@ -74,19 +74,20 @@ final class CrewsController extends AbstractController
 
     #[Route('/crews/{id}/delete', name: 'admin.crews.delete', methods: ['POST'])]
     public function delete(Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
-    {
+    {   
+        $eventId = 23;
         if ($this->isCsrfTokenValid('delete'.$crew->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($crew);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('admin.competitors.list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('crews.registration', [], Response::HTTP_SEE_OTHER);
     }
 
     #[Route(path :'/registration/crews', name: 'crews.registration', methods:['GET','POST'])]
     public function registration(
         Request $request,
-        EntityManagerInterface $entityManager,
+        EntityManagerInterface $entityManager,    //'admin_registered_crews' eventId'=>$eventId'
      ): Response{
         $session = $request->getSession();
         $competition = $session->get('event');   
