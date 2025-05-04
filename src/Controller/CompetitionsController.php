@@ -119,9 +119,10 @@ final class CompetitionsController extends AbstractController
         return $this->redirectToRoute('admin.competitions.list');
     }
 
-    #[Route(path :'/registration/competitions/{id}', name: 'competitions.registration', methods:['GET','POST'])]
+    #[Route(path :'/registration/competitions/{id}/{origin}', name: 'competitions.registration', methods:['GET','POST'])]
     public function registration(  
         int $id, 
+        $origin,
         CompetitionsRepository $repository,         
         TypeCompetitionRepository $repositoryTypecomp,         
         Request $request,   
@@ -132,7 +133,9 @@ final class CompetitionsController extends AbstractController
         $event->setTypecompetition($typecomp);
         $session = $request->getSession($typecomp);
         $session->set('event',$event);
-        return $this->redirectToRoute('crews.registration');
+        $session->set('origin',$origin);
+        return $this->redirectToRoute($origin);
+//        return $this->redirectToRoute('crews.registration');
     }
     
     #[Route(path :'/registration/competitions/list/{id}', name: 'competitions.registration.list', methods:['GET','POST'])]

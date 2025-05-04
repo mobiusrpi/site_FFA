@@ -87,10 +87,11 @@ final class CrewsController extends AbstractController
     #[Route(path :'/registration/crews', name: 'crews.registration', methods:['GET','POST'])]
     public function registration(
         Request $request,
-        EntityManagerInterface $entityManager,    //'admin_registered_crews' eventId'=>$eventId'
+        EntityManagerInterface $entityManager,    //'admin_registered_crews_list' eventId'=>$eventId'
      ): Response{
         $session = $request->getSession();
         $competition = $session->get('event');   
+        $origin = $session->get('origin');   
         $crew = new Crews;              
         $formOption = array('compet' => $competition);          
         $form = $this->createForm(RegistrationType::class, $crew, $formOption);
@@ -102,7 +103,7 @@ final class CrewsController extends AbstractController
             $entityManager->persist($crew);
             $entityManager->flush();
 
-            return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute($origin, [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('pages/crews/registration.html.twig', [

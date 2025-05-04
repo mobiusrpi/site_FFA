@@ -55,7 +55,7 @@
                     {% if compet.startRegistration <= date('now') and
                        date('now') <= compet.endRegistration %}
                       <td>       
-                        <a href='{{ path('competitions.registration',{'id': compet.id}) }}' 
+                        <a href='{{ path('competitions.registration',{'id': compet.id,'origin':app.request.attributes.get('_route')}) }}' 
                           class= 'btn btn-outline-success btn-sm'>Inscription</a>   
                       </td> 
                     {% else %}

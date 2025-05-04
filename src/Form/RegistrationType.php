@@ -52,6 +52,7 @@ class RegistrationType extends AbstractType
             ],
             'multiple' => false,
             'choice_label' => 'typecompetition.typecomp',
+
             'label' => 'Type de compétition',
             'label_attr' => [
                 'class' => 'form-label'
@@ -67,6 +68,7 @@ class RegistrationType extends AbstractType
                     'class' => 'form-select',                     
                     'id' => 'pilotSelect',        
                 ],
+                'choice_value' => 'id',               
                 'choice_label' =>function (Competitors $competitor): string {
                     return sprintf("%s %s", $competitor->getLastName(), $competitor->getFirstName());},
                 'label' => 'Pilote',
@@ -74,7 +76,7 @@ class RegistrationType extends AbstractType
                     'for' => 'exampleSelect1',                          
                     'class' => 'form-label fw-bold',
                 ],
-                'placeholder' => 'Selelectionner dans la liste'
+
             ])
 
             // additionnal runner field according to type event
