@@ -11,9 +11,9 @@
         </div>   
       {% endfor %}  
       <div>
-        <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ compet.location }}</strong>
-         du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
-         au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+        <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ form.vars.data.competition.location }}</strong>
+         du <strong>{{ form.vars.data.competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+         au <strong>{{ form.vars.data.competition.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
       </div>
       <div class= 'text-center'>
       </div>

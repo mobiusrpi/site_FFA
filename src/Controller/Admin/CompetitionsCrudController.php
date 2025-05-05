@@ -6,13 +6,15 @@ use App\Entity\Crews;
 use App\Entity\Competitions;
 use App\Form\RegistrationType;
 use App\Repository\CrewsRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\CompetitorsRepository;
 use App\Repository\CompetitionsRepository;
 use App\Controller\Admin\CrewsCrudController;
+use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Controller\Admin\Trait\BlockDeleteTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
@@ -140,14 +142,23 @@ public function editRegistrationAction(
     int $eventId,     
     int $crewId,   
     Request $request,
-    CompetitionsRepository $repositoryCompetition,
     CrewsRepository $repositoryCrew,  
+    CompetitorsRepository $repositoryCompetitor,  
+    CompetitionsRepository $repositoryCompetition,  
+    TypeCompetitionRepository $repositoryTypecomp,  
     EntityManagerInterface $em
 ): Response
 {
-    $competition = $repositoryCompetition->find($eventId);      
-    $crew = $repositoryCrew->find($crewId);                
-    $formOption = array('compet' => $competition);          
+    $competition = $repositoryCompetition->find($eventId);           
+    $typecomp = $repositoryTypecomp->findOneBy(['id' =>$competition->getTypeCompetition()->getId()]);
+    $competition->setTypecompetition($typecomp);
+    $crew = $repositoryCrew->find($crewId);      
+    $pilot = $repositoryCompetitor->find($crew->getPilot());      
+    $navigator = $repositoryCompetitor->find($crew->getNavigator());      
+    $crew->setPilot($pilot);
+    $crew->setNavigator($navigator);
+
+    $formOption = array('compet' => $competition,'pilotId' =>$pilot->getId());          
     $form = $this->createForm(RegistrationType::class, $crew, $formOption);
 
     $form->handleRequest($request);
@@ -162,6 +173,7 @@ public function editRegistrationAction(
 
     return $this->render('pages/crews/registration.html.twig', [
         'compet' => $competition,
+ //       'pilotId' => $pilot->getId(),
         'form' => $form     
     ]);
 }

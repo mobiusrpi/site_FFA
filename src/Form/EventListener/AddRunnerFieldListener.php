@@ -37,9 +37,9 @@ class AddRunnerFieldListener implements EventSubscriberInterface
         if (null === $request) {
             return;
         }
-
-        $session = $request->getSession();
-        $compet = $session->get('event');
+        $data = $event->getData();
+        $navigator = $data->getNavigator();
+        $compet = $data->getCompetition();
 
         $form = $event->getForm();
       
@@ -47,8 +47,8 @@ class AddRunnerFieldListener implements EventSubscriberInterface
 
             $form->add('navigator', EntityType::class, [
                 'class' => Competitors::class,   
-                'query_builder' => function (EntityRepository $er) use($compet) {
-                    return $er->getCompetitorsList($compet->getId());
+                'query_builder' => function (EntityRepository $er) use($navigator) {
+                    return $er->getCompetitorsList($navigator->getId());
                 },
                 'attr' => [            
                     'class' => 'form-select',                   

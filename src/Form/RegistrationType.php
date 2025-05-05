@@ -36,8 +36,9 @@ class RegistrationType extends AbstractType
     }      
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
-    {      
+    {     
         $compet = $options['compet'];
+        $pilotId = $options['pilotId'];
 
         $builder->addEventSubscriber($this->preSubmitSubscriber);
 
@@ -60,8 +61,8 @@ class RegistrationType extends AbstractType
         ])
         ->add('pilot', EntityType::class, [
                 'class' => Competitors::class,   
-                'query_builder' => function (EntityRepository $er) use($compet) {
-                    return $er->getCompetitorsList($compet->getId());
+                'query_builder' => function (EntityRepository $er) use($pilotId) {
+                    return $er->getCompetitorsList($pilotId);
                 },
                 'required' => true,
                 'attr' => [            
@@ -192,7 +193,8 @@ class RegistrationType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'compet' => null
+            'compet' => null,           
+            'pilotId' => null,
         ]);
         $resolver->setAllowedTypes('compet', 'object');
     }
