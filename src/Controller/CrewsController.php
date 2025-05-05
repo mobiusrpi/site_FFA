@@ -87,15 +87,18 @@ final class CrewsController extends AbstractController
     #[Route(path :'/registration/crews', name: 'crews.registration', methods:['GET','POST'])]
     public function registration(
         Request $request,
-        EntityManagerInterface $entityManager,    //'admin_registered_crews_list' eventId'=>$eventId'
+        EntityManagerInterface $entityManager,    
      ): Response{
         $session = $request->getSession();
         $competition = $session->get('event');   
         $origin = $session->get('origin');   
-        $crew = new Crews;              
-        $formOption = array('compet' => $competition);          
+        $crew = new Crews; 
+        $crew->setCompetition($competition);     
+        $entityManager->persist($crew);        
+        $formOption = array('compet' => $competition);    
+        
         $form = $this->createForm(RegistrationType::class, $crew, $formOption);
-
+        dd($form);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

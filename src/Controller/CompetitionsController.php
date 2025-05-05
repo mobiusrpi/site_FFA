@@ -131,19 +131,18 @@ final class CompetitionsController extends AbstractController
         $event = $repository->find($id);
         $typecomp = $repositoryTypecomp->findOneBy(['id' =>$event->getTypeCompetition()->getId()]);
         $event->setTypecompetition($typecomp);
+ 
         $session = $request->getSession($typecomp);
         $session->set('event',$event);
         $session->set('origin',$origin);
-        return $this->redirectToRoute($origin);
+        return $this->redirectToRoute('crews.registration');
 //        return $this->redirectToRoute('crews.registration');
     }
     
     #[Route(path :'/registration/competitions/list/{id}', name: 'competitions.registration.list', methods:['GET','POST'])]
     public function registration_list(  
         int $id,
-        CompetitionsRepository $repository,         
-        TypeCompetitionRepository $repositoryTypecomp,         
-        Request $request,    
+        CompetitionsRepository $repository,                 
     ): Response 
     {       
         $registants = $repository->getQueryCrews($id);

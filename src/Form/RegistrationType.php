@@ -10,10 +10,12 @@ use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\AbstractType;
-use App\Form\EventSubscriber\PreSubmitSubscriber;
+use App\Repository\CompetitorsRepository;
+use App\Repository\CompetitionsRepository;
 use Symfony\Component\Form\FormBuilderInterface;
+use App\Form\EventSubscriber\PreSubmitSubscriber;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use App\Form\EventListener\AddRunnerFieldListener;
+use App\Form\EventListener\AddNavigatorFieldListener;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -23,16 +25,16 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class RegistrationType extends AbstractType
 {    
-    private $addRunnerFieldListener;
+    private $addNavigatorFieldListener;
     
     private $preSubmitSubscriber;
 
     public function __construct(
         PreSubmitSubscriber $preSubmitSubscriber,
-        AddRunnerFieldListener $addRunnerFieldListener)
+        AddNavigatorFieldListener $addNavigatorFieldListener)
     {
         $this->preSubmitSubscriber = $preSubmitSubscriber;
-        $this->addRunnerFieldListener = $addRunnerFieldListener;
+        $this->addNavigatorFieldListener = $addNavigatorFieldListener;
     }      
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -61,7 +63,7 @@ class RegistrationType extends AbstractType
         ])
         ->add('pilot', EntityType::class, [
                 'class' => Competitors::class,   
-                'query_builder' => function (EntityRepository $er) use($pilotId) {
+                'query_builder' => function (CompetitorsRepository $er) use($pilotId) {
                     return $er->getCompetitorsList($pilotId);
                 },
                 'required' => true,
@@ -80,8 +82,9 @@ class RegistrationType extends AbstractType
 
             ])
 
-            // additionnal runner field according to type event
-           ->addEventListener(FormEvents::PRE_SET_DATA, [$this->addRunnerFieldListener, 'onPreSetData'])
+            // additionnal naavigator field according to type event
+           ->addEventListener(FormEvents::PRE_SET_DATA, 
+                [$this->addNavigatorFieldListener, 'onPreSetData'])
 
            ->add('category',EnumType::class,[
                 'class' => Category::class,                   
@@ -180,15 +183,17 @@ class RegistrationType extends AbstractType
                 'label' => 'Valider', 
             ])            
         ;    
-        
+
         $builder->addEventListener(
             FormEvents::PRE_SUBMIT,
             function (FormEvent $ev) {
                 $form = $ev->getForm();
                 // this would be your entity,
                 $team = $ev->getData();     
-            });
-        }
+            })
+        ;
+    }
+
 
     public function configureOptions(OptionsResolver $resolver)
     {
@@ -197,5 +202,6 @@ class RegistrationType extends AbstractType
             'pilotId' => null,
         ]);
         $resolver->setAllowedTypes('compet', 'object');
+//        $resolver->setAllowedTypes('pilotId', 'int');
     }
 }

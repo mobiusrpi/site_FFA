@@ -85,7 +85,8 @@ class CompetitionsCrudController extends AbstractCrudController
        
         return $actions
         ->add(Crud::PAGE_INDEX, $registerListAction)
-        ->add(Crud::PAGE_INDEX, $newRegistrationAction);
+        ->add(Crud::PAGE_INDEX, $newRegistrationAction)
+        ->add(Crud::PAGE_INDEX, $editRegistrationAction);
     }
 
 // Define the route and controller method to handle the custom action
@@ -111,13 +112,20 @@ public function newRegistrationAction(
     int $eventId,   
     Request $request,
     CompetitionsRepository $repositoryCompetition,
-    CrewsRepository $repositoryCrew,  
+    CrewsRepository $repositoryCrew,      
+    TypeCompetitionRepository $repositoryTypecomp, 
     EntityManagerInterface $em
 ): Response
 {
     $competition = $repositoryCompetition->find($eventId);      
-    $crew = new Crews;              
-    $formOption = array('compet' => $competition);          
+    $typecompId = $repositoryTypecomp->findOneBy(['id' =>$competition->getTypeCompetition()->getId()]);
+    $competition->setTypecompetition($typecompId);
+   
+    $crew = new Crews;    
+    $crew->setCompetition($competition);             
+          
+    $formOption = array('compet' => $competition);  
+    dd($crew,$formOption);        
     $form = $this->createForm(RegistrationType::class, $crew, $formOption);
 
     $form->handleRequest($request);
@@ -152,11 +160,13 @@ public function editRegistrationAction(
     $competition = $repositoryCompetition->find($eventId);           
     $typecomp = $repositoryTypecomp->findOneBy(['id' =>$competition->getTypeCompetition()->getId()]);
     $competition->setTypecompetition($typecomp);
+    $em->persist($competition);  
     $crew = $repositoryCrew->find($crewId);      
     $pilot = $repositoryCompetitor->find($crew->getPilot());      
     $navigator = $repositoryCompetitor->find($crew->getNavigator());      
     $crew->setPilot($pilot);
     $crew->setNavigator($navigator);
+    $em->persist($crew);  
 
     $formOption = array('compet' => $competition,'pilotId' =>$pilot->getId());          
     $form = $this->createForm(RegistrationType::class, $crew, $formOption);

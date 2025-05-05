@@ -24,10 +24,12 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-    App\Form\EventListener\AddRunnerFieldListener:
+    App\Form\EventListener\AddNavigatorFieldListener:
         tags:
             - { name: form.event_listener, event: form.pre_set_data, method: onPreSetData }
-
+    App\Form\RegistrationType:
+        arguments:
+            $addNavigatorFieldListener: '@App\Form\EventListener\AddNavigatorFieldListener'
     App\Form\EventSubscriber\PreSubmitSubscriber:
         tags:
             - { name: kernel.event_subscriber }
