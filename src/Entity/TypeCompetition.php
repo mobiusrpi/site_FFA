@@ -60,7 +60,6 @@ class TypeCompetition
             $this->type->add($type);
             $type->setTypecompetition($this);
         }
-
         return $this;
     }
 
@@ -72,7 +71,11 @@ class TypeCompetition
                 $type->setTypecompetition(null);
             }
         }
-
         return $this;
+    }
+
+    public function __toString(): string
+    {
+       return 'test_typecomp';
     }
 }

@@ -11,7 +11,6 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\AbstractType;
 use App\Repository\CompetitorsRepository;
-use App\Repository\CompetitionsRepository;
 use Symfony\Component\Form\FormBuilderInterface;
 use App\Form\EventSubscriber\PreSubmitSubscriber;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -40,31 +39,21 @@ class RegistrationType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {     
         $compet = $options['compet'];
-        $pilotId = $options['pilotId'];
-
         $builder->addEventSubscriber($this->preSubmitSubscriber);
 
-        $builder            
-        ->add('competition', EntityType::class, [
+        $builder   
+         ->add('competition', EntityType::class, [
             'class' => Competitions::class,
             'query_builder' => function (EntityRepository $er) use($compet) {
-                return $er->getEventChoice($compet->getId());
-            },
-            'attr' => [
-                'class' => 'form-control'                    ,            
-            ],
-            'multiple' => false,
-            'choice_label' => 'typecompetition.typecomp',
-
-            'label' => 'Type de compétition',
-            'label_attr' => [
-                'class' => 'form-label'
-            ]
+                return $er->getEventChoice($compet);
+            },  
+            'choice_label' => 'name',
+            'data' => $compet,
         ])
         ->add('pilot', EntityType::class, [
                 'class' => Competitors::class,   
-                'query_builder' => function (CompetitorsRepository $er) use($pilotId) {
-                    return $er->getCompetitorsList($pilotId);
+                'query_builder' => function (CompetitorsRepository $er) use($compet) {   
+                return $er->getCompetitorsList($compet->getId());
                 },
                 'required' => true,
                 'attr' => [            
@@ -77,12 +66,12 @@ class RegistrationType extends AbstractType
                 'label' => 'Pilote',
                 'label_attr' => [
                     'for' => 'exampleSelect1',                          
-                    'class' => 'form-label fw-bold',
+                    'class' => 'form-label fw-bold',                
                 ],
-
+                'placeholder' => 'Selelectionner dans la liste'
             ])
 
-            // additionnal naavigator field according to type event
+            // additionnal navigator field according to type event
            ->addEventListener(FormEvents::PRE_SET_DATA, 
                 [$this->addNavigatorFieldListener, 'onPreSetData'])
 
@@ -129,7 +118,7 @@ class RegistrationType extends AbstractType
                 'label' => 'Vitesse en kt',
                 'label_attr' => [
                     'class' => 'form-label'
-                ],                
+                ],               
                 'placeholder'=>'Choisir sa vitesse'
              ])
             ->add('aircraftType',TextType::class,[
@@ -175,33 +164,17 @@ class RegistrationType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label'
                 ],
-            ])
-            ->add('submit', SubmitType::class, [             
-                'attr' => [
-                    'class' => 'btn btn-primary mt-4'              
-                ],  
-                'label' => 'Valider', 
-            ])            
-        ;    
-
-        $builder->addEventListener(
-            FormEvents::PRE_SUBMIT,
-            function (FormEvent $ev) {
-                $form = $ev->getForm();
-                // this would be your entity,
-                $team = $ev->getData();     
-            })
+            ])              
+            ->addEventListener(FormEvents::PRE_SUBMIT, 
+                [$this->preSubmitSubscriber, 'onPreSubmit'])
         ;
     }
-
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'compet' => null,           
-            'pilotId' => null,
         ]);
         $resolver->setAllowedTypes('compet', 'object');
-//        $resolver->setAllowedTypes('pilotId', 'int');
     }
 }

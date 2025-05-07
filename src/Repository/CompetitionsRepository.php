@@ -16,17 +16,30 @@ class CompetitionsRepository extends ServiceEntityRepository
         parent::__construct($registry, Competitions::class);
     }
     
+    public function findCompetition($eventId)
+    {  
+        $qb = $this->createQueryBuilder('u')
+        ->select('u')
+        ->join('App\Entity\typecompetition','tc','WITH','tc.id = u.typecompetition')
+        ->where('u.id = :cptid')
+        ->setParameter('cptid', $eventId);
+        $query = $qb->getQuery();
+
+        return $query->getOneOrNullResult();
+    }
 
     /**
     * @return Selectedcompetition[]
     */
     public function getEventChoice($eventId)
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.id = :cptid')
-            ->setParameter('cptid', $eventId)
-            ->orderBy('u.name', 'ASC')
-        ;
+    {  
+        $qb = $this->createQueryBuilder('u')
+        ->select('u')
+        ->join('App\Entity\typecompetition','tc','WITH','tc.id = u.typecompetition')
+        ->where('u.id = :cptid')
+        ->setParameter('cptid', $eventId)
+        ->orderBy('u.name', 'ASC');             
+        return $qb;
     }
 
     /**

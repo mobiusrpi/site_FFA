@@ -99,9 +99,9 @@ final class CompetitorsController extends AbstractController
         return $errors;
     }
 
-    #[Route('/registration/competitors/{origin}', name: 'competitors.registration', methods: ['GET', 'POST'])]
+    #[Route('/registration/competitors/{link_origin}', name: 'competitors.registration', methods: ['GET', 'POST'])]
     public function registration( 
-            $origin,
+            $origin_crew,
             Request $request,        
             EntityManagerInterface $entityManager
         ): Response{
@@ -115,11 +115,11 @@ final class CompetitorsController extends AbstractController
             $entityManager->persist($competitor);
             $entityManager->flush();
            
-            return $this->redirectToRoute($origin, []);  
+            return $this->redirectToRoute($origin_crew, []);  
         }
 
         return $this->render('pages/competitors/registration.html.twig', [
-            'link_origin' => $origin,
+            'link_origin' => $origin_crew,
             'form' => $form,
         ]);
     }

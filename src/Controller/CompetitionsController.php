@@ -119,24 +119,26 @@ final class CompetitionsController extends AbstractController
         return $this->redirectToRoute('admin.competitions.list');
     }
 
-    #[Route(path :'/registration/competitions/{id}/{origin}', name: 'competitions.registration', methods:['GET','POST'])]
+    #[Route(path :'/registration/competitions/{competId}/{origin}', name: 'competitions.registration', methods:['GET','POST'])]
     public function registration(  
-        int $id, 
+        $competId, 
         $origin,
         CompetitionsRepository $repository,         
-        TypeCompetitionRepository $repositoryTypecomp,         
+        TypeCompetitionRepository $repositoryTypecomp,          
+        EntityManagerInterface $entityManager,           
         Request $request,   
     ) : Response{
         
-        $event = $repository->find($id);
-        $typecomp = $repositoryTypecomp->findOneBy(['id' =>$event->getTypeCompetition()->getId()]);
-        $event->setTypecompetition($typecomp);
- 
-        $session = $request->getSession($typecomp);
-        $session->set('event',$event);
+        $compet = $repository->find($competId);
+        $typecomp = $repositoryTypecomp->findOneBy(['id' =>$compet->getTypeCompetition()->getId()]);
+        $compet->setTypecompetition($typecomp);
+        $entityManager->persist($compet);
+
+        $session = $request->getSession();
+        $session->set('event',$compet);
         $session->set('origin',$origin);
-        return $this->redirectToRoute('crews.registration');
-//        return $this->redirectToRoute('crews.registration');
+
+        return $this->redirectToRoute('crews.registration',['competId' => $compet]);
     }
     
     #[Route(path :'/registration/competitions/list/{id}', name: 'competitions.registration.list', methods:['GET','POST'])]

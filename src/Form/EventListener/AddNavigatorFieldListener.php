@@ -15,15 +15,26 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class AddNavigatorFieldListener implements EventSubscriberInterface
 {
     private $requestStack;
+    private $competTypeId;
+    private $competId;
 
     public function __construct(RequestStack $requestStack)
     {
-        $this->requestStack = $requestStack;
+        $this->requestStack = $requestStack;        
     }
- 
+
+    public function setCompetTypeId($competTypeId): void
+    {
+        $this->competTypeId = $competTypeId;
+    }
+
+    public function setCompetId($competId): void
+    {
+        $this->competId = $competId;
+    }
+
     public static function getSubscribedEvents(): array
     {
-
         return [
             FormEvents::PRE_SET_DATA => 'onPreSetData',
         ];
@@ -36,43 +47,34 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
             return;
         }
         $data = $event->getData();
-        $form = $event->getForm();
 
         if ($data instanceof Crews) {
-            if ($data->getCompetition() !== null) {
-                $navigator = $data->getNavigator();
-                $form = $event->getForm();
-                if ( $data->getCompetition()->getTypecompetition()->getId() <> 2) {
+ //           $compet = $data->getCompetition();
+            $competId = $this->competId;
+            $form = $event->getForm();
 
-                    $form->add('navigator', EntityType::class, [
-                        'class' => Competitors::class,   
-                        'query_builder' => function (CompetitorsRepository $er) use($navigator) {
-                            if ($navigator !== null) {
-                                $competitorsList = $er->getCompetitorsList($navigator->getId());
-                            }
-                            else {
-                                $competitorsList = null;
-                            }
-                            return $competitorsList;
-                        },
-                        'attr' => [            
-                            'class' => 'form-select',                   
-                            'id' => 'navigatorSelect',    
-                        ],
-                        'required' => true,
-                        'choice_label' =>function (Competitors $competitor): string {
-                            return sprintf("%s %s", $competitor->getLastName(), $competitor->getFirstName());},
-                        'label' => 'Navigateur',              
-                        'label_attr' => [
-                            'for' => 'exampleSelect1',                         
-                            'class' => 'form-label fw-bold'
-                        ],
-                        'placeholder' => 'Selelectionner dans la liste'
-                    ]);
-                }
-            } else {
-                dd($data);
+            if ( $this->competTypeId <> 2) {
+                $form->add('navigator', EntityType::class, [
+                    'class' => Competitors::class,   
+                    'query_builder' => function (CompetitorsRepository $er) use($competId) {
+                          return $er->getCompetitorsList($competId);
+                    },
+                    'attr' => [            
+                        'class' => 'form-select',                   
+                        'id' => 'navigatorSelect',    
+                    ],
+                    'required' => true,
+                    'choice_label' =>function (Competitors $competitor): string {
+                        return sprintf("%s %s", $competitor->getLastName(), $competitor->getFirstName());},
+                    'label' => 'Navigateur',              
+                    'label_attr' => [
+                        'for' => 'exampleSelect1',                         
+                        'class' => 'form-label fw-bold'
+                    ],
+                    'placeholder' => 'Selelectionner dans la liste'
+                ]);
             }
+
         }
      }       
 }

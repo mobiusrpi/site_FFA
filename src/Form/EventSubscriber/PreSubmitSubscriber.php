@@ -21,11 +21,12 @@ class PreSubmitSubscriber implements EventSubscriberInterface
     {
         $data = $event->getData();
         $form = $event->getForm();
-
         // Perform your custom validation logic here
-        if ($data['pilot'] === $data['navigator']) {
-            $error = new FormError('Le pilote ne pas être identique au navigateur');
-            $form->addError($error);
+        if (isset($data['navigator'])) {
+            if ($data['pilot'] === $data['navigator']) {
+                $error = new FormError('Le pilote ne pas être identique au navigateur');
+                $form->addError($error);
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -19,13 +20,24 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Security\Core\Authentication\Token\NullToken;
 
 class CrewsType extends AbstractType
 {   
-    public function buildForm(FormBuilderInterface $builder, array $options): void
-    {   
-    
+    public function buildForm(FormBuilderInterface $builder,  array $options): void
+    {  
+        $compet = $options['compet'];
+
+// EntityManagerInterface $entityManager,
         $builder
+            ->add('competition', EntityType::class, [
+                'class' => Competitions::class,
+                'query_builder' => function (EntityRepository $er) use($compet) {
+                    return $er->getEventChoice($compet);
+                },  
+                'choice_label' => 'name',
+                'data' => $compet,
+            ])          
             ->add('pilot', EntityType::class, [
                 'class' => Competitors::class,
                 'query_builder' => function (EntityRepository $er): QueryBuilder {
@@ -62,14 +74,7 @@ class CrewsType extends AbstractType
                 'by_reference' => false,
                 'placeholder' =>'Selectionner un adhérent'
             ])   
-            ->add('competition', EntityType::class, [
-                'class' => Competitions::class,
-                'query_builder' => function (EntityRepository $er): QueryBuilder {
-                    return $er->createQueryBuilder('event')
-                        ->orderBy('event.name', 'ASC');
-                },
-                 'choice_label' => 'name',
-            ])
+
             ->add('category',EnumType::class,[
                 'class' => Category::class,                
                 'choice_label' => function (
@@ -100,11 +105,11 @@ class CrewsType extends AbstractType
             ])
             ->add('aircraftSpeed',EnumType::class,[
                 'class' => SpeedList::class,
-                'choice_label' => function ( 
-                        mixed $value
-                    ): TranslatableMessage|string {
-                        return $value;  
-                    },
+                'choice_label' => function (
+                    mixed $value
+                ): TranslatableMessage|string {
+                    return $value->getLabel();  
+                },
                 'attr' => [
                    'class' => 'form-control',                    
                 ],
@@ -171,7 +176,9 @@ class CrewsType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Crews::class,
+            'compet' => null,       
+            'entity_manager' => null,    
         ]);
+        $resolver->setAllowedTypes('compet', 'object');        
     }
 }

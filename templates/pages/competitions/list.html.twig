@@ -28,7 +28,7 @@
                 <th class="text-center" scope="col">Désignation</th>
                 <th class="text-center" scope="col">Type</th>
                 <th class="text-center" scope="col">Lieu</th>
-                <th class="text-center" scope="col">Début</th>
+                <th class="text-center" scope="col">Début</th> 
                 <th class="text-center" scope="col">Fin</th>                
                 <th class="text-center" scope="col">Début</th>
                 <th class="text-center" scope="col">Fin</th>
@@ -54,15 +54,15 @@
                   {% if is_granted('ROLE_USER') %}   
                     {% if compet.startRegistration <= date('now') and
                        date('now') <= compet.endRegistration %}
-                      <td>       
-                        <a href='{{ path('competitions.registration',{'id': compet.id,'origin':app.request.attributes.get('_route')}) }}' 
+                      <td>  
+                        <a href='{{ path('crews.registration',{'competId': compet.id}) }}' 
                           class= 'btn btn-outline-success btn-sm'>Inscription</a>   
                       </td> 
                     {% else %}
                       {% if compet.endRegistration <= date('now') %}       
                         <td>       
-                          <a href='#' 
-                            class= 'btn btn-outline-info btn-sm disabled'>Hors délai</a>   
+                          <a href='{{ path('crews.new',{'competId': compet.id}) }}'
+                            class= 'btn btn-outline-info btn-sm'>Hors délai</a>   
                         </td> 
                       {% else %}
                         <td>       

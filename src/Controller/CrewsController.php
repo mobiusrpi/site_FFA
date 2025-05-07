@@ -8,15 +8,24 @@ use App\Form\RegistrationType;
 use App\Repository\CrewsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
+use App\Repository\CompetitionsRepository;
+use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Form\EventListener\AddNavigatorFieldListener;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-
 final class CrewsController extends AbstractController
-{
-    #[Route(path: '/crews/list', name: 'admin.crews.list', methods: ['GET'])]
+{   private $addNavigatorFieldListener;
+    
+    public function __construct(
+        AddNavigatorFieldListener $addNavigatorFieldListener)
+    {
+        $this->addNavigatorFieldListener = $addNavigatorFieldListener;
+    }      
+
+     #[Route(path: '/crews/list', name: 'admin.crews.list', methods: ['GET'])]
     public function list(CrewsRepository $crewsRepository): Response
     {
         return $this->render('pages/admin/crews/list.html.twig', [
@@ -24,11 +33,25 @@ final class CrewsController extends AbstractController
         ]);
     }
 
-    #[Route('/crews/new', name: 'crews.new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $crew = new Crews();
-        $form = $this->createForm(CrewsType::class, $crew);
+    #[Route('/crews/new/{competId}', name: 'crews.new', methods: ['GET', 'POST'])]
+    public function new(
+        $competId,
+        Request $request,
+        CompetitionsRepository $repository,         
+        TypeCompetitionRepository $repositoryTypecomp,          
+        EntityManagerInterface $entityManager,
+    ): Response
+    {   
+        $compet = $repository->find($competId);
+        $typecomp = $repositoryTypecomp->findOneBy(['id' =>$compet->getTypeCompetition()->getId()]);
+        $compet->setTypecompetition($typecomp);
+        $entityManager->persist($compet);
+
+        $crew = new Crews();      
+
+        $form = $this->createForm(CrewsType::class, $crew, [
+            'compet' => $compet,
+        ]);
 
         $form->handleRequest($request);
 
@@ -36,11 +59,11 @@ final class CrewsController extends AbstractController
             $entityManager->persist($crew);
             $entityManager->flush();
 
-            return $this->redirectToRoute('admin.crews.list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('pages/crews/new.html.twig', [
-            'crew' => $crew,
+            'compet' => $compet,
             'form' => $form,
         ]);
     }
@@ -53,7 +76,7 @@ final class CrewsController extends AbstractController
         ]);
     }
 
-    #[Route('/crews/{id}/edit', name: 'admin.crews.edit', methods: ['GET', 'POST'])]
+    #[Route('/crews/{id}/edit', name: 'crews.edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(CrewsType::class, $crew);
@@ -73,7 +96,7 @@ final class CrewsController extends AbstractController
     }
 
     #[Route('/crews/{id}/delete', name: 'admin.crews.delete', methods: ['POST'])]
-    public function delete(Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
+    public function delete(int $id, Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
     {   
         $eventId = 23;
         if ($this->isCsrfTokenValid('delete'.$crew->getId(), $request->getPayload()->getString('_token'))) {
@@ -81,24 +104,29 @@ final class CrewsController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('crews.registration', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('crews.registration', ['competId'=>$id], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route(path :'/registration/crews', name: 'crews.registration', methods:['GET','POST'])]
+    #[Route(path :'/registration/crews/{competId}', name: 'crews.registration', methods:['GET','POST'])]
     public function registration(
+        $competId,
         Request $request,
-        EntityManagerInterface $entityManager,    
-     ): Response{
-        $session = $request->getSession();
-        $competition = $session->get('event');   
-        $origin = $session->get('origin');   
-        $crew = new Crews; 
-        $crew->setCompetition($competition);     
-        $entityManager->persist($crew);        
-        $formOption = array('compet' => $competition);    
-        
-        $form = $this->createForm(RegistrationType::class, $crew, $formOption);
-        dd($form);
+        CompetitionsRepository $repositoryCompetition,         
+        TypeCompetitionRepository $repositoryTypecomp,          
+        EntityManagerInterface $entityManager,
+    ): Response
+    {  
+        $compet = $repositoryCompetition->find($competId);
+
+        $this->addNavigatorFieldListener->setCompetTypeId($compet->getTypeCompetition()->getId());
+        $this->addNavigatorFieldListener->setCompetId($compet->getId());
+
+        $crew = new Crews();      
+
+        $form = $this->createForm(RegistrationType::class, $crew, [
+            'compet' => $compet,
+        ]);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -106,11 +134,12 @@ final class CrewsController extends AbstractController
             $entityManager->persist($crew);
             $entityManager->flush();
 
-            return $this->redirectToRoute($origin, [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('pages/crews/registration.html.twig', [
-            'compet' => $competition,
+            'compet' => $compet,
+            'origin_list' => 'competitions.list',
             'form' => $form     
         ]);
     }

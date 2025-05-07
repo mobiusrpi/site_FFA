@@ -11,13 +11,12 @@
         </div>   
       {% endfor %}  
       <div>
-        <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ form.vars.data.competition.location }}</strong>
-         du <strong>{{ form.vars.data.competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
-         au <strong>{{ form.vars.data.competition.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
-      </div>
+        <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ compet.location }}</strong>
+         du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+         au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+        <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>     </div>
       <div class= 'text-center'>
       </div>
-      {{dump(compet) }}
           {{ form_start(form) }}
             <div class="mx-auto" style="width: 800px;">
               {% if form_errors(form) is not empty %}
@@ -44,7 +43,7 @@
                 {{ form_errors(form.pilot) }}
               </div>
               <div class= 'my-3'>
-                <a href ="{{ path('competitors.registration', {'origin':app.request.attributes.get('_route')}) }}" class="btn btn-primary">
+                <a href ="{{ path('competitors.registration', {'link_origin':app.request.attributes.get('_route')}) }}" class="btn btn-primary">
                   Nouveau compétiteur
                 </a>  
               </div>
@@ -88,12 +87,13 @@
                 </div>
                 {{ form_row(form.pilotShared) }}              
               </div>                                         
-           </div>            
-           {{ form_row(form._token) }}    
-             <div class="row justify-content-center">
-              <div class="col-10 text-center">                 
-                {{ form_row(form.submit) }}                       
-                <a href ="{{ path('competitions.list') }}" class="btn btn-info btn-sm mt-4">
+            </div>            
+            {{ form_row(form._token) }}            
+
+            <div class="row justify-content-center">
+              <div class="col-10 text-center">   
+              <button class='btn btn-primary mt-4',type='submit'> Valider</button>              
+                <a href ="{{ path(origin_list) }}" class="btn btn-info btn-sm mt-4">
                   Annuler
                 </a>    
               </div>   
