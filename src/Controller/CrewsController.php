@@ -6,8 +6,9 @@ use App\Entity\Crews;
 use App\Form\CrewsType;
 use App\Form\RegistrationType;
 use App\Repository\CrewsRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UsersRepository;
 
+use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -113,10 +114,20 @@ final class CrewsController extends AbstractController
         Request $request,
         CompetitionsRepository $repositoryCompetition,         
         TypeCompetitionRepository $repositoryTypecomp,          
-        EntityManagerInterface $entityManager,
+        EntityManagerInterface $entityManager,        
+        UsersRepository $usersRepository
     ): Response
     {  
         $compet = $repositoryCompetition->find($competId);
+        
+        $user = $this->getUser();
+
+        if (!$user->isVerified()){
+            $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
+
+         return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+        
+       };
 
         $this->addNavigatorFieldListener->setCompetTypeId($compet->getTypeCompetition()->getId());
         $this->addNavigatorFieldListener->setCompetId($compet->getId());

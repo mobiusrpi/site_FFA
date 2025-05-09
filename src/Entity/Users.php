@@ -2,15 +2,21 @@
 
 namespace App\Entity;
 
-use App\Repository\UsersRepository;
+use App\Entity\Enum\Gender;
+use App\Entity\Enum\CRAList;
+use App\Entity\Enum\Polosize;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\UsersRepository;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'Il y a  déjà un compte avec cet email')]
+#[UniqueEntity(fields: ['licenseFfa'], message: 'Licence FFA déjà enregistrée')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -18,7 +24,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
     /**
@@ -36,10 +42,15 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private bool $isVerified = false;
 
-    #[ORM\Column(length: 180)]
-    private ?string $lastName = null;
+    #[ORM\Column(length: 10, unique: true)]
+    private ?string $licenseFfa = null;
 
-    #[ORM\Column(length: 180, nullable: true)]
+    #[ORM\Column(length: 30)]
+    #[Assert\NotBlank()]
+    private ?string $lastname = null;
+
+    #[ORM\Column(length: 30)]
+    #[Assert\NotBlank()]
     private ?string $firstname = null;
 
     #[ORM\Column]
@@ -50,12 +61,48 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $resetToken = null;
+
+    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Competitors $competitor = null;
  
-    
+        #[ORM\Column(nullable: true)] 
+    #[Assert\NotBlank()]
+    private ?\DateTimeImmutable $dateBirth = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $flyingclub = null;
+
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $phone = null;
+
+    #[ORM\Column(nullable: true, enumType: Gender::class)]
+    private ?Gender $gender = null;
+
+    #[ORM\Column(nullable: true,enumType: CRAList::class)]
+    private ?CRAList $committee = null;
+
+    #[ORM\Column(nullable: true, enumType: Polosize::class)]
+    private ?Polosize $poloSize = null;
+
+       /**
+     * @var Collection<int, Crews>
+     */
+    #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'pilot')]
+    private Collection $pilot;
+
+    /**
+     * @var Collection<int, Crews>
+     */
+    #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'navigator')]
+    private Collection $navigator;
+
     public function __construc()
     {
         $this->createdAt = new \DateTimeImmutable();       
-        $this->updatedAt = new \DateTimeImmutable();      }
+        $this->updatedAt = new \DateTimeImmutable();      
+//        $this->pilot = new ArrayCollection();
+//        $this->navigator = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -74,7 +121,44 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
+    public function getLastname(): ?string
+    {
+        return $this->lastname;
+    }
+
+    public function setLastname(string $lastname): static
+    {
+        $this->lastname = $lastname;
+
+        return $this;
+    }
+
+    public function getFirstname(): ?string
+    {
+        return $this->firstname;
+    }
+
+ 
+    public function setFirstname(string $firstname): static
+    {
+        $this->firstname = $firstname;
+
+        return $this;
+    }
+    
+    public function getLicenseFfa(): ?string
+    {
+        return $this->licenseFfa;
+    }
+
+    public function setLicenseFfa(string $licenseFfa): static
+    {
+        $this->licenseFfa = $licenseFfa;
+
+        return $this;
+    }
+
+   /**
      * A visual identifier that represents this user.
      *
      * @see UserInterface
@@ -142,32 +226,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    
-    public function getLastName(): ?string
-    {
-        return $this->lastName;
-    }
-
-    public function setLastName(string $lastName): static
-    {
-        $this->lastName = $lastName;
-
-        return $this;
-    }
-
-    public function getFirstname(): ?string
-    {
-        return $this->firstname;
-    }
-
-    public function setFirstname(?string $firstname): static
-    {
-        $this->firstname = $firstname;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
+       public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -202,4 +261,151 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getCompetitor(): ?Competitors
+    {
+        return $this->competitor;
+    }
+
+    public function setCompetitor(?Competitors $competitor): static
+    {
+        $this->competitor = $competitor;
+
+        return $this;
+    }
+
+    
+    public function getDateBirth(): ?\DateTimeImmutable
+    {
+        return $this->dateBirth;
+    }
+
+    public function setDateBirth(\DateTimeImmutable $dateBirth): static
+    {
+        $this->dateBirth = $dateBirth;
+
+        return $this;
+    }
+
+    public function getFlyingclub(): ?string
+    {
+        return $this->flyingclub;
+    }
+
+    public function setFlyingclub(?string $flyingclub): static
+    {
+        $this->flyingclub = $flyingclub;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function getGender(): ?Gender
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?Gender $gender): static
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    public function getCommittee(): ?CRAList
+    {
+        return $this->committee;
+    }
+
+    public function setCommittee(CRAList $committee): static
+    {
+        $this->committee = $committee;
+
+        return $this;
+    }
+
+    public function getPoloSize(): ?Polosize
+    {
+        return $this->poloSize;
+    }
+
+    public function setPoloSize(?Polosize $poloSize): static
+    {
+        $this->poloSize = $poloSize;
+
+        return $this;
+    }
+
+    
+    /**
+     * @return Collection<int, Crews>
+     */
+    public function getPilot(): Collection
+    {
+        return $this->pilot;
+    }
+
+    public function addPilot(Crews $pilot): static
+    {
+        if (!$this->pilot->contains($pilot)) {
+            $this->pilot->add($pilot);
+            $pilot->setPilot($this);
+        }
+
+        return $this;
+    }
+
+    public function removePilot(Crews $pilot): static
+    {
+        if ($this->pilot->removeElement($pilot)) {
+            // set the owning side to null (unless already changed)
+            if ($pilot->getPilot() === $this) {
+                $pilot->setPilot(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Crews>
+     */
+    public function getNavigator(): Collection
+    {
+        return $this->navigator;
+    }
+
+    public function addNavigator(Crews $navigator): static
+    {
+        if (!$this->navigator->contains($navigator)) {
+            $this->navigator->add($navigator);
+            $navigator->setNavigator($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNavigator(Crews $navigator): static
+    {
+        if ($this->navigator->removeElement($navigator)) {
+            // set the owning side to null (unless already changed)
+            if ($navigator->getNavigator() === $this) {
+                $navigator->setNavigator(null);
+            }
+        }
+
+        return $this;
+    }    
+
 }

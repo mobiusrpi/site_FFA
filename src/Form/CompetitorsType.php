@@ -14,7 +14,6 @@ use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class CompetitorsType extends AbstractType
@@ -22,36 +21,6 @@ class CompetitorsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('lastname',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '30'
-                ],
-                'label' => 'Nom',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],               
-            ])
-            ->add('firstname',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '30'
-                ],
-                'label' => 'Prénom',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],               
-            ])
-            ->add('ffaLicence',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '15'
-                ],
-                'label' => 'Licence fédérale',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-            ])
             ->add('dateBirth', DateType::class, [
                 'widget' => 'single_text',
                 'attr' => [
@@ -68,16 +37,6 @@ class CompetitorsType extends AbstractType
                     'maxlength' => '30'
                 ],
                 'label' => 'Aéroclub',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-            ])
-            ->add('email',EmailType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '128'
-                ],
-                'label' => 'Email',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],

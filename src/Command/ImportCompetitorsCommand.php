@@ -98,14 +98,10 @@ class ImportCompetitorsCommand extends Command
                     else{
                         $polo = $row['Taille_polo_pilote'];
                     };
-                    $competitor->setEmail($row['Adresse e-mail'])
-                                ->setLastname($row['Nom pilote'])
-                                ->setFirstname($row['Prénom_pilote'])
-                                ->setFfaLicence($row['N°_licence FFA_pilote'])
-                                ->setFlyingclub($row['Aéro-club_prise_de_licence_pilote'])
-                                ->setPhone($row['Téléphone_portable_pilote'])
-                                ->setCommittee(CRAList::from($row['CRA_Licence_pilote']))                              
-                                ->setPoloSize(Polosize::from($polo));
+                    $competitor->setFlyingclub($row['Aéro-club_prise_de_licence_pilote'])
+                               ->setPhone($row['Téléphone_portable_pilote'])
+                               ->setCommittee(CRAList::from($row['CRA_Licence_pilote']))                              
+                               ->setPoloSize(Polosize::from($polo));
                   
                     $this->entityManager->persist($competitor);
                     $competitorCreated++;
@@ -142,14 +138,10 @@ class ImportCompetitorsCommand extends Command
                         $polo = $row['Taille_polo_navigateur'];
                     };
                     $competitor = new Competitors;
-                    $competitor->setEmail($row['adresse_mail_navigateur'])
-                                ->setLastname($row['Nom_navigateur'])
-                                ->setFirstname($row['Prénom_navigateur'])
-                                ->setFfaLicence($row['N°_licence FFA_navigateur'])
-                                ->setFlyingclub($row['Aéro-club_prise_de_licence_navigateur'])
-                                ->setPhone($row['Téléphone_portable_navigateur'])
-                                ->setCommittee(CRAList::from($row['CRA_Licence_navigateur']))
-                                ->setPoloSize(Polosize::from($polo));
+                    $competitor->setFlyingclub($row['Aéro-club_prise_de_licence_navigateur'])
+                               ->setPhone($row['Téléphone_portable_navigateur'])
+                               ->setCommittee(CRAList::from($row['CRA_Licence_navigateur']))
+                               ->setPoloSize(Polosize::from($polo));
                   
                     $this->entityManager->persist($competitor);
                     $competitorCreated++;

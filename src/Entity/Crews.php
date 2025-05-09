@@ -53,10 +53,10 @@ class Crews
 
     #[ORM\ManyToOne(inversedBy: 'pilot')]    
     #[Assert\NotBlank()]
-    private ?Competitors $pilot = null;
+    private ?Users $pilot = null;
 
     #[ORM\ManyToOne(inversedBy: 'navigator')]
-    private ?Competitors $navigator = null;
+    private ?Users $navigator = null;
 
     public function getId(): ?int
     {
@@ -171,24 +171,24 @@ class Crews
         return $this;
     }
 
-    public function getPilot(): ?Competitors
+    public function getPilot(): ?Users
     {
         return $this->pilot;
     }
 
-    public function setPilot(?Competitors $pilot): static
+    public function setPilot(?Users $pilot): static
     {
         $this->pilot = $pilot;
 
         return $this;
     }
 
-    public function getNavigator(): ?Competitors
+    public function getNavigator(): ?users
     {
         return $this->navigator;
     }
 
-    public function setNavigator(?Competitors $navigator): static
+    public function setNavigator(?Users $navigator): static
     {
         $this->navigator = $navigator;
 

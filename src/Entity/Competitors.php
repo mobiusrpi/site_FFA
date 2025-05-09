@@ -13,12 +13,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CompetitorsRepository::class)]
-#[UniqueEntity('ffaLicence')]
-#[UniqueEntity(
-    fields:['email'],
-    message: 'Email déjà utilisé',
-    errorPath: 'ffaLicence'
-)]
 class Competitors
 {
     #[ORM\Id]
@@ -26,28 +20,12 @@ class Competitors
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 30)]
-    #[Assert\NotBlank()]
-    private ?string $lastname = null;
-
-    #[ORM\Column(length: 30)]
-    #[Assert\NotBlank()]
-    private ?string $firstname = null;
-
-    #[ORM\Column(length: 15, unique: true)] 
-    #[Assert\NotBlank()]
-    private ?string $ffaLicence = null;
-
     #[ORM\Column(nullable: true)] 
     #[Assert\NotBlank()]
     private ?\DateTimeImmutable $dateBirth = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $flyingclub = null;
-
-    #[ORM\Column(length: 128, unique: true)]
-    #[Assert\NotBlank()]
-    private ?string $email = null;
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $phone = null;
@@ -89,46 +67,6 @@ class Competitors
         return $this->id;
     }
 
-    public function getLastname(): ?string
-    {
-        return $this->lastname;
-    }
-
-    public function setLastname(string $lastname): static
-    {
-        $this->lastname = $lastname;
-
-        return $this;
-    }
-
-    public function getFirstname(): ?string
-    {
-        return $this->firstname;
-    }
-
-    public function setFirstname(string $firstname): static
-    {
-        $this->firstname = $firstname;
-
-        return $this;
-    }
-
-    public function getFullName(){
-        return $this->lastname.' '.$this->firstname.' ('.$this->ffaLicence.')';
-    }
-    
-    public function getFfaLicence(): ?string
-    {
-        return $this->ffaLicence;
-    }
-
-    public function setFfaLicence(string $ffaLicence): static
-    {
-        $this->ffaLicence = $ffaLicence;
-
-        return $this;
-    }
-
     public function getDateBirth(): ?\DateTimeImmutable
     {
         return $this->dateBirth;
@@ -149,18 +87,6 @@ class Competitors
     public function setFlyingclub(?string $flyingclub): static
     {
         $this->flyingclub = $flyingclub;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
 
         return $this;
     }
@@ -284,9 +210,32 @@ class Competitors
 
         return $this;
     }    
-    
+
+    public function getUser(): ?Users
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Users $user): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($user === null && $this->user !== null) {
+            $this->user->setCompetitor(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($user !== null && $user->getCompetitor() !== $this) {
+            $user->setCompetitor($this);
+        }
+
+        $this->user = $user;
+
+        return $this;
+    }   
+
     public function __toString(): string
     {
        return 'test_competitor';
     }
+
 }

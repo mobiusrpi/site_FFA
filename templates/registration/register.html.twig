@@ -3,21 +3,99 @@
 {% block title %}Inscription{% endblock %}
 
 {% block body %}
-    {% for flash_error in app.flashes('verify_email_error') %}
-        <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
-    {% endfor %}
+    <section class='container mt-4' >
+        <h3 class="h3 text-center font-weight-normal mb-3">M'inscrire</h3> 
+        {{ form_errors(registrationForm) }}
 
-    <h1>M'inscrire</h1>
+        {{ form_start(registrationForm) }}
+        <div class="row justify-items-center">
+            <div class="col-5 border border-dark border-1 rounded-3 p-4 me-2">
+            <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4> 
+                {{ form_errors(registrationForm.email) }}
+                {{ form_label(registrationForm.email) }}
+                {% if registrationForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(registrationForm.email) }}
 
-    {{ form_errors(registrationForm) }}
+                {{ form_errors(registrationForm.lastname) }}
+                {{ form_label(registrationForm.lastname) }}
+                {% if registrationForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(registrationForm.lastname) }}
+ 
+                {{ form_errors(registrationForm.firstname) }}
+                {{ form_label(registrationForm.firstname) }}
+                {% if registrationForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(registrationForm.firstname) }}
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.lastname) }}
-        {{ form_row(registrationForm.firstname) }}
-        {{ form_row(registrationForm.plainPassword) }}
-        {{ form_row(registrationForm.agreeTerms) }}
-        {{ form_row(registrationForm.submit) }}
-        <p class="mr-3"> Déjà inscrit(e) ? :<a href="{{ path('app_login') }}" class="btn btn-info btn-sm ms-1"> Me connecter</a></p>
-    {{ form_end(registrationForm) }}
+               {{ form_errors(registrationForm.plainPassword) }}
+                {{ form_label(registrationForm.plainPassword) }}
+                {% if registrationForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(registrationForm.plainPassword) }}
+ 
+                {{ form_errors(registrationForm.licenseFfa) }}
+                {{ form_label(registrationForm.licenseFfa) }}
+                {% if registrationForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}
+                {{ form_widget(registrationForm.licenseFfa) }}
+
+                <div class="col border border-dark rounded-3 pe-5 py-2 bg-secondary text-white form-check mt-4">
+                    {{ form_row(registrationForm.isCompetitor) }}
+                </div>
+            </div>                   
+             <div class="col-6 border border-dark border-1 rounded-3 p-4 ms-2" 
+             id="competitorFieldsContainer" 
+             style="display: none;">
+                <h4 class="text-center font-weight-normal mb-3">Informations additionnelles pour les compétiteurs</h4> 
+                {{ form_row(registrationForm.dateBirth) }}               
+                {{ form_row(registrationForm.flyingclub) }}                
+                {{ form_row(registrationForm.phone) }}        
+               {{ form_row(registrationForm.gender) }}               
+                {{ form_row(registrationForm.committee) }}                
+                {{ form_row(registrationForm.poloSize) }}        
+            </div> 
+        </div>
+       <div class="row justify-items-center">                 
+            <div class="col text-center">                        
+                <p> {{ form_row(registrationForm.agreeTerms) }} </p>
+                <button class="btn btn btn-primary" type="submit">
+                    Valider
+                </button>
+                Déjà inscrit(e) ? :<a href="{{ path('app_login') }}" class="btn btn-info btn-sm ms-1"> Me connecter</a>
+            </div>                
+            {{ form_end(registrationForm) }}
+        </div>
+    </section>    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var checkbox = document.getElementById('registration_form_isCompetitor');
+            var competitorFieldsContainer = document.getElementById('competitorFieldsContainer');
+
+            console.log('Checkbox:', checkbox);
+            console.log('Additional Field:', competitorFieldsContainer);
+
+            if (checkbox && competitorFieldsContainer) {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        competitorFieldsContainer.style.display = 'block';
+                    } else {
+                        competitorFieldsContainer.style.display = 'none';
+                    }
+                });
+
+                // Trigger the change event on page load to set the initial state
+                checkbox.dispatchEvent(new Event('change'));
+            } else {
+                console.error('Checkbox or additional field not found');
+            }
+        });
+    </script>
+
 {% endblock %}

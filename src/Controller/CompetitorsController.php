@@ -23,9 +23,8 @@ final class CompetitorsController extends AbstractController
         ]);
     }
 
-    #[Route('/competitors/new', name: 'competitors.new', methods: ['GET', 'POST'])]
+    #[Route('/competitors/new', name: 'competitors_new', methods: ['GET', 'POST'])]
     public function new( 
-            $origin,
             Request $request,        
             EntityManagerInterface $entityManager
         ): Response{
@@ -39,10 +38,10 @@ final class CompetitorsController extends AbstractController
             $entityManager->persist($competitor);
             $entityManager->flush();
            
-            return $this->redirectToRoute($origin, []);  
+            return $this->redirectToRoute('home',[]);  
         }
 
-        return $this->render('pages/admin/competitors/new.html.twig', [
+        return $this->render('pages/competitors/new.html.twig', [
             'competitor' => $competitor,
             'form' => $form,
         ]);
@@ -99,7 +98,7 @@ final class CompetitorsController extends AbstractController
         return $errors;
     }
 
-    #[Route('/registration/competitors/{link_origin}', name: 'competitors.registration', methods: ['GET', 'POST'])]
+    #[Route(path: '/registration/competitors/{link_origin}', name: 'competitors.registration', methods: ['GET', 'POST'])]
     public function registration( 
             $origin_crew,
             Request $request,        

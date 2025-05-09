@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Users;
 use App\Service\JWTService;
+use App\Service\SmileService;
 use App\Form\RegistrationForm;
 use App\Security\EmailVerifier;
 use App\Service\SendMailService;
@@ -25,6 +26,14 @@ class RegistrationController extends AbstractController
     public function __construct(
         private EmailVerifier $emailVerifier){}
 
+    #[Route('/verify-smile/{license}', name: 'verify_identity')]
+    public function verifyLicense(string $license, SmileService $smileService): Response
+    {
+        $result = $smileService->verifyLicense($license);
+dd($result);
+        return $this->json($result);
+    }
+
     #[Route('/register', name: 'app_register')]
     public function register(
         Request $request, 
@@ -43,7 +52,7 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
-
+            $competitorChecked = $form->get('isCompetitor');
             // encode the plain password
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
@@ -61,7 +70,6 @@ class RegistrationController extends AbstractController
 
             $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
 
-            // do anything else you need here, like send an email
             $mail->send(
                 'no-reply@monsite.net',
                 $user->getEmail(),'activation de votre compte sur le site sport-ffa-aero',

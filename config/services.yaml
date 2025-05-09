@@ -33,3 +33,10 @@ services:
     App\Form\EventSubscriber\PreSubmitSubscriber:
         tags:
             - { name: kernel.event_subscriber }
+
+    App\Service\SmileService:
+        arguments:
+            $apiBaseUrl: 'https://www.ffa-aero.fr/api/ffa_api_j.php'
+            $apiKey: '%env(SMILE_API_KEY)%'
+
+          
