@@ -33,6 +33,19 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         $this->getEntityManager()->flush();
     }
 
+    
+ /**
+  * Query users not yet registered
+  */
+    public function getUsersListNotYetRegistered($event) 
+    {
+        return $this->createQueryBuilder('user')   
+        ->leftJoin('App\Entity\Crews', 't','WITH','(t.pilot = user.id OR t.navigator= user.id) AND t.competition = :eventId')        
+        ->setParameter('eventId',$event)                
+        ->where('t.pilot IS NULL AND t.navigator IS NULL AND user.isVerified = 1') 
+        ->orderBy('user.lastname', 'ASC')        
+      ;
+    }
     //    /**
     //     * @return Users[] Returns an array of Users objects
     //     */

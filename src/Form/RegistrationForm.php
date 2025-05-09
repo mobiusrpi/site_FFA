@@ -108,18 +108,6 @@ class RegistrationForm extends AbstractType
                         'max' => 4096,
                     ]), 
                 ],
-            ])       
-            ->add('additionalField', TextType::class, [                
-                'mapped' => false,
-                'required' => false,
-            ])
-            ->add('additionalField1', TextType::class, [                
-                'mapped' => false,
-                'required' => false,
-            ])
-            ->add('additionalField2', TextType::class, [                
-                'mapped' => false,
-                'required' => false,
             ])
             ->add('dateBirth', DateType::class, [
                 'widget' => 'single_text',

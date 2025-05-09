@@ -3,15 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Crews;
+use App\Entity\Users;
 use App\Form\CrewsType;
 use App\Form\RegistrationType;
 use App\Repository\CrewsRepository;
-use App\Repository\UsersRepository;
-
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Form\EventListener\AddNavigatorFieldListener;
@@ -112,16 +112,15 @@ final class CrewsController extends AbstractController
     public function registration(
         $competId,
         Request $request,
-        CompetitionsRepository $repositoryCompetition,         
-        TypeCompetitionRepository $repositoryTypecomp,          
-        EntityManagerInterface $entityManager,        
-        UsersRepository $usersRepository
+        CompetitionsRepository $repositoryCompetition,                 
+        EntityManagerInterface $entityManager,
+        Security $security    
     ): Response
-    {  
-        $compet = $repositoryCompetition->find($competId);
-        
-        $user = $this->getUser();
+    {     
+         // Get the current logged-in user
+        $user = $security->getUser();
 
+        $compet = $repositoryCompetition->find($competId);     
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
 

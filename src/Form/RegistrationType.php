@@ -2,15 +2,15 @@
 
 namespace App\Form;
 
-use App\Entity\Competitors;
+use App\Entity\Users;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use Doctrine\ORM\EntityRepository;
+use App\Repository\UsersRepository;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\AbstractType;
-use App\Repository\CompetitorsRepository;
 use Symfony\Component\Form\FormBuilderInterface;
 use App\Form\EventSubscriber\PreSubmitSubscriber;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -51,9 +51,9 @@ class RegistrationType extends AbstractType
             'data' => $compet,
         ])
         ->add('pilot', EntityType::class, [
-                'class' => Competitors::class,   
-                'query_builder' => function (CompetitorsRepository $er) use($compet) {   
-                return $er->getCompetitorsList($compet->getId());
+                'class' => Users::class,   
+                'query_builder' => function (UsersRepository $er) use($compet) {   
+                return $er->getUsersListNotYetRegistered($compet->getId());
                 },
                 'required' => true,
                 'attr' => [            
@@ -61,8 +61,8 @@ class RegistrationType extends AbstractType
                     'id' => 'pilotSelect',        
                 ],
                 'choice_value' => 'id',               
-                'choice_label' =>function (Competitors $competitor): string {
-                    return sprintf("%s %s", $competitor->getLastName(), $competitor->getFirstName());},
+                'choice_label' =>function (Users $user): string {
+                    return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
                 'label' => 'Pilote',
                 'label_attr' => [
                     'for' => 'exampleSelect1',                          

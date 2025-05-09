@@ -54,43 +54,43 @@ class CompetitionsRepository extends ServiceEntityRepository
         ;
     }
 
-    public function getQueryCrewsPilot($eventId)
+    public function getQueryCrewsPilot($competId)
     {    
-        return $this->createQueryBuilder('event')  
-            ->select('competitor')                  
-            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = event.id')        
-            ->innerJoin('App\Entity\Competitors', 'competitor','WITH','crew.pilot = competitor.id')          
-            ->where('event.id = :eventId') 
-            ->setParameter('eventId',$eventId)            
-            ->orderBy('competitor.lastname', 'ASC')        
+        return $this->createQueryBuilder('compet')  
+            ->select('user')                  
+            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = compet.id')        
+            ->innerJoin('App\Entity\Users', 'user','WITH','crew.pilot = user.id')          
+            ->where('compet.id = :competId') 
+            ->setParameter('competId',$competId)            
+            ->orderBy('compet.lastname', 'ASC')        
             ->getQuery()
             ->getResult()
         ;
     }    
     
-    public function getQueryCrewsNavigator($eventId)
+    public function getQueryCrewsNavigator($competId)
     {    
-        return $this->createQueryBuilder('event')  
-            ->select('competitor')                  
-            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = event.id')        
-            ->innerJoin('App\Entity\Competitors', 'competitor','WITH','crew.navigator = competitor.id')          
-            ->where('event.id = :eventId') 
-            ->setParameter('eventId',$eventId)            
-            ->orderBy('competitor.lastname', 'ASC')        
+        return $this->createQueryBuilder('compet')  
+            ->select('user')                  
+            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = compet.id')        
+            ->innerJoin('App\Entity\Users', 'user','WITH','crew.navigator = user.id')          
+            ->where('compet.id = :competId') 
+            ->setParameter('competId',$competId)            
+            ->orderBy('compet.lastname', 'ASC')        
             ->getQuery()
             ->getResult()
         ;
     }
     
-    public function getQueryCrews($eventId)
+    public function getQueryCrews($competId)
     {    
-        return $this->createQueryBuilder('event')  
+        return $this->createQueryBuilder('compet')  
             ->select('event,crew,pilot,navigator')                  
-            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = event.id')        
-            ->innerJoin('App\Entity\Competitors', 'pilot','WITH','crew.pilot = pilot.id')          
-            ->innerJoin('App\Entity\Competitors', 'navigator','WITH','crew.navigator = navigator.id')          
-            ->where('event.id = :eventId') 
-            ->setParameter('eventId',$eventId)            
+            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = compet.id')        
+            ->innerJoin('App\Entity\Users', 'pilot','WITH','crew.pilot = pilot.id')          
+            ->innerJoin('App\Entity\Users', 'navigator','WITH','crew.navigator = navigator.id')          
+            ->where('compet.id = :competId') 
+            ->setParameter('competId',$competId)            
             ->orderBy('pilot.lastname', 'ASC')  
             ->groupBy('crew.id')      
             ->getQuery()

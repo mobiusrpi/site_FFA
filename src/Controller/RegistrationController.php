@@ -11,9 +11,11 @@ use App\Service\SendMailService;
 use App\Repository\UsersRepository;
 use Symfony\Component\Mime\Address;
 use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -34,7 +36,7 @@ dd($result);
         return $this->json($result);
     }
 
-    #[Route('/register', name: 'app_register')]
+    #[Route('/register', name: 'new_register')]
     public function register(
         Request $request, 
         UserPasswordHasherInterface $userPasswordHasher, 
@@ -45,6 +47,57 @@ dd($result);
 
         $user = new Users();
         $user->setCreatedAt( new \DateTimeImmutable());
+        $user->setUpdatedAt( new \DateTimeImmutable());  
+        $form = $this->createForm(RegistrationForm::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var string $plainPassword */
+            $plainPassword = $form->get('plainPassword')->getData();
+            $competitorChecked = $form->get('isCompetitor');
+            // encode the plain password
+            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $header = [
+                'type' => 'JWT',
+                'alg' => 'HS256',
+            ];
+
+            $payload = [
+                'user_id' => $user->getId()
+            ];
+
+            $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
+
+            $mail->send(
+                'no-reply@monsite.net',
+                $user->getEmail(),'activation de votre compte sur le site sport-ffa-aero',
+                'register',
+                compact('user','token')
+            );
+
+            return $this->redirectToRoute('home');
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form,
+        ]);
+    }
+    
+    #[Route('/register/edit', name: 'edit_register')]
+    public function editRegister(
+        Request $request, 
+        UserPasswordHasherInterface $userPasswordHasher, 
+        EntityManagerInterface $entityManager,
+        SendMailService $mail,      
+        Security $security  ,
+        JWTService $jwt
+    ): Response {
+       
+        $user = $security->getUser();
         $user->setUpdatedAt( new \DateTimeImmutable());  
         $form = $this->createForm(RegistrationForm::class, $user);
         $form->handleRequest($request);

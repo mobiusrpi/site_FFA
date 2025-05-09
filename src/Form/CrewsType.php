@@ -2,14 +2,12 @@
 
 namespace App\Form;
 
-use App\Entity\Crews;
-use App\Entity\Competitors;
+use App\Entity\Users;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -17,10 +15,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Security\Core\Authentication\Token\NullToken;
+
 
 class CrewsType extends AbstractType
 {   
@@ -39,10 +36,10 @@ class CrewsType extends AbstractType
                 'data' => $compet,
             ])          
             ->add('pilot', EntityType::class, [
-                'class' => Competitors::class,
+                'class' => Users::class,
                 'query_builder' => function (EntityRepository $er): QueryBuilder {
-                    return $er->createQueryBuilder('competitor')            
-                        ->orderBy('competitor.lastname', 'ASC');
+                    return $er->createQueryBuilder('user')            
+                        ->orderBy('user.lastname', 'ASC');
                 },			
                 'choice_label' => 'fullname',
                 'multiple' => false,
@@ -57,10 +54,10 @@ class CrewsType extends AbstractType
                 'placeholder' =>'Selectionner un adhérent'
             ])
             ->add('navigator', EntityType::class, [
-                'class' => Competitors::class,
+                'class' => Users::class,
                 'query_builder' => function (EntityRepository $er): QueryBuilder {
-                    return $er->createQueryBuilder('competitor')            
-                        ->orderBy('competitor.lastname', 'ASC');
+                    return $er->createQueryBuilder('user')            
+                        ->orderBy('user.lastname', 'ASC');
                 },			
                 'choice_label' => 'fullname',                
                 'attr' => [

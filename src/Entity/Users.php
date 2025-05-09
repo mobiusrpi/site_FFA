@@ -42,6 +42,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private bool $isVerified = false;
 
+    #[ORM\Column]
+    private bool $isCompetitor = false;
+
     #[ORM\Column(length: 10, unique: true)]
     private ?string $licenseFfa = null;
 
@@ -62,10 +65,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $resetToken = null;
 
-    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
-    private ?Competitors $competitor = null;
- 
-        #[ORM\Column(nullable: true)] 
+    #[ORM\Column(nullable: true)] 
     #[Assert\NotBlank()]
     private ?\DateTimeImmutable $dateBirth = null;
 
@@ -225,6 +225,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    
+    public function isCompetitor(): bool
+    {
+        return $this->isCompetitor;
+    }
+
+    public function setIsCompetitor(bool $isCompetitor): static
+    {
+        $this->isCompetitor = $isCompetitor;
+
+        return $this;
+    }
 
        public function getCreatedAt(): ?\DateTimeImmutable
     {
@@ -261,20 +273,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-
-    public function getCompetitor(): ?Competitors
-    {
-        return $this->competitor;
-    }
-
-    public function setCompetitor(?Competitors $competitor): static
-    {
-        $this->competitor = $competitor;
-
-        return $this;
-    }
-
-    
+  
     public function getDateBirth(): ?\DateTimeImmutable
     {
         return $this->dateBirth;

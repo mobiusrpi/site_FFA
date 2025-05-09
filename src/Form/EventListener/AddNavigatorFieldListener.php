@@ -3,9 +3,9 @@
 namespace App\Form\EventListener;
 
 use App\Entity\Crews;
-use App\Entity\Competitors;
+use App\Entity\Users;
+use App\Repository\UsersRepository;
 use Symfony\Component\Form\FormEvents;
-use App\Repository\CompetitorsRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Event\PreSetDataEvent;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -55,17 +55,17 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
 
             if ( $this->competTypeId <> 2) {
                 $form->add('navigator', EntityType::class, [
-                    'class' => Competitors::class,   
-                    'query_builder' => function (CompetitorsRepository $er) use($competId) {
-                          return $er->getCompetitorsList($competId);
+                    'class' => Users::class,   
+                    'query_builder' => function (UsersRepository $er) use($competId) {
+                          return $er->getUsersListNotYetRegistered($competId);
                     },
                     'attr' => [            
                         'class' => 'form-select',                   
                         'id' => 'navigatorSelect',    
                     ],
                     'required' => true,
-                    'choice_label' =>function (Competitors $competitor): string {
-                        return sprintf("%s %s", $competitor->getLastName(), $competitor->getFirstName());},
+                    'choice_label' =>function (Users $user): string {
+                        return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
                     'label' => 'Navigateur',              
                     'label_attr' => [
                         'for' => 'exampleSelect1',                         

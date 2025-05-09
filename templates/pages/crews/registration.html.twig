@@ -42,11 +42,6 @@
                 {{ form_widget(form.pilot) }}
                 {{ form_errors(form.pilot) }}
               </div>
-              <div class= 'my-3'>
-                <a href ="{{ path('competitors.registration', {'link_origin':app.request.attributes.get('_route')}) }}" class="btn btn-primary">
-                  Nouveau compétiteur
-                </a>  
-              </div>
               <div>                
                 {% if form.navigator is defined %}
                   {{ form_label(form.navigator) }}

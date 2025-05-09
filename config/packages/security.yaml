@@ -14,7 +14,8 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            lazy: true
+            lazy: true            
+            pattern: ^/
             provider: app_user_provider
             form_login:
                 login_path: app_login
@@ -45,6 +46,8 @@ security:
         # - { path: ^/admin, roles: ROLE_MANAGER }
         # - { path: ^/admin/competition, roles: ROLE_MANAGER }
         # - { path: ^/registration, roles: ROLE_COMPETITOR }
+         - { path: ^/registration/crews, roles: ROLE_USER }  # Secure this route
+         - { path: ^/edit_register, roles: ROLE_USER }  # Secure this route
     role_hierarchy:
         ROLE_COMPETITOR: [ROLE_USER]        
         ROLE_MANAGER: [ROLE_COMPETITOR]
