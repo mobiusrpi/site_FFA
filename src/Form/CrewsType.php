@@ -136,18 +136,15 @@ class CrewsType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-            ])
-            ->add('aircraftSharing',CheckboxType::class,[   
+            ])         
+            ->add('aircraftSharing',CheckboxType::class,[      
                 'attr' => [
-                    'class' => 'form-check-input',                    
                     'role' => 'switch',
-                    //                    'checked'   => 'unchecked'
-
-                ],                
+                ],                              
                 'required' => false,
                 'label'    => 'Partage de l\'avion',
                 'label_attr' => [
-                    'class' => 'form-check-label'
+                    'class' => 'form-check-label me-2'
                 ],
             ])      
             ->add('pilotShared',TextType::class,[

@@ -7,12 +7,9 @@ use App\Entity\Enum\SpeedList;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CrewsRepository;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CrewsRepository::class)]
-//#[UniqueEntity('pilot')]
-//#[UniqueEntity('navigator')]
 class Crews
 {
     #[ORM\Id]
@@ -46,6 +43,13 @@ class Crews
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $payment = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $registeredBy = null;
+
+   #[ORM\Column]
+    private ?\DateTimeImmutable $registeredAt = null;
+
 
     #[ORM\ManyToOne(inversedBy: 'crew')]    
     #[Assert\NotBlank()]
@@ -155,6 +159,30 @@ class Crews
     public function setPayment(?string $payment): static
     {
         $this->payment = $payment;
+
+        return $this;
+    }
+
+    public function getRegisteredBy(): ?string
+    {
+        return $this->registeredBy;
+    }
+
+    public function setRegisteredBy($registeredBy): static
+    {
+        $this->registeredBy = $registeredBy;
+
+        return $this;
+    }
+
+    public function getRegisteredAt(): ?\DateTimeImmutable
+    {
+        return $this->registeredAt;
+    }
+
+    public function setRegisterddAt(\DateTimeImmutable $registeredAt): static
+    {
+        $this->registeredAt = $registeredAt;
 
         return $this;
     }

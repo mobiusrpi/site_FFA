@@ -2,20 +2,17 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Competitors;
-use App\Controller\Admin\Trait\BlockDeleteTrait;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+use App\Entity\Accommodation;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
-class CompetitorsCrudController extends AbstractCrudController
-{  
-    use BlockDeleteTrait;
-    
-     public static function getEntityFqcn(): string
+class AccommodationCrudController extends AbstractCrudController
+{
+    public static function getEntityFqcn(): string
     {
-        return Competitors::class;
+        return Accommodation::class;
     }
 
     /*

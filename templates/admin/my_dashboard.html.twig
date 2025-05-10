@@ -1,0 +1,11 @@
+{# templates/admin/my_dashboard.html.twig #}
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block main %}
+    {{ parent() }}
+
+    <a href="{{ path('home') }}" class="btn btn-primary">
+        Accueil
+    </a>
+
+{% endblock main %}
