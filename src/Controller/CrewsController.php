@@ -99,7 +99,6 @@ final class CrewsController extends AbstractController
     #[Route('/crews/{id}/delete', name: 'admin.crews.delete', methods: ['POST'])]
     public function delete(int $id, Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
     {   
-        $eventId = 23;
         if ($this->isCsrfTokenValid('delete'.$crew->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($crew);
             $entityManager->flush();
@@ -123,6 +122,12 @@ final class CrewsController extends AbstractController
         $compet = $repositoryCompetition->find($competId);     
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
+
+         return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+        
+       };
+        if (!$user->isCompetitor()){
+            $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
          return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
         

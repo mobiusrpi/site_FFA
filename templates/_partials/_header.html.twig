@@ -38,14 +38,14 @@
               </button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#">Inscriptions</a></li>
-                <li><a class="dropdown-item" href="{{ path('edit_register') }}">Profile</a></li>
-                <li><a class="dropdown-item" href="{{ path('app_logout') }}">Déconnexion</a></li>
+                <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profile</a></li>
+                <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
               </ul>
-              <a class="me-3" href="{{ path('app_login') }}"></a>
+              <a class="me-3" href="{{ path('login') }}"></a>
               <a </a>
             </div>
           {% else %}
-              <a href="{{ path('app_login') }}">Connexion</a>
+              <a href="{{ path('login') }}">Connexion</a>
           {% endif %}
       </form>
     </div>

@@ -66,7 +66,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $resetToken = null;
 
     #[ORM\Column(nullable: true)] 
-    #[Assert\NotBlank()]
     private ?\DateTimeImmutable $dateBirth = null;
 
     #[ORM\Column(length: 50, nullable: true)]

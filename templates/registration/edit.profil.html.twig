@@ -1,63 +1,54 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inscription{% endblock %}
+{% block title %}Concurrent{% endblock %}
 
 {% block body %}
     <section class='container mt-4' >
-        <h3 class="h3 text-center font-weight-normal mb-3">M'inscrire</h3> 
-        {{ form_errors(registrationForm) }}
+        <h3 class="h3 text-center font-weight-normal mb-3">Mon profil</h3> 
+        {{ form_errors(profilForm) }}
 
-        {{ form_start(registrationForm) }}
+        {{ form_start(profilForm) }}
         <div class="row justify-items-center">
             <div class="col-5 border border-dark border-1 rounded-3 p-4 me-2">
-            <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4> 
-                {{ form_label(registrationForm.email) }}                
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
-                <div class='text-danger'> 
-                    {{ form_errors(registrationForm.email) }}   
-                </div> 
-                {{ form_widget(registrationForm.email) }}
-
-                {{ form_label(registrationForm.lastname) }}
-                {% if registrationForm.vars.required %}
+            <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4>
+                {{ form_label(profilForm.lastname) }}
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %}                
                 <div class='text-danger'>                
-                    {{ form_errors(registrationForm.lastname) }}
+                    {{ form_errors(profilForm.lastname) }}
                 </div>
-                {{ form_widget(registrationForm.lastname) }}
+                {{ form_widget(profilForm.lastname) }}
  
-                {{ form_label(registrationForm.firstname) }}
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.firstname) }}
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %}                
                 <div class='text-danger'>                    
-                    {{ form_errors(registrationForm.firstname) }}
+                    {{ form_errors(profilForm.firstname) }}
                 </div>
-                {{ form_widget(registrationForm.firstname) }}
+                {{ form_widget(profilForm.firstname) }}
 
-                {{ form_label(registrationForm.plainPassword) }}
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.plainPassword) }}
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %}                
                 <div class='text-danger'>                
-                    {{ form_errors(registrationForm.plainPassword) }}
+                    {{ form_errors(profilForm.plainPassword) }}
                 </div>
-                {{ form_widget(registrationForm.plainPassword) }}
+                {{ form_widget(profilForm.plainPassword) }}
  
-                {{ form_label(registrationForm.licenseFfa) }}
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.licenseFfa) }}
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %}                
                 <div class='text-danger'>            
-                    {{ form_errors(registrationForm.licenseFfa) }}
+                    {{ form_errors(profilForm.licenseFfa) }}
                 </div>
-                {{ form_widget(registrationForm.licenseFfa) }}
+                {{ form_widget(profilForm.licenseFfa) }}
 
                 <div class="col border border-dark text-center rounded-3 p-2 bg-secondary text-white form-check mt-4">
-                    {{ form_row(registrationForm.isCompetitor) }}
+                    {{ form_row(profilForm.isCompetitor) }}
                 </div>
             </div>                   
              <div class="col-6 border border-dark border-1 rounded-3 p-4 ms-2" 
@@ -65,79 +56,80 @@
              style="display: none;">
                 <h4 class="text-center font-weight-normal mb-3">Informations additionnelles pour les compétiteurs</h4>              
 
-                {{ form_label(registrationForm.dateBirth) }}
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.dateBirth) }}
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %} 
                 <div class='text-danger'> 
-                    {{ form_errors(registrationForm.dateBirth) }}   
+                    {{ form_errors(profilForm.dateBirth) }}   
                 </div>             
-                {{ form_widget(registrationForm.dateBirth) }}
+                {{ form_widget(profilForm.dateBirth) }}
                       
-                {{ form_label(registrationForm.flyingclub) }}
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.flyingclub) }}
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %} 
                 <div class='text-danger'> 
-                    {{ form_errors(registrationForm.flyingclub) }}
+                    {{ form_errors(profilForm.flyingclub) }}
                 </div>                
-                {{ form_widget(registrationForm.flyingclub) }}
-                      
-                {{ form_label(registrationForm.phone) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %} 
-                <div class='text-danger'> 
-                    {{ form_errors(registrationForm.phone) }}
-                </div>                
-                {{ form_widget(registrationForm.phone) }}
+                {{ form_widget(profilForm.flyingclub) }}
 
-                {{ form_label(registrationForm.gender) }}                
+                {{ form_label(profilForm.phone) }}
+                {% if profilForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %} 
+                <div class='text-danger'> 
+                    {{ form_errors(profilForm.phone) }}
+                </div>                
+                {{ form_widget(profilForm.phone) }}
+
+                {{ form_label(profilForm.gender) }}                
                 <div class='text-danger'>   
-                    {{ form_errors(registrationForm.gender) }}
+                    {{ form_errors(profilForm.gender) }}
                 </div> 
-                {{ form_widget(registrationForm.gender) }}
+                {{ form_widget(profilForm.gender) }}
 
-                {{ form_label(registrationForm.committee) }}              
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.committee) }}              
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %} 
                 <div class='text-danger'>                
-                    {{ form_errors(registrationForm.committee) }}
+                    {{ form_errors(profilForm.committee) }}
                 </div>                
-                {{ form_widget(registrationForm.committee) }}
+                {{ form_widget(profilForm.committee) }}
 
-                {{ form_label(registrationForm.poloSize) }}            
-                {% if registrationForm.vars.required %}
+                {{ form_label(profilForm.poloSize) }}            
+                {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %} 
                 <div class='text-danger'>                 
-                    {{ form_errors(registrationForm.poloSize) }}                    
+                    {{ form_errors(profilForm.poloSize) }}                    
                 </div>                 
-                {{ form_widget(registrationForm.poloSize) }}
+                {{ form_widget(profilForm.poloSize) }}
 
             </div> 
         </div>
        <div class="row justify-items-center">                 
-            <div class="col text-center mb-4">                        
-                <p> {{ form_row(registrationForm.agreeTerms) }} </p>
+            <div class="col text-center my-4">                        
                 <button class="btn btn btn-primary ms-4" type="submit">
                     Valider
                 </button>
-                Déjà inscrit(e) ? :<a href="{{ path('login') }}" class="btn btn-info btn-sm ms-1"> Me connecter</a>
+                <a href="{{ path('home') }}" class="btn btn-info btn-sm ms-1"> Annuler</a>
             </div>                
-            {{ form_end(registrationForm) }}
+            {{ form_end(profilForm) }}
         </div>
-    </section>    
+    </section>  
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var checkbox = document.getElementById('registration_form_isCompetitor');
+            var checkbox = document.getElementById('edit_profil_isCompetitor');
             var competitorFieldsContainer = document.getElementById('competitorFieldsContainer');
-            var dateBirthField = document.getElementById('registration_form_dateBirth');
-            var phoneField = document.getElementById('registration_form_phone');
-            var genderField = document.getElementById('registration_form_gender');
-            var committeeField = document.getElementById('registration_form_committee');
-            var poloSizeField = document.getElementById('registration_form_poloSize');
+            var dateBirthField = document.getElementById('edit_profil_dateBirth');
+            var flyingclubField = document.getElementById('edit_profil_flyingclub');
+            var phoneField = document.getElementById('edit_profil_phone');
+            var genderField = document.getElementById('edit_profil_gender');
+            var committeeField = document.getElementById('edit_profil_committee');
+            var poloSizeField = document.getElementById('edit_profil_poloSize');
 
             console.log('Checkbox:', checkbox);
             console.log('Additional Field:', competitorFieldsContainer);

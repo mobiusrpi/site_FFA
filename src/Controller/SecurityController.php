@@ -18,7 +18,7 @@ use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/login', name: 'app_login')]
+    #[Route(path: '/login', name: 'login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
@@ -33,7 +33,7 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/logout', name: 'app_logout')]
+    #[Route(path: '/logout', name: 'logout')]
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
@@ -80,11 +80,11 @@ class SecurityController extends AbstractController
                 );
 
                 $this->addFlash('success', 'Email envoyé avec succès');
-                return $this->redirectToRoute('app_login');
+                return $this->redirectToRoute('login');
             }
             // $user est null
             $this->addFlash('danger', 'Un problème est survenu');
-            return $this->redirectToRoute('app_login');
+            return $this->redirectToRoute('login');
         }
 
         return $this->render('security/reset_password_request.html.twig', [
@@ -122,7 +122,7 @@ class SecurityController extends AbstractController
                 $entityManager->flush();
 
                 $this->addFlash('success', 'Mot de passe changé avec succès');
-                return $this->redirectToRoute('app_login');
+                return $this->redirectToRoute('login');
             }
 
             return $this->render('security/reset_password.html.twig', [
@@ -130,6 +130,6 @@ class SecurityController extends AbstractController
             ]);
         }
         $this->addFlash('danger', 'Jeton invalide');
-        return $this->redirectToRoute('app_login');
+        return $this->redirectToRoute('login');
     }
 }
