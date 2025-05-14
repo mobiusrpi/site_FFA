@@ -14,7 +14,7 @@
             <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ compet.location }}</strong>
             du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
             au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
-            <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>
+            <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>     </div>
         </div>
 
         {{ form_start(form) }}
@@ -127,7 +127,7 @@
             <div class="row justify-content-center mb-5">
                 <div class="col-10 text-center">   
                     <button class='btn btn-primary me-4',type='submit'> Valider</button>              
-                    <a href ="{{ path(origin_list) }}" class="btn btn-info btn-sm ms-4">
+                    <a href ="{{ path('crew_registration_list') }}" class="btn btn-info btn-sm ms-4">
                       Annuler
                     </a>  
                     </br>  

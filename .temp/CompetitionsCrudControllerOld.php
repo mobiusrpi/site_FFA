@@ -31,14 +31,12 @@ class CompetitionsCrudController extends AbstractCrudController
 {
     use BlockDeleteTrait;
 
-    private $eventId;
+    private $competId;
 
     public static function getEntityFqcn(): string    
     {
             return Competitions::class;
     }
-
-//        $this->eventId = $compet->getId();
 
     public function configureFields(string $pageName): iterable
     {

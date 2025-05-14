@@ -67,7 +67,7 @@ class ImportUsersCommand extends Command
 
     private function getDataFromFile(): array
     {
-        $file = $this->dataDirectory . 'IRPP-2025-1.csv';
+        $file = $this->dataDirectory . 'IRRA-2025-1.csv';
         $fileExtension = pathinfo($file,PATHINFO_EXTENSION);
 
         $normalizers = [new ObjectNormalizer];

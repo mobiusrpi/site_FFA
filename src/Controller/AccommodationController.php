@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Accommodation;
-use App\Form\AccommodationForm;
-use App\Repository\AccommodationRepository;
+use App\Entity\Accommodations;
+use App\Form\AccommodationsType;
+use App\Repository\AccommodationsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,18 +15,18 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AccommodationController extends AbstractController
 {
     #[Route(name: 'app_accommodation_index', methods: ['GET'])]
-    public function index(AccommodationRepository $accommodationRepository): Response
+    public function index(AccommodationsRepository $accommodationsRepository): Response
     {
         return $this->render('accommodation/index.html.twig', [
-            'accommodations' => $accommodationRepository->findAll(),
+            'accommodations' => $accommodationsRepository->findAll(),
         ]);
     }
 
     #[Route('/new', name: 'app_accommodation_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accommodation = new Accommodation();
-        $form = $this->createForm(AccommodationForm::class, $accommodation);
+        $accommodation = new Accommodations();
+        $form = $this->createForm(AccommodationsType::class, $accommodation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -43,7 +43,7 @@ final class AccommodationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_accommodation_show', methods: ['GET'])]
-    public function show(Accommodation $accommodation): Response
+    public function show(Accommodations $accommodation): Response
     {
         return $this->render('accommodation/show.html.twig', [
             'accommodation' => $accommodation,
@@ -51,9 +51,9 @@ final class AccommodationController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_accommodation_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Accommodation $accommodation, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Accommodations $accommodation, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(AccommodationForm::class, $accommodation);
+        $form = $this->createForm(AccommodationsType::class, $accommodation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -69,7 +69,7 @@ final class AccommodationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_accommodation_delete', methods: ['POST'])]
-    public function delete(Request $request, Accommodation $accommodation, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Accommodations $accommodation, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$accommodation->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($accommodation);

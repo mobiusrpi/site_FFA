@@ -16,13 +16,13 @@ class CompetitionsRepository extends ServiceEntityRepository
         parent::__construct($registry, Competitions::class);
     }
     
-    public function findCompetition($eventId)
+    public function findCompetition($competId)
     {  
         $qb = $this->createQueryBuilder('u')
         ->select('u')
         ->join('App\Entity\typecompetition','tc','WITH','tc.id = u.typecompetition')
         ->where('u.id = :cptid')
-        ->setParameter('cptid', $eventId);
+        ->setParameter('cptid', $competId);
         $query = $qb->getQuery();
 
         return $query->getOneOrNullResult();
@@ -31,13 +31,13 @@ class CompetitionsRepository extends ServiceEntityRepository
     /**
     * @return Selectedcompetition[]
     */
-    public function getEventChoice($eventId)
+    public function getCompetChoice($competId)
     {  
         $qb = $this->createQueryBuilder('u')
         ->select('u')
         ->join('App\Entity\typecompetition','tc','WITH','tc.id = u.typecompetition')
         ->where('u.id = :cptid')
-        ->setParameter('cptid', $eventId)
+        ->setParameter('cptid', $competId)
         ->orderBy('u.name', 'ASC');             
         return $qb;
     }
@@ -47,8 +47,10 @@ class CompetitionsRepository extends ServiceEntityRepository
      */
     public function getQueryCompetitionSorted()
     {    
-        return $this->createQueryBuilder('compet')                    
+        return $this->createQueryBuilder('compet')
+            ->where('compet.startDate > :oneYearAgo')                    
             ->orderBy('compet.startDate','ASC')
+            ->setParameter('oneYearAgo', (new \DateTime('-1 year')))
             ->getQuery()
             ->getResult()
         ;
@@ -85,7 +87,7 @@ class CompetitionsRepository extends ServiceEntityRepository
     public function getQueryCrews($competId)
     {    
         return $this->createQueryBuilder('compet')  
-            ->select('event,crew,pilot,navigator')                  
+            ->select('compet,crew,pilot,navigator')                  
             ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = compet.id')        
             ->innerJoin('App\Entity\Users', 'pilot','WITH','crew.pilot = pilot.id')          
             ->innerJoin('App\Entity\Users', 'navigator','WITH','crew.navigator = navigator.id')          

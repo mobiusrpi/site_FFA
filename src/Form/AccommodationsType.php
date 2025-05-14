@@ -2,12 +2,12 @@
 
 namespace App\Form;
 
-use App\Entity\Accommodation;
+use App\Entity\Accommodations;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class AccommodationForm extends AbstractType
+class AccommodationsType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -21,15 +21,13 @@ class AccommodationForm extends AbstractType
             ])
             ->add('sharing')
             ->add('personSharing')
-            ->add('price')
-            ->add('available')
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Accommodation::class,
+            'data_class' => Accommodations::class,
         ]);
     }
 }

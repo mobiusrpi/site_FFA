@@ -21,20 +21,20 @@ class CompetitionsVoter extends Voter
         $this->security = $security;
     }
 
-    protected function supports(string $attribute, $event): bool
+    protected function supports(string $attribute, $compet): bool
     {
         if(!in_array($attribute, [self::ADD, self::EDIT, self::DELETE])){
             return false;
         }
-        if(!$event instanceof Competitions){
+        if(!$compet instanceof Competitions){
             return false;
         }
         return true;
 
-        // return in_array($attribute, [self::EDIT, self::DELETE]) && $event instanceof Events;
+        // return in_array($attribute, [self::EDIT, self::DELETE]) && $compet instanceof Competitions;
     }
 
-    protected function voteOnAttribute($attribute, $event, TokenInterface $token): bool
+    protected function voteOnAttribute($attribute, $compet, TokenInterface $token): bool
     {
         // On récupère l'utilisateur à partir du token
         $user = $token->getUser();

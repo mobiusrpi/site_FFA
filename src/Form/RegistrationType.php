@@ -45,16 +45,14 @@ class RegistrationType extends AbstractType
          ->add('competition', EntityType::class, [
             'class' => Competitions::class,
             'query_builder' => function (EntityRepository $er) use($compet) {
-                return $er->getEventChoice($compet);
+                return $er->getCompetChoice($compet);
             },  
             'choice_label' => 'name',
             'data' => $compet,
         ])
         ->add('pilot', EntityType::class, [
                 'class' => Users::class,   
-                'query_builder' => function (UsersRepository $er) use($compet) {   
-                return $er->getUsersListNotYetRegistered($compet->getId());
-                },
+
                 'required' => true,
                 'attr' => [            
                     'class' => 'form-select',                     
@@ -167,7 +165,7 @@ class RegistrationType extends AbstractType
             ])              
             ->addEventListener(FormEvents::PRE_SUBMIT, 
                 [$this->preSubmitSubscriber, 'onPreSubmit'])
-        ;
+        ; 
     }
 
     public function configureOptions(OptionsResolver $resolver)

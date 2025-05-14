@@ -2,3 +2,12 @@ easy_admin:
     design:
         menu:
             - { route: 'home', label: 'Retour à Accueil', icon: 'home'} 
+    entities:
+        Competitions:
+            class: App\Entity\Competitions
+        Users:
+            class: App\Entity\Users
+        Crews:
+            class: App\Entity\Crews
+        Accommodations:
+            class: App\Entity\Accommodations

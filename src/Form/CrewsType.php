@@ -30,7 +30,7 @@ class CrewsType extends AbstractType
             ->add('competition', EntityType::class, [
                 'class' => Competitions::class,
                 'query_builder' => function (EntityRepository $er) use($compet) {
-                    return $er->getEventChoice($compet);
+                    return $er->getCompetChoice($compet);
                 },  
                 'choice_label' => 'name',
                 'data' => $compet,

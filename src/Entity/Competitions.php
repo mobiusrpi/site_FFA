@@ -5,9 +5,10 @@ namespace App\Entity;
 use App\Repository\CompetitionsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\Cascade;
 
 #[ORM\Entity(repositoryClass: CompetitionsRepository::class)]
 
@@ -53,10 +54,20 @@ class Competitions
     #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'competition')]
     private Collection $crew;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $information = null;
+
+    /**
+     * @var Collection<int, CompetitionAccommodation>
+     */
+    #[ORM\OneToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'competition')]
+    private Collection $competitionAccommodation;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->crew = new ArrayCollection();
+        $this->competitionAccommodation = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -202,8 +213,50 @@ class Competitions
         return $this;
     }    
     
+    public function getInformation(): ?string
+    {
+        return $this->information;
+    }
+
+    public function setInformation(?string $information): static
+    {
+        $this->information = $information;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CompetitionAccommodation>
+     */
+    public function getCompetitionAccommodation(): Collection
+    {
+        return $this->competitionAccommodation;
+    }
+
+    public function addCompetitionAccommodation(CompetitionAccommodation $competitionAccommodation): static
+    {
+        if (!$this->competitionAccommodation->contains($competitionAccommodation)) {
+            $this->competitionAccommodation->add($competitionAccommodation);
+            $competitionAccommodation->setCompetition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCompetitionAccommodation(CompetitionAccommodation $competitionAccommodation): static
+    {
+        if ($this->competitionAccommodation->removeElement($competitionAccommodation)) {
+            // set the owning side to null (unless already changed)
+            if ($competitionAccommodation->getCompetition() === $this) {
+                $competitionAccommodation->setCompetition(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function __toString(): string
     {
-       return 'test_competition';
+        return $this->name ?? 'N/A'; 
     }
 }

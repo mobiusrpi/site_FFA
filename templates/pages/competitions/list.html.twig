@@ -59,7 +59,7 @@
                           class= 'btn btn-outline-success btn-sm'>Inscription</a>   
                       </td> 
                     {% else %}
-                      {% if compet.endRegistration <= date('now') %}       
+                      {% if compet.endRegistration <= date('now') %}         
                         <td>       
                           <a href='{{ path('crews.new',{'competId': compet.id}) }}'
                             class= 'btn btn-outline-info btn-sm'>Hors délai</a>   

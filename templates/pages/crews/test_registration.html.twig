@@ -1,0 +1,32 @@
+ {% extends 'base.html.twig' %}
+
+{% block title %}Inscription aux compétitions{% endblock %}
+
+{% block body %}
+{{ dump(form) }}
+    <section class 'container mt-4'>
+        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Inscription</h2>  
+
+        {{ form_start(form) }}
+ 
+            <div class="row m-4">                          
+                <div class="col-5 form-group border rounded-4 border-primary  mx-auto p-2">     
+                    <div class="row">        
+                        {{ form_row(form.callsign) }}  
+                    </div> 
+                </div>                                                                              
+            </div>            
+            {{ form_row(form._token) }}  
+
+            <div class="row justify-content-center mb-5">
+                <div class="col-10 text-center">   
+                    <button class='btn btn-primary me-4',type='submit'> Valider</button>              
+                    <a href ="{{ path('crew_registration_list') }}" class="btn btn-info btn-sm ms-4">
+                      Annuler
+                    </a>  
+                    </br>  
+                </div>   
+            </div>
+        {{ form_end(form) }}     
+    </section>
+{% endblock %}

@@ -3,13 +3,17 @@ easyadmin:
     type: easyadmin.routes
 
 admin_registered_crews_list:
-    path: /admin/registered_crews_list/{eventId}
+    path: /admin/registered_crews_list/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::registerListAction
 
 admin_registration_crew_new:
-    path: /admin/registration_crew_edit/{eventId}
+    path: /admin/registration_crew_new/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::newRegistrationAction
 
 admin_registration_crew_edit:
-    path: /admin/registration_crew_edit/{eventId}/{crewId}
+    path: /admin/registration_crew_edit/{competId}/{crewId}
     controller: App\Controller\Admin\CompetitionsCrudController::editRegistrationAction
+
+admin_competition_manage:
+    path: /admin/competition_manage/{competId}
+    controller: App\Controller\Admin\CompetitionsCrudController::manageCompetitionAction

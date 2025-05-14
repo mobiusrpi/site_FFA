@@ -135,7 +135,7 @@ final class CompetitionsController extends AbstractController
         $entityManager->persist($compet);
 
         $session = $request->getSession();
-        $session->set('event',$compet);
+        $session->set('compet',$compet);
         $session->set('origin',$origin);
 
         return $this->redirectToRoute('crews.registration',['competId' => $compet]);
@@ -153,5 +153,4 @@ final class CompetitionsController extends AbstractController
             'registants' => $registants,            
         ]);
     }
-
 }

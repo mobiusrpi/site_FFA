@@ -1,0 +1,63 @@
+{# templates/admin/my_dashboard.html.twig #}
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block main %}
+    {{ parent() }}
+   <section class 'container mt-4'>
+        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Informations pour l'inscripition</h2>  
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success mt-4">
+              {{ message }}
+            </div>   
+        {% endfor %}  
+        <div>
+            <p class= 'text-center'>Parametre d'inscription pour la compétition <strong>{{ competition.name }}</strong></br> 
+            se déroulant à <strong>{{ competition.location }}</strong>
+            du <strong>{{ competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+            au <strong>{{ competition.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+            <p class= 'text-center'>Epreuve de<strong> {{ competition.typecompetition.typecomp }}</strong></p>
+            </br>
+        </div>
+        {{ form_start(form) }}
+            <div class='row'>
+                <div>
+                    {{ form_label(form.information) }}
+                </div>
+                <div>
+                    {{ form_errors(form.information) }}
+                </div>
+                <div>
+                    {{ form_widget(form.information) }}
+                </div>
+                <div class='mt-4'> 
+                    <p>Selectionner les types de chambre qui seront disponibles</p>
+{{ dump(form.competitionAccommodation) }}                    
+                        
+                    {% for item in form.competitionAccommodation %}
+                        <div class="card p-3 mb-3 shadow-sm">
+                            {{ form_row(item.accommodation) }}
+                            {{ form_row(item.price) }}
+                            {{ form_row(item.available) }}
+                        </div>
+                    {% endfor %}
+                </div>                    
+                <div class='col-6 mt-5'>
+                    {{ form_errors(form.selectable) }}
+                    {{ form_label(form.selectable) }}
+                    {{ form_widget(form.selectable) }}
+                </div>
+            </div>    
+            <div class="row justify-content-center my-5">
+                <div class="col-10 text-center">   
+                    <button class='btn btn-primary me-4',type='submit'> Valider</button>              
+                    <a href ="{{ path('crew_registration_list') }}" class="btn btn-info btn-sm ms-4">
+                      Annuler
+                    </a>  
+                    </br>  
+                </div>   
+            </div>              
+        {{ form_end(form) }}
+    
+    </section>
+
+{% endblock main %}

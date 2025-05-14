@@ -4,16 +4,22 @@ namespace App\Controller\Admin;
 
 use App\Entity\Users;
 use App\Entity\Competitions;
-use App\Entity\Accommodation;
+use App\Entity\Accommodations;
 use Symfony\UX\Chartjs\Model\Chart;
+use App\Entity\CompetitionAccommodation;
 use Symfony\Component\HttpFoundation\Response;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
+//#[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractDashboardController
 {
      public function __construct(
@@ -56,16 +62,18 @@ class DashboardController extends AbstractDashboardController
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('Site FFA');
+            ->setTitle('Administration du site Sports FFA');
     }
 
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fas fa-home');
-        yield MenuItem::linkToCrud('Hébergement', 'fas fa-list', Accommodation::class);
+        yield MenuItem::linkToCrud('Hébergement', 'fas fa-list', Accommodations::class);
+        yield MenuItem::linkToCrud('Prix', 'fas fa-list', CompetitionAccommodation::class);
         yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class)
-            ->setDefaultSort(['startDate' => 'ASC']);
+            ->setDefaultSort(['startDate' => 'ASC',]);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
             ->setDefaultSort(['email' => 'ASC']);           
     }
+  
 }

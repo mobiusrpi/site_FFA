@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscriptions{% endblock %}
+
+{% block body %}
+    <section class='container mt-4' >
+        <h3 class="h3 text-center font-weight-normal mb-3">Liste de mes inscriptions</h3> 
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success mt-4">
+                {{message}}
+            </div> 
+            {% endfor %}
+        
+        <table class="table table-light table-striped w-auto">
+            <thead class='table-light'>
+                <tr>
+                    <th class="text-center" scope="col"></th>
+                    <th class="text-center" scope="col"></th>                 
+                    <th class="text-center" scope="col"></th>              
+                    <th class="text-center" scope="col" colspan="2">Inscription</th> 
+                    <th class="text-center" scope="col" colspan="2">Compétition</th>              
+                    {% if is_granted('ROLE_USER') %}
+                    <th class="text-center"></th>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <th class="text-center" scope="col">Désignation</th>
+                    <th class="text-center" scope="col">Type</th>
+                    <th class="text-center" scope="col">Lieu</th>
+                    <th class="text-center" scope="col">Début</th> 
+                    <th class="text-center" scope="col">Fin</th>                
+                    <th class="text-center" scope="col">Début</th>
+                    <th class="text-center" scope="col">Fin</th>
+                    {% if is_granted('ROLE_USER') %}
+                    <th class="text-center" scope="col">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>      
+                {% for compet in competByUser_list %}
+                    <tr>
+                        <th scope="row">{{ compet.name }}</td>
+                            <td>{{ compet.typecompetition.typeComp }}</td> 
+                        <td>{{ compet.location }}</td>
+                        <td> {{ compet.startRegistration|date('d-m') }}</td>  
+                        {% if compet.endRegistration <= date('now') %}
+                            <td class='text-danger'>{{ compet.endRegistration|date('d-m') }}</td>
+                        {% else %}
+                            <td class='text-dark'>{{ compet.endRegistration|date('d-m') }}</td>
+                        {% endif %}                         
+                        <td>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
+                        <td>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
+                        {% if is_granted('ROLE_USER') %}   
+                            {% if compet.endRegistration >= date('now') %}
+                            <td>  
+                                <a href='{{ path('edit_registration',{'competId': compet.id}) }}' 
+                                class= 'btn btn-outline-success btn-sm'>Modifier</a>   
+                            </td>                     
+                            {% else %}
+                                <td>       
+                                <a href='#' 
+                                    class= 'btn btn-outline-danger btn-sm disabled'>Hors délais</a>   
+                                </td>  
+                            {% endif %}
+                        {% endif %}       
+                    </tr>
+                {% endfor %} 
+            </tbody>
+        </table>
+    </section>                   
+{% endblock %}

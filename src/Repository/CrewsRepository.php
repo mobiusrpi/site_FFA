@@ -16,6 +16,32 @@ class CrewsRepository extends ServiceEntityRepository
         parent::__construct($registry, Crews::class);
     }
 
+    public function getQueryRegistrationsCrews($id)
+    {
+        return $this->createQueryBuilder('crew') 
+            ->select('compet')  
+            ->leftJoin('App\Entity\Competitions', 'compet','WITH',' crew.competition = compet.id')        
+            ->where('crew.pilot = :userId OR crew.navigator = :userId')  
+            ->andWhere('compet.endDate > CURRENT_DATE()')  
+            ->setParameter('userId',$id)                
+            ->orderBy('compet.startDate', 'ASC')         
+            ->getQuery()
+            ->getResult()   
+        ;
+    } 
+
+    public function getQueryEditRegistrationsCrews($userId,$competId)
+    {  ;
+        return $this->createQueryBuilder('crew') 
+            ->leftJoin('App\Entity\Competitions', 'compet','WITH',' crew.competition = compet.id')        
+            ->leftJoin('App\Entity\Users', 'user','WITH',' crew.pilot = user.id OR crew.navigator = user.id')        
+            ->where('(crew.pilot = :userId OR crew.navigator = :userId) AND crew.competition = :competId')    
+            ->setParameter('userId',$userId)                
+            ->setParameter('competId',$competId)                         
+            ->getQuery()
+            ->getOneOrNullResult();
+        ;
+    } 
 //    /**
 //     * @return Crew[] Returns an array of Crew objects
 //     */

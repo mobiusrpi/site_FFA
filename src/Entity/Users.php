@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Entity\Enum\Gender;
 use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\Collection;
@@ -95,12 +97,21 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'navigator')]
     private Collection $navigator;
 
+    /**
+     * @var Collection<int, Crews>
+     */
+    #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'registeredby')]
+    private Collection $registeredBy;
+
+    public function __construct()
+    {
+        $this->registeredBy = new ArrayCollection();
+    }
+
     public function __construc()
     {
         $this->createdAt = new \DateTimeImmutable();       
         $this->updatedAt = new \DateTimeImmutable();      
-//        $this->pilot = new ArrayCollection();
-//        $this->navigator = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -404,6 +415,35 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
-    }    
+    }
 
+    /**
+     * @return Collection<int, Crews>
+     */
+    public function getRegisteredBy(): Collection
+    {
+        return $this->registeredBy;
+    }
+
+    public function addRegisteredBy(Crews $registeredBy): static
+    {
+        if (!$this->registeredBy->contains($registeredBy)) {
+            $this->registeredBy->add($registeredBy);
+            $registeredBy->setRegisteredby($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRegisteredBy(Crews $registeredBy): static
+    {
+        if ($this->registeredBy->removeElement($registeredBy)) {
+            // set the owning side to null (unless already changed)
+            if ($registeredBy->getRegisteredby() === $this) {
+                $registeredBy->setRegisteredby(null);
+            }
+        }
+
+        return $this;
+    }
 }

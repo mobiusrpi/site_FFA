@@ -10,6 +10,7 @@ use App\Service\SmileService;
 use App\Form\RegistrationForm;
 use App\Security\EmailVerifier;
 use App\Service\SendMailService;
+use App\Repository\CrewsRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -204,4 +205,4 @@ dd($result);
 
         return $this->redirectToRoute('login');
     }
-}
+}  

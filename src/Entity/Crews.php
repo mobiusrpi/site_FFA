@@ -44,12 +44,8 @@ class Crews
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $payment = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $registeredBy = null;
-
    #[ORM\Column]
     private ?\DateTimeImmutable $registeredAt = null;
-
 
     #[ORM\ManyToOne(inversedBy: 'crew')]    
     #[Assert\NotBlank()]
@@ -61,6 +57,10 @@ class Crews
 
     #[ORM\ManyToOne(inversedBy: 'navigator')]
     private ?Users $navigator = null;
+
+    #[ORM\ManyToOne(inversedBy: 'registeredBy')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Users $registeredby = null;
 
     public function getId(): ?int
     {
@@ -163,24 +163,12 @@ class Crews
         return $this;
     }
 
-    public function getRegisteredBy(): ?string
-    {
-        return $this->registeredBy;
-    }
-
-    public function setRegisteredBy($registeredBy): static
-    {
-        $this->registeredBy = $registeredBy;
-
-        return $this;
-    }
-
     public function getRegisteredAt(): ?\DateTimeImmutable
     {
         return $this->registeredAt;
     }
 
-    public function setRegisterddAt(\DateTimeImmutable $registeredAt): static
+    public function setRegisteredAt(\DateTimeImmutable $registeredAt): static
     {
         $this->registeredAt = $registeredAt;
 
@@ -226,6 +214,18 @@ class Crews
     public function __toString(): string
     {
        return 'test_crew';
+    }
+
+    public function getRegisteredby(): ?Users
+    {
+        return $this->registeredby;
+    }
+
+    public function setRegisteredby(?Users $registeredby): static
+    {
+        $this->registeredby = $registeredby;
+
+        return $this;
     }
 }
 
