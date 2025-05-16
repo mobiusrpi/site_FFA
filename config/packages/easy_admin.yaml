@@ -8,6 +8,6 @@ easy_admin:
         Users:
             class: App\Entity\Users
         Crews:
-            class: App\Entity\Crews
+            class: App\Entity\Crews           
         Accommodations:
             class: App\Entity\Accommodations

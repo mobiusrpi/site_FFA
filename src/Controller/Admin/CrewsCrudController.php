@@ -26,5 +26,4 @@ class CrewsCrudController extends AbstractCrudController
             TextEditorField::new('endDate'),
         ];
     }
-
 }

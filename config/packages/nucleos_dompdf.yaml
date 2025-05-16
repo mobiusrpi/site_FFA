@@ -1,0 +1,6 @@
+# config/packages/nucleos_dompdf.yaml
+
+nucleos_dompdf:
+    defaults:
+        defaultFont: 'helvetica'
+        # See https://github.com/dompdf/dompdf/wiki/Usage#options for available options

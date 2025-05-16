@@ -26,16 +26,4 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
             BooleanField::new('available'),
         ];
     }
-
-    public function __toString(): string
-    { 
-        return $this->room ?? 'N/A';
-/*        return sprintf('%s - %s (€%.2f)', 
-            $this->getCompetition()?->getName() ?? 'N/A', 
-            $this->getAccommodation()?->getRoom() ?? 'N/A',
-            $this->getPrice()
-        );
-*/    
-    }
-
 }

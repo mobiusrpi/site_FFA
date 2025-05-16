@@ -67,13 +67,15 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToDashboard('Dashboard', 'fas fa-home');
-        yield MenuItem::linkToCrud('Hébergement', 'fas fa-list', Accommodations::class);
-        yield MenuItem::linkToCrud('Prix', 'fas fa-list', CompetitionAccommodation::class);
         yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class)
             ->setDefaultSort(['startDate' => 'ASC',]);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
-            ->setDefaultSort(['email' => 'ASC']);           
+            ->setDefaultSort(['email' => 'ASC']);
+        yield MenuItem::subMenu('Logistique', 'fa fa-hotel')->setSubItems([
+            MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
+            MenuItem::linkToCrud('Sélection', 'fas fa-list', CompetitionAccommodation::class),
+        ]);
+        yield MenuItem::linkToRoute('Accueil', 'fa fa-home','home');     
     }
   
 }

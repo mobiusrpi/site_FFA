@@ -4,7 +4,7 @@ easyadmin:
 
 admin_registered_crews_list:
     path: /admin/registered_crews_list/{competId}
-    controller: App\Controller\Admin\CompetitionsCrudController::registerListAction
+    controller: App\Controller\Admin\CompetitionsCrudController::registeredListAction
 
 admin_registration_crew_new:
     path: /admin/registration_crew_new/{competId}
@@ -17,3 +17,11 @@ admin_registration_crew_edit:
 admin_competition_manage:
     path: /admin/competition_manage/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::manageCompetitionAction
+
+admin_registered_crews_export:
+    path: /admin/registered_crews_export/{competId}
+    controller: App\Controller\Admin\CompetitionsCrudController::registeredExportAction
+
+admin_crews_by_competition_download:
+    path: /admin/registered_crews_download/{competId}
+    controller: App\Controller\Admin\CompetitionsCrudController::crewsByCompetitionDownloadAction

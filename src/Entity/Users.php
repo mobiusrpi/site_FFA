@@ -27,6 +27,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+//    #[Assert\Regex('/^(\+33|0)[1-9][0-9 ]{8,12}$/', message: 'Numéro de téléphone invalide')]
     private ?string $email = null;
 
     /**
