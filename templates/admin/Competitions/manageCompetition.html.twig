@@ -11,41 +11,42 @@
             </div>   
         {% endfor %}  
         <div>
-            <p class= 'text-center'>Parametre d'inscription pour la compétition <strong>{{ competition.name }}</strong></br> 
-            se déroulant à <strong>{{ competition.location }}</strong>
-            du <strong>{{ competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
-            au <strong>{{ competition.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
-            <p class= 'text-center'>Epreuve de<strong> {{ competition.typecompetition.typecomp }}</strong></p>
+            <p class= 'text-center'>Parametre d'inscription pour la compétition <strong>{{ compet.name }}</strong></br> 
+            se déroulant à <strong>{{ compet.location }}</strong>
+            du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+            au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+            <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>
             </br>
         </div>
         {{ form_start(form) }}
             <div class='row'>
-                <div>
-                    {{ form_label(form.information) }}
-                </div>
-                <div>
-                    {{ form_errors(form.information) }}
-                </div>
-                <div>
-                    {{ form_widget(form.information) }}
-                </div>
+
                 <div class='mt-4'> 
-                    <p>Selectionner les types de chambre qui seront disponibles</p>
-{{ dump(form.competitionAccommodation) }}                    
-                        
-                    {% for item in form.competitionAccommodation %}
-                        <div class="card p-3 mb-3 shadow-sm">
-                            {{ form_row(item.accommodation) }}
-                            {{ form_row(item.price) }}
-                            {{ form_row(item.available) }}
-                        </div>
-                    {% endfor %}
+                    <p>Selectionner les types de chambre qui seront disponibles et leur prix</p>                    
+                    <table class="table table-bordered align-middle">
+                            <thead class="table-dark">
+                            <tr>
+                                <th class='text-center col-2'>Service</th>
+                                <th class='text-center col-1'>Disponible</th>
+                                <th class='text-center col-2'>Prix</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for accomForm in form.accommodations %}
+                                <tr class="align-middle">
+                                    {# Read-only room name #}
+                                    <td>{{ accomForm.accommodation.vars.data.room }}</td>
+
+                                    {# Checkbox for availability #}
+                                    <td>{{ form_widget(accomForm.available) }}</td>
+
+                                    {# Price input #}
+                                    <td>{{ form_widget(accomForm.price) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </body>
+                    </table>
                 </div>                    
-                <div class='col-6 mt-5'>
-                    {{ form_errors(form.selectable) }}
-                    {{ form_label(form.selectable) }}
-                    {{ form_widget(form.selectable) }}
-                </div>
             </div>    
             <div class="row justify-content-center my-5">
                 <div class="col-10 text-center">   
@@ -56,8 +57,7 @@
                     </br>  
                 </div>   
             </div>              
-        {{ form_end(form) }}
-    
+        {{ form_end(form, {'render_rest': false}) }}
     </section>
 
 {% endblock main %}

@@ -10,8 +10,10 @@ use App\Entity\Competitions;
 use App\Form\RegistrationType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
+use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
+use App\Form\Model\AccommodationCollection;
 use App\Repository\AccommodationsRepository;
 use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +25,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use App\Repository\CompetitionAccommodationRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -82,7 +85,8 @@ class CompetitionsCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $registeredListAction = Action::new('registeredListAction', 'Liste des inscrits')
-            ->linkToRoute('admin_registered_crews_list',
+            ->setIcon('fa fa-list')            
+            ->linkToRoute('admin_registered_crews_list',            
                 function (Competitions $competition) {
                     return [
                         'competId' =>$competition->getId(),
@@ -90,6 +94,7 @@ class CompetitionsCrudController extends AbstractCrudController
                 });
 
         $newRegistrationAction = Action::new('newRegistrationAction', 'Nouvelle Inscription')
+            ->setIcon('fa fa-flag')              
             ->linkToRoute('admin_registration_crew_new',
                 function (Competitions $competition) {
                     return [
@@ -115,8 +120,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Télécharger')
-            ->setIcon('fa fa-clone')
+        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Liste .pdf')
+            ->setIcon('fa fa-list')
             ->linkToRoute('admin_crews_by_competition_download',                
                 function (Competitions $competition) {
                     return [
@@ -125,7 +130,7 @@ class CompetitionsCrudController extends AbstractCrudController
                 });
 
         $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Exporter csv')
-            ->setIcon('fa fa-clone')
+            ->setIcon('fa fa-file-export')
             ->linkToRoute('admin_crews_by_competition_export',                
                 function (Competitions $competition) {
                     return [
@@ -134,13 +139,15 @@ class CompetitionsCrudController extends AbstractCrudController
                 });
 
         return $actions
+ 
+            ->remove(Crud::PAGE_INDEX, Action::DELETE)           
             ->add(Crud::PAGE_INDEX, $registeredListAction)
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)
 //            ->add(Crud::PAGE_INDEX, $editRegistrationAction)
-            ->add(Crud::PAGE_INDEX, $manageCompetitionAction)
+            ->add(Crud::PAGE_INDEX, $manageCompetitionAction)            
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionDownloadAction)
-            ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction)
-            ->remove(Crud::PAGE_INDEX, Action::DELETE);
+            ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction);
+
     } 
 
     // Define the route and controller method to handle the custom action
@@ -200,26 +207,55 @@ class CompetitionsCrudController extends AbstractCrudController
 
     public function manageCompetitionAction(
         int $competId,        
-        CompetitionsRepository $repositoryCompetition,
+        CompetitionAccommodationRepository $repositoryCompetAccom,
+        AccommodationsRepository $repositoryAccommodation,
+        CompetitionsRepository $repositoryCompetition,   
         Request $request,
         EntityManagerInterface $entityManager)
     {             
-        $competition = $repositoryCompetition->find($competId);           
+        $competition = $repositoryCompetition->find($competId); 
+        $accommodations = $repositoryAccommodation->findAll(); 
+        $existing = $repositoryCompetAccom->findBy(['competition' => $competition]);
 
-        $form = $this->createForm(ManageCompetitionType::class, $competition);       
+        $existingByRoomId = [];
+        foreach ($existing as $record) {
+            $existingByRoomId[$record->getAccommodation()->getId()] = $record;
+        }
+        $finalList = [];
+       
+        foreach ($accommodations as $room) {
+            if (isset($existingByRoomId[$room->getId()])) {
+                $finalList[] = $existingByRoomId[$room->getId()];
+            } else {
+                $new = new CompetitionAccommodation();
+                $new->setCompetition($competition);
+                $new->setAccommodation($room);
+                $finalList[] = $new;
+            }
+        }
+        $formModel = new AccommodationCollection($finalList);
+    
+        $form = $this->createForm(ManageCompetitionType::class, $formModel);
 
         $form->handleRequest($request);
-
- //           dd('test');  
+    
+ 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            $entityManager->persist($competition);
+            $entityManager->persist($form->getData());
             $entityManager->flush();
+
+            $this->addFlash(
+              'success',
+              'Services modifiés avec succès !'
+            ); 
+
+            return $this->redirectToRoute('admin');
         }
 
         return $this->render('admin/competitions/manageCompetition.html.twig', [
             'form' => $form->createView(),
-            'competition' => $competition,
+            'compet' => $competition,
         ]);
     }
 

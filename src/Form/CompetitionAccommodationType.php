@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Accommodations;
+use App\Entity\CompetitionAccommodation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -22,7 +23,15 @@ class CompetitionAccommodationType extends AbstractType
             ])
             ->add('price', MoneyType::class, [
                 'currency' => 'EUR',
-                'required' => true,
+                'divisor'  => 1,
+                'required' => false,
+                'scale' => 2,
+                'attr' => [
+                    'inputmode' => 'decimal', // Mobile-friendly number pad
+                    'step' => '0.01',
+                    'min' => '0',
+                ],
+
             ])
             ->add('available', CheckboxType::class, [
                 'label' => 'Disponible?',
@@ -34,7 +43,7 @@ class CompetitionAccommodationType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Accommodations::class,
+            'data_class' => CompetitionAccommodation::class,
         ]);
     }
 }

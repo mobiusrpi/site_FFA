@@ -26,14 +26,16 @@ class AccommodationsCrudController extends AbstractCrudController
     {
         return $crud
             ->setPageTitle('index', 'Type de service disponible')
-        ;
+            ->setPageTitle('detail', 'Service')
+            ->setPageTitle('edit', 'Modification d\'un service')       
+            ->setPageTitle('new', 'Ajout d\'un service');
     }
-    
+
     public function configureFields(string $pageName): iterable
     {
         return [
             IdField::new('id')->hideOnForm()->hideOnIndex(),
-            TextField::new('room','Type de chambre'),
+            TextField::new('room','Chambre et repas'),
         ];
     }
 

@@ -15,7 +15,19 @@ class CompetitionAccommodationRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, CompetitionAccommodation::class);
     }
-
+    
+    public function getQueryAccommodation($competId)
+    {    
+        return $this->createQueryBuilder('comp_accom') 
+ //           ->select('comp_accom,compet,accom')                  
+            ->innerJoin('comp_accom.competition', 'compet')        
+            ->innerJoin('comp_accom.accommodation', 'accom')        
+             ->where('compet.id = :competId') 
+            ->setParameter('competId',$competId)                    
+            ->getQuery()
+            ->getResult()
+        ;
+    }
     //    /**
     //     * @return CompetitionAccommodation[] Returns an array of CompetitionAccommodation objects
     //     */
