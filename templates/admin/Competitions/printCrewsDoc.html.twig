@@ -5,7 +5,7 @@
 {% block body %}
 
     <div>
-        <h3>Liste des inscrits {{ registants[0].competition.name }}</h3>
+        <h3>Vérification des documents {{ registants[0].competition.name }}</h3>
     </div>
     <table style="border-collapse:collapse;">
         <thead>
@@ -18,8 +18,17 @@
                 <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Aéroclub</th>                 
                 <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">CRA</th>                 
                 <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Licence FFA</th>
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Email</th>                 
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Téléphone</th>                                              
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Mineur</th>                 
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Médical</th>                                              
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">PPL</th>                 
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Carnet vol</th>                                              
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Carnet route</th>                 
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Cert Immat</th>                                              
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">CDN</th>                 
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Pesée</th>                                              
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Nuissance</th>                 
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Station</th>                                              
+                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Assur</th>                                                               
             </tr>                
         </thead>
         <tbody>                        
@@ -34,18 +43,22 @@
                         <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.lastname }}  {{ registant.pilot.firstname }}</td>
                         <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.flyingclub }}</td>                        
                         <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.committee.value |slice(0, 2) }}</td>                             
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.licenseFfa }}</td>  
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.email }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.phone }}</td> 
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;">{{ registant.pilot.licenseFfa }}</td>                         
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td> 
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td> 
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td> 
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td>                          
+                        Limite de 12 colonnes
                     </tr>
                     <tr>             
                         <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.lastname }}  {{ registant.navigator.firstname }}</td>
                         <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.flyingclub }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.committee.value |slice(0, 2) }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.licenseFfa }}</td>                             
-                           
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.email }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.phone }}</td>                                    
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.committee.value |slice(0, 2) }}</td>                            
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;">{{ registant.pilot.licenseFfa }}</td>                             
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td>   
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td>                          
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td> 
+                        <td style="border:1px solid #000; text-align: center;padding: 4px;"></td> 
                     </tr> 
                     {% set n = n + 1 %}
                 {% endif %}

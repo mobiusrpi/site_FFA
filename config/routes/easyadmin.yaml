@@ -18,9 +18,9 @@ admin_competition_manage:
     path: /admin/competition_manage/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::manageCompetitionAction
 
-admin_registered_crews_export:
+admin_crews_by_competition_export:
     path: /admin/registered_crews_export/{competId}
-    controller: App\Controller\Admin\CompetitionsCrudController::registeredExportAction
+    controller: App\Controller\Admin\CompetitionsCrudController::crewsByCompetitionExportAction
 
 admin_crews_by_competition_download:
     path: /admin/registered_crews_download/{competId}

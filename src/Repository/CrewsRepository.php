@@ -41,7 +41,20 @@ class CrewsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
         ;
-    } 
+    }     
+    
+    public function getQueryCrews($competId)
+    {
+        return $this->createQueryBuilder('crew')
+            ->select('crew','compet','pilot','navigator')
+            ->leftJoin('crew.competition', 'compet') 
+            ->leftJoin('crew.pilot', 'pilot')        
+            ->leftJoin('crew.navigator', 'navigator')        
+            ->where('crew.competition = :competId')
+            ->setParameter('competId', $competId)
+            ->getQuery()
+            ->getResult();
+    }
 //    /**
 //     * @return Crew[] Returns an array of Crew objects
 //     */

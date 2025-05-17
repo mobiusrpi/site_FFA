@@ -17,6 +17,4 @@ enum Gender: string
             self::Female  => 'Féminin',
       };
     }
-
-
 };

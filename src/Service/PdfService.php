@@ -12,6 +12,7 @@ class PdfService
     private $domPdf;
 
     public function __construct() {
+
         $this->domPdf = new DomPdf();
 
         $pdfOptions = new Options();
@@ -26,12 +27,16 @@ class PdfService
 
     }
 
-    public function showPdfFile($html): Response
+    public function showPdfFile($html,$fileName): Response
     {    
+        $newFileName = str_replace('/', '_', $fileName);
+
         $this->domPdf->loadHtml($html);
-        $this->domPdf->render();
-        $this->domPdf->stream("details.pdf", [
-            'Attachement' => true
+        $this->domPdf->setPaper("A4", "landscape");        
+        $this->domPdf->render();    
+
+        $this->domPdf->stream( $newFileName . ".pdf", [
+            'Attachement' => false
         ]);        
         
         $output = $this->domPdf->output();
@@ -41,7 +46,7 @@ class PdfService
             Response::HTTP_OK,
             [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="details.pdf"',
+                'Content-Disposition' => 'attachment; filename="'.$fileName.'.pdf"',
             ]
         );
     }

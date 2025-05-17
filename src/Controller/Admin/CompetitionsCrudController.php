@@ -9,6 +9,7 @@ use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Form\RegistrationType;
 use App\Form\ManageCompetitionType;
+use App\Repository\CrewsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use App\Repository\AccommodationsRepository;
@@ -114,7 +115,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Imprimer')
+        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Télécharger')
             ->setIcon('fa fa-clone')
             ->linkToRoute('admin_crews_by_competition_download',                
                 function (Competitions $competition) {
@@ -123,9 +124,9 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Imprimer')
+        $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Exporter csv')
             ->setIcon('fa fa-clone')
-            ->linkToRoute('admin_crews_by_competition-download',                
+            ->linkToRoute('admin_crews_by_competition_export',                
                 function (Competitions $competition) {
                     return [
                         'competId' => $competition->getId(),
@@ -178,7 +179,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $crew->setCompetition($competition);             
             
         $formOption = array('compet' => $competition);  
-        dd($crew,$formOption);        
+        dd('pb origin_list',$formOption);        
         $form = $this->createForm(RegistrationType::class, $crew, $formOption);
 
         $form->handleRequest($request);
@@ -224,14 +225,15 @@ class CompetitionsCrudController extends AbstractCrudController
 
     public function  crewsByCompetitionDownloadAction(
         int $competId,
-        CompetitionsRepository $repositoryCompetition,
+        CrewsRepository $repositoryCrew,
         PdfService $pdf): Response
     {
-        $registants = $repositoryCompetition->getQueryCrews($competId);
-   
+        $registants = $repositoryCrew->getQueryCrews($competId);
+
+        $fileName = $registants[0]->getCompetition()->getName(); 
         $html = $this->render('admin/competitions/printCrews.html.twig',['registants' => $registants]);             
         
-        return $pdf->showPdfFile($html);
+        return $pdf->showPdfFile($html,$fileName);
     }
 
     public  function persistEntity(EntityManagerInterface $em,$entityInstance):void
@@ -241,16 +243,73 @@ class CompetitionsCrudController extends AbstractCrudController
         parent::persistEntity($em,$entityInstance);
     }
 
+    private function DateFormated(?\DateTimeInterface $date): string {
+        return $date ? $date->format('d-m-Y') : '';
+    }
 
     public function crewsByCompetitionExportAction( 
         int $competId,
-        CompetitionsRepository $repositoryCompetition,  
+        CrewsRepository $repositoryCrew,  
         Request $request,
         AdminUrlGenerator $adminUrlGenerator
     ): Response
     {
-       $registants = $repositoryCompetition->getQueryCrews($competId);
-       return 'test';
+        $results = $repositoryCrew->getQueryCrews($competId);   
+        $competName = $results[0]->getCompetition()->getName();
+//dd($results);
+        $data = [];           
+        foreach ($results as $result) {
+            $data[] = [
+                'Competition' => $competName,
+                'Equipage' => $result->getId(),
+                'Categorie' => $result->getCategory()?->value ?? '',   
+                'Pilote' => $result->getPilot()->getLastname() . ' ' . $result->getPilot()->getFirstname(),
+                'Pilote_Licence_FFA' => $result->getPilot()->getLicenseFfa() ,
+                'Pilote_Telephone' => $result->getPilot()->getPhone() ? $result->getPilot()->getPhone() : '',
+                'Pilote_Email' => $result->getPilot()->getEmail() ,
+                'Pilote_Date_Naissance' => $this->DateFormated($result->getPilot()->getDateBirth()),
+                'Pilote_Aeroclub' => $result->getPilot()->getFlyingclub() ? $result->getPilot()->getFlyingclub() : '',
+                'Pilote_CRA' => $result->getPilot()->getCommittee()?->value ?? '',                          
+                'Pilote_Sexe' => $result->getPilot()->getGender()?->value ?? '',
+                'Pilote_taille_polo' => $result->getPilot()->getPoloSize() ?->value ?? '',
+                'Navigateur' => $result->getNavigator()->getLastname() . ' ' . $result->getNavigator()->getFirstname(),
+                'Navigateur_Licence_FFA' => $result->getNavigator()->getLicenseFfa(),
+                'Navigateur_Telephone' => $result->getNavigator()->getPhone() ? $result->getNavigator()->getPhone() : '',
+                'Navigateur_Email' => $result->getNavigator()->getEmail() ,
+                'Navigateur_Date_Naissance' => $this->DateFormated($result->getNavigator()->getDateBirth()),
+                'Navigateur_Aeroclub' => $result->getNavigator()->getFlyingclub() ? $result->getNavigator()->getFlyingclub() : '',
+                'Navigateur_CRA' => $result->getNavigator()->getCommittee() ?->value ?? '',                          
+                'Pilote_Sexe' => $result->getPilot()->getGender()?->value ?? '',
+                'Navigateur_taille_polo' => $result->getNavigator()->getPoloSize() ?->value ?? '',
+                'Immatriculation' => $result->getCallsign() ? $result->getCallSign() : '',
+                'Vitesse' => $result->getAircraftSpeed() ?->value ?? '', 
+                'Type_avion' => $result->getAircraftType() ? $result->getPilotShared() : '',
+                'Avion_partage' => $result->isAircraftSharing() ? 'Oui' : 'Non',
+                'Pilote_de_partage' => $result->getPilotShared() ? $result->getPilotShared() : '' ,
+                'Creation' => $this->DateFormated($result->getRegisteredAt()),
+                'Enregistre_par' => $result->getRegisteredBy()->getLastname() . ' ' . $result->getRegisteredBy()->getFirstname(),
+            ];
+         }
+//dd($data);
+        $response = new Response();
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="Insciptions_'.$competName.'.csv"');
+
+
+        // Ouvrir un flux de sortie
+        $handle = fopen('php://output', 'w+');
+
+        // Écrire les en-têtes
+        fputcsv($handle, array_keys($data[0]),';');
+
+        // Écrire les données
+        foreach ($data as $row) {
+            fputcsv($handle, $row,';');
+        }
+
+        fclose($handle);
+
+        return $response;
     }
 
 }

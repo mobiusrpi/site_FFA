@@ -83,22 +83,6 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    
-    public function getQueryCrews($competId)
-    {    
-        return $this->createQueryBuilder('compet')  
-            ->select('compet,crew,pilot,navigator')                  
-            ->innerJoin('App\Entity\Crews', 'crew','WITH','crew.competition = compet.id')        
-            ->innerJoin('App\Entity\Users', 'pilot','WITH','crew.pilot = pilot.id')          
-            ->innerJoin('App\Entity\Users', 'navigator','WITH','crew.navigator = navigator.id')          
-            ->where('compet.id = :competId') 
-            ->setParameter('competId',$competId)            
-            ->orderBy('pilot.lastname', 'ASC')  
-            ->groupBy('crew.id')      
-            ->getQuery()
-            ->getResult()
-        ;
-    }
  
     //    /**
     //     * @return Competitions[] Returns an array of Competitions objects

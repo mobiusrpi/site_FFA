@@ -13,10 +13,7 @@
                     <input type="hidden" name="_method" value="EDIT">
                     <button type="submit" class= 'btn btn-success btn-sm'>Ajouter une inscription</button>
                 </form>
-                <form name="add-form" action="{{ path('admin_registration_crew_export',{'competId':registants[0].id}) }}" method="post">
-                    <input type="hidden" name="_method" value="export">
-                    <button type="submit" class= 'btn btn-success btn-sm'>Exporter</button>
-                </form>
+
             </div>
         </div>
         {% for message in app.flashes('success') %}

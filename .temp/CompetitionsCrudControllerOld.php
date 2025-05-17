@@ -6,6 +6,7 @@ use App\Entity\Crews;
 use App\Entity\Competitions;
 use App\Form\RegistrationType;
 use App\Repository\CrewsRepository;
+use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitorsRepository;
 use App\Repository\CompetitionsRepository;
@@ -122,8 +123,7 @@ public function newRegistrationAction(
     $crew = new Crews;    
     $crew->setCompetition($competition);             
           
-    $formOption = array('compet' => $competition);  
-    dd($crew,$formOption);        
+    $formOption = array('compet' => $competition);         
     $form = $this->createForm(RegistrationType::class, $crew, $formOption);
 
     $form->handleRequest($request);
@@ -149,7 +149,7 @@ public function editRegistrationAction(
     int $crewId,   
     Request $request,
     CrewsRepository $repositoryCrew,  
-    CompetitorsRepository $repositoryCompetitor,  
+    UsersRepository $repositoryUser,  
     CompetitionsRepository $repositoryCompetition,  
     TypeCompetitionRepository $repositoryTypecomp,  
     EntityManagerInterface $em
@@ -160,8 +160,8 @@ public function editRegistrationAction(
     $competition->setTypecompetition($typecomp);
     $em->persist($competition);  
     $crew = $repositoryCrew->find($crewId);      
-    $pilot = $repositoryCompetitor->find($crew->getPilot());      
-    $navigator = $repositoryCompetitor->find($crew->getNavigator());      
+    $pilot = $repositoryUser->find($crew->getPilot());      
+    $navigator = $repositoryUser->find($crew->getNavigator());      
     $crew->setPilot($pilot);
     $crew->setNavigator($navigator);
     $em->persist($crew);  
