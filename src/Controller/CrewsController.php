@@ -62,7 +62,7 @@ final class CrewsController extends AbstractController
             $entityManager->persist($crew);
             $entityManager->flush();
 
-            return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('pages/crews/new.html.twig', [
@@ -106,12 +106,13 @@ final class CrewsController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('crews.registration', ['competId'=>$id], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('_', ['competId'=>$id], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route(path :'/registration/crews/{competId}', name: 'crews.registration', methods:['GET','POST'])]
+    #[Route(path :'/registration/crews/{competId}', name: 'crews_registration', methods:['GET','POST'])]
     public function registration(
         $competId,
+//        $origin,
         Request $request,
         CompetitionsRepository $repositoryCompetition,                 
         EntityManagerInterface $entityManager,
@@ -124,13 +125,13 @@ final class CrewsController extends AbstractController
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
 
-         return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+         return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         
        };
         if (!$user->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
-         return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+         return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         
        };
         $compet = $repositoryCompetition->find($competId);     
@@ -154,17 +155,17 @@ final class CrewsController extends AbstractController
             $entityManager->persist($crew);
             $entityManager->flush();
 
-            return $this->redirectToRoute('competitions.list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('pages/crews/registration.html.twig', [
+        return $this->render('pages/crews/registrationCrew.html.twig', [
             'compet' => $compet,
-            'origin_list' => 'competitions.list',
+//            'origin_list' => $origin,
             'form' => $form     
         ]);
     }    
     
-    #[Route(path :'/crews/registration/list', name: 'crew_registration_list', methods:['GET','POST'])]
+    #[Route(path :'/crews/registration/list', name: 'crews_registration_list', methods:['GET','POST'])]
     public function registration_list(
         Security $security,
         CrewsRepository $repository,                      
@@ -174,7 +175,7 @@ final class CrewsController extends AbstractController
 
         $competByUser = $repository->getQueryRegistrationsCrews($user->getId());
 
-        return $this->render('pages/crews/registrationList.html.twig', [
+        return $this->render('pages/crews/registrationCrewsList.html.twig', [
             'competByUser_list' => $competByUser            
         ]);
     }
@@ -192,13 +193,13 @@ final class CrewsController extends AbstractController
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
-         return $this->redirectToRoute('crew_registration_list', [], Response::HTTP_SEE_OTHER);
+         return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
         
        };
         if (!$user->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
-         return $this->redirectToRoute('crew_registration_list', [], Response::HTTP_SEE_OTHER);
+         return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
         
        };
     
@@ -217,7 +218,7 @@ final class CrewsController extends AbstractController
             $crew = $form->getData();
             $entityManager->persist($crew);
             $entityManager->flush();
-            return $this->redirectToRoute('crew_registration_list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
        }
         return $this->render('pages/crews/edit_registration.html.twig', [
             'compet' => $compet,

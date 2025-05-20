@@ -38,13 +38,26 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
   * Query users not yet registered
   */
     public function getUsersListNotYetRegistered($compet) 
-    {
-        return $this->createQueryBuilder('user')   
-        ->leftJoin('App\Entity\Crews', 't','WITH','(t.pilot = user.id OR t.navigator= user.id) AND t.competition = :competId')        
-        ->setParameter('competId',$compet)                
-        ->where('t.pilot IS NULL AND t.navigator IS NULL AND user.isVerified = 1') 
-        ->orderBy('user.lastname', 'ASC')        
-      ;
+    {    
+        $qb = $this->createQueryBuilder('user');
+        $qb->leftJoin('App\Entity\Crews', 't', 'WITH', '(t.pilot = user.id OR t.navigator = user.id) AND t.competition = :competId')
+            ->setParameter('competId', $compet)
+            ->where('user.isVerified = 1');
+            
+        if (!empty($includeUserIds)) {
+            $qb->andWhere($qb->expr()->orX(
+                't.pilot IS NULL AND t.navigator IS NULL',
+                $qb->expr()->in('user.id', ':includedUsers')
+            ))
+            ->setParameter('includedUsers', $includeUserIds);
+        } else {
+            $qb->andWhere('t.pilot IS NULL AND t.navigator IS NULL');
+        }
+ 
+        $qb->orderBy('user.lastname', 'ASC');
+
+        return $qb;
+        ;
     }
 
    //    /**

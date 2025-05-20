@@ -186,7 +186,7 @@ class Competitions
     /**
      * @return Collection<int, Crews>
      */
-    public function getLinkcrew(): Collection
+    public function getCrew(): Collection
     {
         return $this->crew;
     }

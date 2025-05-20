@@ -1,0 +1,90 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block title %} 
+    Equipages
+{% endblock %}
+
+
+{% block main %}
+    <style>       
+        .competition-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            min-width: 750px; /* Ensures form doesn't shrink too much */
+        }
+
+        .competition-name {
+            font-weight: bold;
+            border: 1px solid #ccc;
+            width: 250px;
+            padding: 0.4rem;
+        }
+
+        .crew-select {
+            width: 350px;
+        }
+
+        .add-link {
+            text-decoration: none;
+            font-size: 1.3rem;
+            padding-left: 0 0.5rem;
+        }
+
+        .edit-button {
+            width: 120px;
+            height: 30px;
+            padding: 0.4rem 0.8rem;
+        }
+    </style>
+    <h2 style="margin-bottom: 2rem;">Création et modification d'un équipage</h2>
+
+    <div class="crew-selector-wrapper">
+        {% for competition in competitions %}
+            <div class="competition-row">
+                <div class="competition-name">
+                    {{ competition.name }}
+                </div>
+                <a class="add-link" href="{{ path('admin', {
+                    crudControllerFqcn: 'App\\Controller\\Admin\\CrewsCrudController',
+                    crudAction: 'new',
+                    competition: competition.id
+                }) }}">➕</a>                
+                <form id="form_{{ competition.id }}" method="get" action="{{ path('admin') }}" style="display: flex; align-items: center; gap: 1rem;">
+                    <input type="hidden" name="crudAction" value="edit">
+                    <input type="hidden" name="crudControllerFqcn" value="App\\Controller\\Admin\\CrewsCrudController">
+                    <input type="hidden" name="entityId" id="crew_id_input_{{ competition.id }}" value="">
+
+                    <select name="crew_select_{{ competition.id }}" style="width: 350px;justify-items: start;" onchange="updateCrewId({{ competition.id }})">
+                        {% for crew in competition.crew %}
+                            <option value="{{ crew.id }}">
+                                {{ crew.pilot.lastname }} {{ crew.pilot.firstname }} & {{ crew.navigator.lastname }} {{ crew.navigator.firstname }} 
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if competition.crew|length > 0 %}                
+                        <button type="submit"class="edit-button">✏️ Modifier</button>  
+                    {% endif %}
+                </form>
+            </div>        
+        {% endfor %}
+    </div>
+    <script>
+        function updateCrewId(competitionId) {
+            const select = document.querySelector(`select[name="crew_select_${competitionId}"]`);
+            const hiddenInput = document.getElementById(`crew_id_input_${competitionId}`);
+            hiddenInput.value = select.value;
+        
+            updateEditLink(competitionId); 
+        }
+
+        // Pre-fill crew ID on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('form[id^="form_"]').forEach(form => {
+                const id = form.id.replace('form_', '');
+                updateCrewId(id);
+            });
+        });
+    </script>
+{% endblock main %}

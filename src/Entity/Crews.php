@@ -180,7 +180,7 @@ class Crews
         return $this->competition;
     }
 
-    public function setCompetition(?Competitions $competition): static
+    public function setCompetition(?Competitions $competition): self
     {
         $this->competition = $competition;
 
@@ -211,10 +211,6 @@ class Crews
         return $this;
     }  
     
-    public function __toString(): string
-    {
-       return 'test_crew';
-    }
 
     public function getRegisteredby(): ?Users
     {
@@ -226,6 +222,11 @@ class Crews
         $this->registeredby = $registeredby;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+       return 'test_crew';
     }
 }
 

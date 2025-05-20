@@ -27,11 +27,10 @@ class CompetitionAccommodationType extends AbstractType
                 'required' => false,
                 'scale' => 2,
                 'attr' => [
-                    'inputmode' => 'decimal', // Mobile-friendly number pad
+                    'inputmode' => 'decimal', 
                     'step' => '0.01',
                     'min' => '0',
                 ],
-
             ])
             ->add('available', CheckboxType::class, [
                 'label' => 'Disponible?',

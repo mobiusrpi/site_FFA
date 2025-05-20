@@ -93,12 +93,12 @@ class CompetitionsCrudController extends AbstractCrudController
 //config/routes/easyadmin.yaml
 public function registerListAction( 
     int $eventId,
-    CompetitionsRepository $repository,  
+    CrewsRepository $repositoryCrew,  
     Request $request,
     AdminUrlGenerator $adminUrlGenerator
 ): Response
 {
-    $registants = $repository->getQueryCrews($eventId);
+    $registants = $repositoryCrew->getQueryCrews($eventId);
     return $this->render('pages/competitions/registantslist.html.twig', [
         'registants' => $registants,          
     ]);            
@@ -136,7 +136,7 @@ public function newRegistrationAction(
         return $this->redirectToRoute('admin_registered_crews_list', [], Response::HTTP_SEE_OTHER);
     }
 
-    return $this->render('pages/crews/registration.html.twig', [
+    return $this->render('pages/crews/registrationCrew.html.twig', [
         'compet' => $competition,
         'form' => $form     
     ]);
@@ -179,7 +179,7 @@ public function editRegistrationAction(
         return $this->redirectToRoute('admin_registered_crews_list', [], Response::HTTP_SEE_OTHER);
     }
 
-    return $this->render('pages/crews/registration.html.twig', [
+    return $this->render('pages/crews/registrationCrew.html.twig', [
         'compet' => $competition,
  //       'pilotId' => $pilot->getId(),
         'form' => $form     

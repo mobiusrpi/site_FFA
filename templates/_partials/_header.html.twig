@@ -17,7 +17,7 @@
         </li>
         <li class="nav-item">
            <a class="nav-link {% if app.request.attributes.get('_route') == 'home' %}active{% endif %}" 
-            href="{{ path('competitions.list') }}">
+            href="{{ path('competitions_list') }}">
               Compétitions
           </a>        
         </li>
@@ -37,7 +37,7 @@
                 Mon compte
               </button>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ path('crew_registration_list') }}">Inscriptions</a></li>
+                <li><a class="dropdown-item" href="{{ path('crews_registration_list') }}">Inscriptions</a></li>
                 <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profile</a></li>
                 <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
               </ul>

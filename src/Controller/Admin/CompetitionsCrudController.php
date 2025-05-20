@@ -75,9 +75,7 @@ class CompetitionsCrudController extends AbstractCrudController
             DateField::new('endDate', 'Date de fin')->setFormat('dd/MM/yy'),
             BooleanField::new('selectable','Sélection')
                 ->renderAsSwitch(),             
-            DateField::new('createdAt')->onlyOnDetail() ,            
-
-           
+            DateField::new('createdAt')->onlyOnDetail() ,
             TextareaField::new('information')->onlyOnForms(),             
         ];
     }
@@ -93,7 +91,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $newRegistrationAction = Action::new('newRegistrationAction', 'Nouvelle Inscription')
+        $newRegistrationAction = Action::new('newRegistrationAction', 'Inscription')
             ->setIcon('fa fa-flag')              
             ->linkToRoute('admin_registration_crew_new',
                 function (Competitions $competition) {
@@ -101,16 +99,7 @@ class CompetitionsCrudController extends AbstractCrudController
                         'competId' => $competition->getId(),
                     ];
                 });
-/*
-        $editRegistrationAction = Action::new('editRegistrationAction', 'Nouvelle Inscription')
-            ->linkToRoute('admin_registration_crew_edit',
-                function (Competitions $competition,Crews $crew) {
-                    return [
-                        'competId' => $competition->getId(),
-                        'crewId' => $crew->getId(),
-                    ];
-                });
-*/
+
         $manageCompetitionAction = Action::new('manageCompetitionAction', 'Gestion')
             ->setIcon('fa fa-clone')
             ->linkToRoute('admin_competition_manage',                
@@ -129,7 +118,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Exporter csv')
+        $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Exporter .csv')
             ->setIcon('fa fa-file-export')
             ->linkToRoute('admin_crews_by_competition_export',                
                 function (Competitions $competition) {
@@ -140,10 +129,11 @@ class CompetitionsCrudController extends AbstractCrudController
 
         return $actions
  
+ //           ->remove(Crud::PAGE_INDEX, Action::EDIT)                       
             ->remove(Crud::PAGE_INDEX, Action::DELETE)           
-            ->add(Crud::PAGE_INDEX, $registeredListAction)
-            ->add(Crud::PAGE_INDEX, $newRegistrationAction)
-//            ->add(Crud::PAGE_INDEX, $editRegistrationAction)
+
+            ->add(Crud::PAGE_INDEX, $registeredListAction)            
+            ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
             ->add(Crud::PAGE_INDEX, $manageCompetitionAction)            
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionDownloadAction)
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction);
@@ -156,52 +146,45 @@ class CompetitionsCrudController extends AbstractCrudController
 
     public function registeredListAction( 
         int $competId,
-        CompetitionsRepository $repository,  
-        Request $request,
-        AdminUrlGenerator $adminUrlGenerator
+        CrewsRepository $repositoryCrew,  
+        CompetitionsRepository $repositoryCompetition,   
     ): Response
     {
-        $registants = $repository->getQueryCrews($competId);
-        return $this->render('pages/competitions/registantslist.html.twig', [
-            'registants' => $registants,          
-        ]);            
+        $registants = $repositoryCrew->getQueryCrews($competId);
+        $competition = $repositoryCompetition->find($competId);      
 
+        return $this->render('admin/competitions/registantslist.html.twig', [
+            'registants' => $registants,  
+            'competition' => $competition,        
+        ]);            
     }
 
-    //The route admin_registration_crew_new is redirected to this function in the file
-    //config/routes/easyadmin.yaml
-    public function newRegistrationAction( 
+    public function newRegistrationAction(  
         int $competId,   
-        Request $request,
-        CompetitionsRepository $repositoryCompetition,   
-        TypeCompetitionRepository $repositoryTypecomp, 
+        Request $request,  
+        CompetitionsRepository $repositoryCompetition, 
         EntityManagerInterface $em
     ): Response
-    {
-        $competition = $repositoryCompetition->find($competId);      
-        $typecompId = $repositoryTypecomp->findOneBy(['id' =>$competition->getTypeCompetition()->getId()]);
-        $competition->setTypecompetition($typecompId);
-    
-        $crew = new Crews;    
-        $crew->setCompetition($competition);             
-            
-        $formOption = array('compet' => $competition);  
-        dd('pb origin_list',$formOption);        
-        $form = $this->createForm(RegistrationType::class, $crew, $formOption);
+    {   
+        $crew = new Crews; 
+        $competition = $repositoryCompetition->find($competId); 
+ 
+        $form = $this->createForm(RegistrationType::class, $crew);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            $em->persist($crew);
             $em->flush();
+            $this->addFlash('success', 'Inscription mise à jour avec succès.');
 
-            return $this->redirectToRoute('admin_registered_crews_list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('admin_registered_crews_list', [
+                'competId' => $crew->getCompetition()->getId()  
+            ], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('pages/crews/registration.html.twig', [
-            'compet' => $competition,
-            'form' => $form     
+        return $this->render('admin/crews/crewRegistration.html.twig', [
+            'form' => $form->createView(), 
         ]);
     }
 
@@ -236,10 +219,9 @@ class CompetitionsCrudController extends AbstractCrudController
         $formModel = new AccommodationCollection($finalList);
     
         $form = $this->createForm(ManageCompetitionType::class, $formModel);
-
+//dd($form);
         $form->handleRequest($request);
     
- 
         if ($form->isSubmitted() && $form->isValid()) {
 
             $entityManager->persist($form->getData());

@@ -6,14 +6,6 @@ admin_registered_crews_list:
     path: /admin/registered_crews_list/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::registeredListAction
 
-admin_registration_crew_new:
-    path: /admin/registration_crew_new/{competId}
-    controller: App\Controller\Admin\CompetitionsCrudController::newRegistrationAction
-
-admin_registration_crew_edit:
-    path: /admin/registration_crew_edit/{competId}/{crewId}
-    controller: App\Controller\Admin\CompetitionsCrudController::editRegistrationAction
-
 admin_competition_manage:
     path: /admin/competition_manage/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::manageCompetitionAction
@@ -25,3 +17,5 @@ admin_crews_by_competition_export:
 admin_crews_by_competition_download:
     path: /admin/registered_crews_download/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::crewsByCompetitionDownloadAction
+
+

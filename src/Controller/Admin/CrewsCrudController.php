@@ -3,27 +3,225 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Crews;
-use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+use App\Entity\Competitions;
+use App\Entity\Enum\Category;
+use App\Entity\Enum\SpeedList;
+use App\Repository\UsersRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Routing\RouterInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use Symfony\Component\HttpFoundation\RequestStack;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CrewsCrudController extends AbstractCrudController
-{    
-    use Trait\BlockDeleteTrait;
+{   
+    private RequestStack $requestStack;    
+    private EntityManagerInterface $entityManager;
+    private Security $security;  
+    private RouterInterface $router;
+    private UsersRepository $usersRepository;
+    private AdminUrlGenerator $adminUrlGenerator;
+
+    public function __construct(
+        RequestStack $requestStack,
+        EntityManagerInterface $entityManager,
+        UsersRepository $usersRepository,        
+        RouterInterface $router,
+        Security $security,
+        AdminUrlGenerator $adminUrlGenerator 
+    ){
+        $this->requestStack = $requestStack;
+        $this->entityManager = $entityManager;  
+        $this->security = $security;         
+        $this->usersRepository = $usersRepository;        
+        $this->router = $router;        
+        $this->adminUrlGenerator = $adminUrlGenerator;
+    }
 
     public static function getEntityFqcn(): string
     {
         return Crews::class;
     }
 
+    public function createEntity(string $entityFqcn)
+    {
+        $crew = new Crews();
+
+        // Get competition ID from query param
+        $request = $this->requestStack->getCurrentRequest();
+        $competitionId = $request->query->get('competition');
+
+        if ($competitionId) {
+            $competition = $this->entityManager->getRepository(Competitions::class)->find($competitionId);
+            if ($competition) {
+                $crew->setCompetition($competition);
+            }
+        }
+
+        // Set the current date/time for registered_at
+        $crew->setRegisteredAt(new \DateTimeImmutable()); 
+            // Set registeredBy to the current user
+        $user = $this->security->getUser();
+        if ($user instanceof \App\Entity\Users) {
+            $crew->setRegisteredBy($user);
+        }
+
+        return $crew;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setEntityLabelInSingular('Équipage') // singular label
+            ->setEntityLabelInPlural('Équipages')  // plural label
+            ->setPageTitle(Crud::PAGE_INDEX, 'Liste des équipages')
+            ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
+            ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un équipage #%d', $crew->getId()))
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Equipage #%d', $crew->getId()));
+        }
 
     public function configureFields(string $pageName): iterable
     {
-        return [
-            IdField::new('name'),
-            TextField::new('startDate'),
-            TextEditorField::new('endDate'),
-        ];
+        $fields = [];
+
+        $request = $this->requestStack->getCurrentRequest();
+
+        $competition = null;
+        $users = [];
+
+        if ($pageName === Crud::PAGE_EDIT) {
+            $crewId = $request->query->get('entityId');          
+            if ($crewId) {
+                $crew = $this->entityManager->getRepository(Crews::class)->find($crewId);
+                if ($crew) {
+                    $competition = $crew->getCompetition();
+                    $includeUserIds = [];
+
+                    if ($crew->getPilot()) {
+                        $includeUserIds[] = $crew->getPilot()->getId();
+                    }
+                    if ($crew->getNavigator()) {
+                        $includeUserIds[] = $crew->getNavigator()->getId();
+                    }
+
+                    if ($competition) {
+                        $users = $this->usersRepository
+                            ->getUsersListNotYetRegistered($competition->getId(), $includeUserIds)
+                            ->getQuery()
+                            ->getResult();
+                    }
+                }
+            }
+        }
+        if ($pageName === Crud::PAGE_NEW) {
+            $competitionId = $request->query->get('competition');
+            $competition = $competitionId ? $this->entityManager->getRepository(Competitions::class)->find($competitionId) : null;
+
+            if ($competition) {
+                $users = $this->usersRepository
+                    ->getUsersListNotYetRegistered($competition->getId())
+                    ->getQuery()
+                    ->getResult();
+
+                $fields[] = AssociationField::new('competition')
+                    ->setFormTypeOption('data', $competition)
+                    ->setFormTypeOption('disabled', true)
+                    ->setFormTypeOption('mapped', false); // To avoid overwriting during persistence
+            }
+        }
+            
+        if ($pageName !== Crud::PAGE_NEW) {
+            // Show normal editable competition field for edit or index (if needed)
+            $fields[] = AssociationField::new('competition', 'Epreuve');
+        }
+   
+        // Add the rest of the fields
+        $fields[] = AssociationField::new('pilot','Pilote')
+            ->setFormTypeOption('choices', $users)
+            ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
+
+        $fields[] = AssociationField::new('navigator','Navigateur')
+            ->setFormTypeOption('choices', $users)
+            ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
+
+        $fields[] = ChoiceField::new('category','Catégorie')
+            ->setChoices(array_combine(
+                array_map(fn($case) => $case->value, Category::cases()),
+                Category::cases()
+            ))
+            ->renderExpanded(false) // dropdown
+            ->autocomplete(false)
+            ->allowMultipleChoices(false);
+        $fields[] = TextField::new('callsign','Immatriculation');
+        $fields[] = TextField::new('aircraftType','Type d\'avion');
+        $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion');
+        $fields[] = ChoiceField::new('aircraftSpeed','Vitesse')
+            ->setChoices(array_combine(
+                array_map(fn($case) => $case->value, SpeedList::cases()),
+                SpeedList::cases()
+            ))
+            ->renderExpanded(false) // dropdown
+            ->autocomplete(false)
+            ->allowMultipleChoices(false);
+        $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?');
+        $fields[] = TextField::new('pilotShared','Pilote de partage');
+
+        return $fields;
     }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        return $actions        
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)                       
+            ->remove(Crud::PAGE_INDEX, Action::DELETE)  
+        ;
+    }
+
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Crews) {
+            return;
+        }
+
+        $entityInstance->setRegisteredAt(new \DateTimeImmutable());
+        $entityInstance->setRegisteredBy($this->security->getUser());
+
+        parent::persistEntity($entityManager, $entityInstance);
+
+        $this->redirectToSelector();
+    }
+
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Crews) {
+            return;
+        }
+
+        $entityInstance->setRegisteredAt(new \DateTimeImmutable());
+        $entityInstance->setRegisteredBy($this->security->getUser());
+
+        parent::updateEntity($entityManager, $entityInstance);
+
+        $this->redirectToSelector();
+    }
+
+    private function redirectToSelector(): void
+    {
+        $url = $this->adminUrlGenerator
+            ->unsetAll() // ✅ correct method name
+            ->setRoute('admin_crew_selector')
+            ->generateUrl();
+
+        header("Location: $url");
+        exit; // Prevent further processing
+    }
+
 }

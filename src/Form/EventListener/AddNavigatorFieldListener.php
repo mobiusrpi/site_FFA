@@ -63,7 +63,7 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
                         'class' => 'form-select',                   
                         'id' => 'navigatorSelect',    
                     ],
-                    'required' => true,
+                    'required' => false,
                     'choice_label' =>function (Users $user): string {
                         return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
                     'label' => 'Navigateur',              

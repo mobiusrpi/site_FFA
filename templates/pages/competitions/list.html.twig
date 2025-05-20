@@ -55,7 +55,7 @@
                     {% if compet.startRegistration <= date('now') and
                        date('now') <= compet.endRegistration %}
                       <td>  
-                        <a href='{{ path('crews.registration',{'competId': compet.id}) }}' 
+                        <a href='{{ path('crews_registration',{'competId': compet.id} ) }}' 
                           class= 'btn btn-outline-success btn-sm'>Inscription</a>   
                       </td> 
                     {% else %}
@@ -83,12 +83,5 @@
       <h6 class="container mt-4">
         <p class="fw-bold">Veuillez-vous connecter pour vous inscrire</p>
       </h6>       
-    {% endif %}     
-    {% if is_granted('ROLE_ADMIN') %} 
-      <div class="container mt-4">  
-        <a href ="{{ path('admin.competitions.list') }}" class="btn btn-primary">
-            Gestion des competitions
-        </a>
-      </div>
     {% endif %}
   {% endblock %}

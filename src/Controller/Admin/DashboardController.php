@@ -2,67 +2,50 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Crews;
 use App\Entity\Users;
 use App\Entity\Competitions;
 use App\Entity\Accommodations;
-use Symfony\UX\Chartjs\Model\Chart;
 use App\Entity\CompetitionAccommodation;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use Symfony\Component\Routing\Attribute\Route;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
-use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
-//#[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractDashboardController
-{
-     public function __construct(
-        private ChartBuilderInterface $chartBuilder,
-    ) {
+{   
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
     }
-    
+
+    #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-                $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
-        // ...set chart data and options somehow
+        $competitions = $this->entityManager->getRepository(Competitions::class)->findAll();
+        // ✅ Important: forwards to EasyAdmin logic
+        $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
-        return $this->render('admin/my_dashboard.html.twig', [
-            'chart' => $chart,
-        ]);
-        
-        //return parent::index();
+        return $this->redirect($adminUrlGenerator->setController(CompetitionsCrudController::class)->generateUrl());
+//        return $this->render('admin/dashboard.html.twig', [
+//            'competitions' => $competitions,
+//    ]);
 
-        // Option 1. You can make your dashboard redirect to some common page of your backend
-        //
-        // 1.1) If you have enabled the "pretty URLs" feature:
-        // return $this->redirectToRoute('admin_user_index');
-        //
-        // 1.2) Same example but using the "ugly URLs" that were used in previous EasyAdmin versions:
-        // $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-        // return $this->redirect($adminUrlGenerator->setController(OneOfYourCrudController::class)->generateUrl());
-
-        // Option 2. You can make your dashboard redirect to different pages depending on the user
-        //
-        // if ('jane' === $this->getUser()->getUsername()) {
-        //     return $this->redirectToRoute('...');
-        // }
-
-        // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
-        // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
-        //
-        // return $this->render('some/path/my-dashboard.html.twig');
     }
 
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('Administration du site Sports FFA');
+            ->setTitle('Administration du site Sports FFA')
+            ->setDefaultColorScheme('dark');
     }
 
     public function configureMenuItems(): iterable
@@ -71,10 +54,12 @@ class DashboardController extends AbstractDashboardController
             ->setDefaultSort(['startDate' => 'ASC',]);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
             ->setDefaultSort(['email' => 'ASC']);
+//        yield MenuItem::linkToCrud('Crews', 'fas fa-users', Crews::class);
+        yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
         yield MenuItem::subMenu('Logistique', 'fa fa-hotel')->setSubItems([
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
             MenuItem::linkToCrud('Sélection', 'fas fa-list', CompetitionAccommodation::class),
-        ]);
+        ]);   
         yield MenuItem::linkToRoute('Accueil', 'fa fa-home','home');     
     }
   
