@@ -37,7 +37,7 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
  /**
   * Query users not yet registered
   */
-    public function getUsersListNotYetRegistered($compet) 
+    public function getUsersListNotYetRegistered($compet, array $includeUserIds = []) 
     {    
         $qb = $this->createQueryBuilder('user');
         $qb->leftJoin('App\Entity\Crews', 't', 'WITH', '(t.pilot = user.id OR t.navigator = user.id) AND t.competition = :competId')

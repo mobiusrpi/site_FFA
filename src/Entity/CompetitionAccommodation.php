@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CompetitionAccommodationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CompetitionAccommodationRepository::class)]
@@ -24,6 +26,17 @@ class CompetitionAccommodation
 
     #[ORM\ManyToOne]
     private ?Accommodations $accommodation = null;
+
+    /**
+     * @var Collection<int, Crews>
+     */
+    #[ORM\ManyToMany(targetEntity: Crews::class, mappedBy: 'crew_accommodation')]
+    private Collection $crew_accommodation;
+
+    public function __construct()
+    {
+        $this->crew_accommodation = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -74,6 +87,33 @@ class CompetitionAccommodation
     public function setAccommodation(?Accommodations $accommodation): static
     {
         $this->accommodation = $accommodation;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Crews>
+     */
+    public function getCrewAccommodation(): Collection
+    {
+        return $this->crew_accommodation;
+    }
+
+    public function addCrewAccommodation(Crews $crewAccommodation): static
+    {
+        if (!$this->crew_accommodation->contains($crewAccommodation)) {
+            $this->crew_accommodation->add($crewAccommodation);
+            $crewAccommodation->addCompetitionAccommodation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCrewAccommodation(Crews $crewAccommodation): static
+    {
+        if ($this->crew_accommodation->removeElement($crewAccommodation)) {
+            $crewAccommodation->removeCompetitionAccommodation($this);
+        }
 
         return $this;
     }

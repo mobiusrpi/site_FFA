@@ -7,19 +7,24 @@ use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use App\Repository\UsersRepository;
+use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+
+error_log("CrewsCrudController loaded from: " . __FILE__);
 
 class CrewsCrudController extends AbstractCrudController
 {   
@@ -84,40 +89,40 @@ class CrewsCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Équipages')  // plural label
             ->setPageTitle(Crud::PAGE_INDEX, 'Liste des équipages')
             ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
-            ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un équipage #%d', $crew->getId()))
-            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Equipage #%d', $crew->getId()));
+            ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un équipage'))
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Equipage'));
         }
 
     public function configureFields(string $pageName): iterable
     {
         $fields = [];
-
+        
         $request = $this->requestStack->getCurrentRequest();
+        $context = $this->requestStack->getCurrentRequest()->attributes->get('easyadmin_context');
 
         $competition = null;
         $users = [];
+        $accommodation = [];
 
-        if ($pageName === Crud::PAGE_EDIT) {
-            $crewId = $request->query->get('entityId');          
-            if ($crewId) {
-                $crew = $this->entityManager->getRepository(Crews::class)->find($crewId);
-                if ($crew) {
-                    $competition = $crew->getCompetition();
-                    $includeUserIds = [];
+        if ($pageName === Crud::PAGE_EDIT && $context) {
+            $crew = $context->getEntity()->getInstance();
 
-                    if ($crew->getPilot()) {
-                        $includeUserIds[] = $crew->getPilot()->getId();
-                    }
-                    if ($crew->getNavigator()) {
-                        $includeUserIds[] = $crew->getNavigator()->getId();
-                    }
+            if ($crew instanceof Crews) {
+                $competition = $crew->getCompetition();
+                $includeUserIds = [];
 
-                    if ($competition) {
-                        $users = $this->usersRepository
-                            ->getUsersListNotYetRegistered($competition->getId(), $includeUserIds)
-                            ->getQuery()
-                            ->getResult();
-                    }
+                if ($crew->getPilot()) {
+                    $includeUserIds[] = $crew->getPilot()->getId();
+                }
+                if ($crew->getNavigator()) {
+                    $includeUserIds[] = $crew->getNavigator()->getId();
+                }
+
+                if ($competition) {
+                    $users = $this->usersRepository
+                        ->getUsersListNotYetRegistered($competition->getId(), $includeUserIds)
+                        ->getQuery()
+                        ->getResult();
                 }
             }
         }
@@ -173,7 +178,10 @@ class CrewsCrudController extends AbstractCrudController
             ->allowMultipleChoices(false);
         $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?');
         $fields[] = TextField::new('pilotShared','Pilote de partage');
-
+        $fields[] = AssociationField::new('competitionAccommodation', 'Hébergements')
+            ->setFormTypeOption('by_reference', false) // important for ManyToMany!
+            ->setFormTypeOption('multiple', true)
+            ->setFormTypeOption('choice_label', fn($accommodation) => $accommodation->getAccommodation()->getRoom());        
         return $fields;
     }
 

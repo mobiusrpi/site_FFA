@@ -4,12 +4,18 @@ namespace App\Entity;
 
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CrewsRepository;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CrewsRepository::class)]
+#[Assert\Expression(
+    "this.getPilot() != this.getNavigator()",
+    message: "Le pilote et le navigateur doivent être différents."
+)]
 class Crews
 {
     #[ORM\Id]
@@ -61,6 +67,17 @@ class Crews
     #[ORM\ManyToOne(inversedBy: 'registeredBy')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Users $registeredby = null;
+
+    /**
+     * @var Collection<int, CompetitionAccommodation>
+     */
+    #[ORM\ManyToMany(targetEntity: CompetitionAccommodation::class, inversedBy: 'crew_accommodation')]
+    private Collection $competitionAccommodation;
+
+    public function __construct()
+    {
+        $this->competitionAccommodation = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -227,6 +244,30 @@ class Crews
     public function __toString(): string
     {
        return 'test_crew';
+    }
+
+    /**
+     * @return Collection<int, CompetitionAccommodation>
+     */
+    public function getCompetitionAccommodation(): Collection
+    {
+        return $this->competitionAccommodation;
+    }
+
+    public function addCompetitionAccommodation(CompetitionAccommodation $accommodation): static
+    {
+        if (!$this->competitionAccommodation->contains($accommodation)) {
+            $this->competitionAccommodation->add($accommodation);
+        }
+
+        return $this;
+    }
+
+    public function removeCompetitionAccommodation(CompetitionAccommodation $accommodation): static
+    {
+        $this->competitionAccommodation->removeElement($accommodation);
+
+        return $this;
     }
 }
 
