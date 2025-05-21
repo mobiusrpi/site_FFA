@@ -18,9 +18,6 @@ class CompetitionAccommodation
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private ?float $price = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $Available = null;
-
     #[ORM\ManyToOne(inversedBy: 'competitionAccommodation')]
     private ?Competitions $competition = null;
 
@@ -51,18 +48,6 @@ class CompetitionAccommodation
     public function setPrice(?float $price): static
     {
         $this->price = $price;
-
-        return $this;
-    }
-
-    public function isAvailable(): ?bool
-    {
-        return $this->Available;
-    }
-
-    public function setAvailable(?bool $Available): static
-    {
-        $this->Available = $Available;
 
         return $this;
     }

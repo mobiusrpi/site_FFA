@@ -33,7 +33,6 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
             MoneyField::new('price')->setCurrency('EUR'),
             AssociationField::new('competition'),
             AssociationField::new('accommodation'),
-            BooleanField::new('available'),
         ];
     }
 }

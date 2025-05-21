@@ -12,10 +12,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -147,7 +149,17 @@ class CrewsCrudController extends AbstractCrudController
             // Show normal editable competition field for edit or index (if needed)
             $fields[] = AssociationField::new('competition', 'Epreuve');
         }
-   
+        if ($competition) {
+            $competitionAccommodations = $this->entityManager
+                ->getRepository(CompetitionAccommodation::class)
+                ->createQueryBuilder('ca')
+                ->where('ca.competition = :competition')
+                ->setParameter('competition', $competition)
+                ->getQuery()
+                ->getResult();
+        } else {
+            $competitionAccommodations = [];
+        }
         // Add the rest of the fields
         $fields[] = AssociationField::new('pilot','Pilote')
             ->setFormTypeOption('choices', $users)
@@ -178,11 +190,21 @@ class CrewsCrudController extends AbstractCrudController
             ->allowMultipleChoices(false);
         $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?');
         $fields[] = TextField::new('pilotShared','Pilote de partage');
-        $fields[] = AssociationField::new('competitionAccommodation', 'Hébergements')
-            ->setFormTypeOption('by_reference', false) // important for ManyToMany!
+
+        $fields[] = AssociationField::new('competitionAccommodation', 'Accommodations')
             ->setFormTypeOption('multiple', true)
-            ->setFormTypeOption('choice_label', fn($accommodation) => $accommodation->getAccommodation()->getRoom());        
-        return $fields;
+            ->setFormTypeOption('expanded', true)
+            ->setFormTypeOption('by_reference', false)
+            ->setFormTypeOption('choice_label', function ($ca) {
+                $accommodation = $ca->getAccommodation();
+                return $accommodation ? $accommodation->getRoom() . ' (' . number_format($ca->getPrice() / 100, 2) . ' €)' : '???';
+            })
+            ->setFormTypeOption('choice_attr', function ($ca) {
+                return ['data-price' => $ca->getPrice() / 100]; // ✅ Required for JS to see price
+            })
+            ->setFormTypeOption('choices', $competitionAccommodations); // assuming this is your filtered list
+
+        return $fields; 
     }
 
     public function configureActions(Actions $actions): Actions
