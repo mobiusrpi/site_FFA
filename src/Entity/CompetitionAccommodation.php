@@ -101,5 +101,10 @@ class CompetitionAccommodation
         }
 
         return $this;
+    }    
+    
+    public function __toString(): string
+    {
+       return $this->price ?? 'N/A'; 
     }
 }

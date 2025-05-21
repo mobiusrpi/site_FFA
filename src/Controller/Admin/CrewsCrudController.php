@@ -193,17 +193,19 @@ class CrewsCrudController extends AbstractCrudController
 
         $fields[] = AssociationField::new('competitionAccommodation', 'Accommodations')
             ->setFormTypeOption('multiple', true)
-            ->setFormTypeOption('expanded', true)
+            ->setFormTypeOption('expanded', true) // ✅ CHECKBOX MODE
             ->setFormTypeOption('by_reference', false)
             ->setFormTypeOption('choice_label', function ($ca) {
-                $accommodation = $ca->getAccommodation();
-                return $accommodation ? $accommodation->getRoom() . ' (' . number_format($ca->getPrice() / 100, 2) . ' €)' : '???';
+                if (!$ca || !$ca->getAccommodation()) return 'Unknown';
+                return sprintf('%s (%.2f €)', $ca->getAccommodation()->getRoom(), $ca->getPrice() / 100);
             })
             ->setFormTypeOption('choice_attr', function ($ca) {
-                return ['data-price' => $ca->getPrice() / 100]; // ✅ Required for JS to see price
+                return ['data-price' => $ca?->getPrice() / 100 ?? 0];
             })
-            ->setFormTypeOption('choices', $competitionAccommodations); // assuming this is your filtered list
+            ->setFormTypeOption('choices', $competition ? $competition->getCompetitionAccommodation()->toArray() : []);
 
+        $fields[] = TextField::new('payment', 'Valider votre inscription en envoyant votre paiement');
+        
         return $fields; 
     }
 

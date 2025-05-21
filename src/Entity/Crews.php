@@ -241,10 +241,6 @@ class Crews
         return $this;
     }
 
-    public function __toString(): string
-    {
-       return 'test_crew';
-    }
 
     /**
      * @return Collection<int, CompetitionAccommodation>
@@ -268,6 +264,11 @@ class Crews
         $this->competitionAccommodation->removeElement($accommodation);
 
         return $this;
+    }
+    
+    public function __toString(): string
+    {
+       return 'test_crew';
     }
 }
 
