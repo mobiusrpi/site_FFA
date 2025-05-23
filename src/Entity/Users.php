@@ -30,10 +30,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 //    #[Assert\Regex('/^(\+33|0)[1-9][0-9 ]{8,12}$/', message: 'Numéro de téléphone invalide')]
     private ?string $email = null;
 
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
+    #[ORM\Column(type: "json")]
     private array $roles = [];
 
     /**
@@ -103,6 +100,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'registeredby')]
     private Collection $registeredBy;
+    
+    /**
+     * @var Collection<int, CompetitionsUsers>
+     */
+   #[ORM\OneToMany(mappedBy: 'user', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
+    private Collection $competitionsUsers;
 
     public function __construct()
     {
@@ -112,7 +115,8 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construc()
     {
         $this->createdAt = new \DateTimeImmutable();       
-        $this->updatedAt = new \DateTimeImmutable();      
+        $this->updatedAt = new \DateTimeImmutable();   
+        $this->competitionsUsers = new ArrayCollection();   
     }
 
     public function getId(): ?int
@@ -448,9 +452,38 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    
+    /**
+     * @return Collection<int, CompetitionsUsers>
+     */
+    public function getCompetitionsUsers(): Collection
+    {
+        return $this->competitionsUsers;
+    }
+
+    public function addCompetitionsUser(CompetitionsUsers $competitionsUser): static
+    {
+        if (!$this->competitionsUsers->contains($competitionsUser)) {
+            $this->competitionsUsers->add($competitionsUser);
+            $competitionsUser->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCompetitionsUser(CompetitionsUsers $competitionsUser): static
+    {
+        if ($this->competitionsUsers->removeElement($competitionsUser)) {
+            // set the owning side to null (unless already changed)
+            if ($competitionsUser->getUser() === $this) {
+                $competitionsUser->setUser(null);
+            }
+        }
+
+        return $this;
+    }
     public function __toString(): string
     {
         return $this->getLastname() . ' ' . $this->getFirstname();
     }
-
 }

@@ -13,7 +13,6 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -21,7 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -33,7 +32,6 @@ class CrewsCrudController extends AbstractCrudController
     private RequestStack $requestStack;    
     private EntityManagerInterface $entityManager;
     private Security $security;  
-    private RouterInterface $router;
     private UsersRepository $usersRepository;
     private AdminUrlGenerator $adminUrlGenerator;
 
@@ -48,8 +46,7 @@ class CrewsCrudController extends AbstractCrudController
         $this->requestStack = $requestStack;
         $this->entityManager = $entityManager;  
         $this->security = $security;         
-        $this->usersRepository = $usersRepository;        
-        $this->router = $router;        
+        $this->usersRepository = $usersRepository;                
         $this->adminUrlGenerator = $adminUrlGenerator;
     }
 
@@ -161,6 +158,7 @@ class CrewsCrudController extends AbstractCrudController
             $competitionAccommodations = [];
         }
         // Add the rest of the fields
+//        $fields[] = FormField::addColumn(8);
         $fields[] = AssociationField::new('pilot','Pilote')
             ->setFormTypeOption('choices', $users)
             ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
@@ -177,6 +175,7 @@ class CrewsCrudController extends AbstractCrudController
             ->renderExpanded(false) // dropdown
             ->autocomplete(false)
             ->allowMultipleChoices(false);
+
         $fields[] = TextField::new('callsign','Immatriculation');
         $fields[] = TextField::new('aircraftType','Type d\'avion');
         $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion');
@@ -204,9 +203,28 @@ class CrewsCrudController extends AbstractCrudController
             })
             ->setFormTypeOption('choices', $competition ? $competition->getCompetitionAccommodation()->toArray() : []);
 
-        $fields[] = TextField::new('payment', 'Valider votre inscription en envoyant votre paiement');
-        
-        return $fields; 
+        $fields[] = Field::new('htmlInfo')
+            ->setLabel(false)
+            ->setFormTypeOption('mapped', false)
+            ->onlyOnForms()
+            ->setTemplatePath('admin/fields/html_info_validation.html.twig');         
+ 
+        $fields[] = TextareaField::new('paymentInfo', 'Montant de l\'inscription')
+            ->setFormTypeOption('disabled', true) // not editable
+            ->setFormTypeOption('mapped', false)  // not tied to any entity property
+            ->setFormTypeOption('data', $competition?->getPaymentInfo() ?? 'Aucune information disponible.')
+            ->setFormTypeOption('attr', [
+                'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
+            ]);
+        $fields[] = TextareaField::new('competitionInfo', 'Information utiles')
+            ->setFormTypeOption('disabled', true) // not editable
+            ->setFormTypeOption('mapped', false)  // not tied to any entity property
+            ->setFormTypeOption('data', $competition?->getInformation() ?? 'Aucune information disponible.')
+            ->setFormTypeOption('attr', [
+                'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
+            ]);
+
+        return $fields;
     }
 
     public function configureActions(Actions $actions): Actions

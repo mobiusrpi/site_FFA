@@ -47,9 +47,6 @@ class Crews
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $pilotShared = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $payment = null;
-
    #[ORM\Column]
     private ?\DateTimeImmutable $registeredAt = null;
 
@@ -74,9 +71,13 @@ class Crews
     #[ORM\ManyToMany(targetEntity: CompetitionAccommodation::class, inversedBy: 'crew_accommodation')]
     private Collection $competitionAccommodation;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $ValidationPayment = null;
+
     public function __construct()
     {
         $this->competitionAccommodation = new ArrayCollection();
+
     }
 
     public function getId(): ?int
@@ -168,18 +169,6 @@ class Crews
         return $this;
     }
 
-    public function getPayment(): ?string
-    {
-        return $this->payment;
-    }
-
-    public function setPayment(?string $payment): static
-    {
-        $this->payment = $payment;
-
-        return $this;
-    }
-
     public function getRegisteredAt(): ?\DateTimeImmutable
     {
         return $this->registeredAt;
@@ -265,6 +254,18 @@ class Crews
 
         return $this;
     }
+    
+    public function isValidationPayment(): ?bool
+    {
+        return $this->ValidationPayment;
+    }
+
+    public function setValidationPayment(?bool $ValidationPayment): static
+    {
+        $this->ValidationPayment = $ValidationPayment;
+
+        return $this;
+    }    
     
     public function __toString(): string
     {

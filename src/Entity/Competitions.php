@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Enum\CompetitionRole;
 use App\Repository\CompetitionsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints\Cascade;
 
 #[ORM\Entity(repositoryClass: CompetitionsRepository::class)]
 
@@ -63,11 +63,25 @@ class Competitions
     #[ORM\OneToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'competition')]
     private Collection $competitionAccommodation;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $PaymentInfo = null;
+
+    #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true, enumType: CompetitionRole::class)]
+    private ?array $role = null;
+
+    /**
+     * @var Collection<int, CompetitionsUsers>
+     */
+
+    #[ORM\OneToMany(mappedBy: 'competition', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
+    private Collection $competitionsUsers;
+   
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->crew = new ArrayCollection();
         $this->competitionAccommodation = new ArrayCollection();
+        $this->competitionsUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -255,8 +269,72 @@ class Competitions
         return $this;
     }
 
+    public function getPaymentInfo(): ?string
+    {
+        return $this->PaymentInfo;
+    }
+
+    public function setPaymentInfo(?string $PaymentInfo): static
+    {
+        $this->PaymentInfo = $PaymentInfo;
+
+        return $this;
+    }
+
     public function __toString(): string
     {
         return $this->name ?? 'N/A'; 
+    }
+
+    /**
+     * @return CompetitionRole[]|null
+     */
+    public function getRole(): ?array
+    {
+        return $this->role;
+    }
+
+    public function setRole(?array $role): static
+    {
+        $this->role = $role;
+
+        return $this;
+    }
+
+    public function getOrganizers(): array
+{
+    return $this->competitionsUsers->filter(function (CompetitionsUsers $cu) {
+        return in_array($cu->getRole(), ['director', 'coach', 'manager']);
+    })->toArray();
+}
+
+    /**
+     * @return Collection<int, CompetitionsUsers>
+     */
+    public function getCompetitionsUsers(): Collection
+    {
+        return $this->competitionsUsers;
+    }
+
+    public function addCompetitionsUser(CompetitionsUsers $competitionsUser): static
+    {
+        if (!$this->competitionsUsers->contains($competitionsUser)) {
+            $this->competitionsUsers->add($competitionsUser);
+            $competitionsUser->setCompetition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCompetitionsUser(CompetitionsUsers $competitionsUser): static
+    {
+        if ($this->competitionsUsers->removeElement($competitionsUser)) {
+            // set the owning side to null (unless already changed)
+            if ($competitionsUser->getCompetition() === $this) {
+                $competitionsUser->setCompetition(null);
+            }
+        }
+
+        return $this;
     }
 }

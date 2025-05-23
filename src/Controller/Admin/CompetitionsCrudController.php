@@ -2,12 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
 use App\Entity\Crews;
 use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Form\RegistrationType;
+use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
 use App\Entity\CompetitionAccommodation;
@@ -15,12 +14,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
 use App\Repository\AccommodationsRepository;
-use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
@@ -28,14 +26,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use App\Repository\CompetitionAccommodationRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
-class CompetitionsCrudController extends AbstractCrudController
-{       
-    use Trait\BlockDeleteTrait;    
 
+class CompetitionsCrudController extends AbstractCrudController
+{          
     private $competId;
 
     private $entityManager;
@@ -62,7 +60,7 @@ class CompetitionsCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [        
-            FormField::addColumn(4),
+            FormField::addColumn(8),
             TextField::new('name','Désignation'),
             TextField::new('location','Lieu'),            
             AssociationField::new('typecompetition','Type')
@@ -76,7 +74,16 @@ class CompetitionsCrudController extends AbstractCrudController
             BooleanField::new('selectable','Sélection')
                 ->renderAsSwitch(),             
             DateField::new('createdAt')->onlyOnDetail() ,
-            TextareaField::new('information')->onlyOnForms(),             
+            TextareaField::new('paymentInfo','Informations de réglement')->onlyOnForms(),             
+            TextareaField::new('information','Informations utiles')->onlyOnForms(), 
+            
+            FormField::addPanel('Organisateurs'),
+            CollectionField::new('competitionsUsers')
+                ->setEntryType(CompetitionsUsersType::class)
+                ->onlyOnForms()
+                ->allowAdd()
+                ->allowDelete()
+                ->setLabel('Organisateurs de la compétition')
         ];
     }
 
@@ -131,10 +138,9 @@ class CompetitionsCrudController extends AbstractCrudController
  
  //           ->remove(Crud::PAGE_INDEX, Action::EDIT)                       
             ->remove(Crud::PAGE_INDEX, Action::DELETE)           
-
             ->add(Crud::PAGE_INDEX, $registeredListAction)            
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
-            ->add(Crud::PAGE_INDEX, $manageCompetitionAction)            
+            ->add(Crud::PAGE_INDEX, $manageCompetitionAction)                       
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionDownloadAction)
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction);
 
@@ -219,7 +225,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $formModel = new AccommodationCollection($finalList);
     
         $form = $this->createForm(ManageCompetitionType::class, $formModel);
-//dd($form);
+
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {

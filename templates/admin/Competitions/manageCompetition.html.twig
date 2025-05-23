@@ -22,12 +22,12 @@
             <div class='row'>
 
                 <div class='mt-4'> 
-                    <p>Selectionner les types de chambre qui seront disponibles et leur prix</p>                    
+                    <p>Renseigner le prix de l'inscription en fonction du type de service</p>                    
+                    <p>Laisser vide le champs "Prix" si non disponible</p>                    
                     <table class="table table-bordered align-middle">
                             <thead class="table-dark">
                             <tr>
                                 <th class='text-center col-2'>Service</th>
-                                <th class='text-center col-1'>Disponible</th>
                                 <th class='text-center col-2'>Prix</th>
                             </tr>
                         </thead>
@@ -36,9 +36,6 @@
                                 <tr class="align-middle">
                                     {# Read-only room name #}
                                     <td>{{ accomForm.accommodation.vars.data.room }}</td>
-
-                                    {# Checkbox for availability #}
-                                    <td>{{ form_widget(accomForm.available) }}</td>
 
                                     {# Price input #}
                                     <td>{{ form_widget(accomForm.price) }}</td>

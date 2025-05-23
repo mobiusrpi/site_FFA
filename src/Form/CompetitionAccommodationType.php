@@ -23,7 +23,7 @@ class CompetitionAccommodationType extends AbstractType
             ])
             ->add('price', MoneyType::class, [
                 'currency' => 'EUR',
-                'divisor'  => 1,
+                'divisor'  => 100,
                 'required' => false,
                 'scale' => 2,
                 'attr' => [
@@ -32,10 +32,6 @@ class CompetitionAccommodationType extends AbstractType
                     'min' => '0',
                 ],
             ])
-            ->add('available', CheckboxType::class, [
-                'label' => 'Disponible?',
-                'required' => false,
-            ]);
         ;
     }
 
