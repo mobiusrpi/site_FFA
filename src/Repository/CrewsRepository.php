@@ -3,8 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Crews;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Crew>
@@ -52,31 +53,23 @@ class CrewsRepository extends ServiceEntityRepository
             ->leftJoin('crew.navigator', 'navigator')        
             ->where('crew.competition = :competId')
             ->setParameter('competId', $competId)
+            ->orderBy('crew.category', 'ASC')
+            ->addOrderBy('pilot.lastname', 'ASC')  
             ->getQuery()
             ->getResult();
     }
-//    /**
-//     * @return Crew[] Returns an array of Crew objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Crew
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+     public function getQueryCrewsAccommodation($competId)
+    {
+        return $this->createQueryBuilder('crew')
+            ->select('crew','compet','pilot','navigator','accommodation')
+            ->leftJoin('crew.competition', 'compet') 
+            ->leftJoin('crew.pilot', 'pilot')        
+            ->leftJoin('crew.navigator', 'navigator')        
+            ->leftJoin('crew.competitionAccommodation', 'accommodation')        
+            ->where('crew.competition = :competId')
+            ->setParameter('competId', $competId)
+            ->addOrderBy('pilot.lastname', 'ASC')  
+            ->getQuery()
+            ->getResult();
+    }
 }

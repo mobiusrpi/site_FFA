@@ -27,7 +27,7 @@ services:
     App\Form\EventListener\AddNavigatorFieldListener:
         tags:
             - { name: form.event_listener, event: form.pre_set_data, method: onPreSetData }
-    App\Form\RegistrationType:
+    App\Form\RegistrationCrewType:
         arguments:
             $addNavigatorFieldListener: '@App\Form\EventListener\AddNavigatorFieldListener'
     App\Form\EventSubscriber\PreSubmitSubscriber:

@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Crews;
+use App\Form\CrewsType;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
@@ -12,11 +13,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
-use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -107,7 +106,7 @@ class CrewsCrudController extends AbstractCrudController
             $crew = $context->getEntity()->getInstance();
 
             if ($crew instanceof Crews) {
-                $competition = $crew->getCompetition();
+                $competition = $crew->getCompetition();          
                 $includeUserIds = [];
 
                 if ($crew->getPilot()) {
@@ -125,9 +124,11 @@ class CrewsCrudController extends AbstractCrudController
                 }
             }
         }
-        if ($pageName === Crud::PAGE_NEW) {
-            $competitionId = $request->query->get('competition');
-            $competition = $competitionId ? $this->entityManager->getRepository(Competitions::class)->find($competitionId) : null;
+        if ($pageName === Crud::PAGE_NEW && $request->query->get('competition')) {
+
+            $crew = new Crews();
+            $competition = $this->entityManager->getRepository(Competitions::class)->find($request->query->get('competition'));
+            $crew->setCompetition($competition);
 
             if ($competition) {
                 $users = $this->usersRepository
@@ -157,8 +158,7 @@ class CrewsCrudController extends AbstractCrudController
         } else {
             $competitionAccommodations = [];
         }
-        // Add the rest of the fields
-//        $fields[] = FormField::addColumn(8);
+
         $fields[] = AssociationField::new('pilot','Pilote')
             ->setFormTypeOption('choices', $users)
             ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
@@ -192,7 +192,7 @@ class CrewsCrudController extends AbstractCrudController
 
         $fields[] = AssociationField::new('competitionAccommodation', 'Accommodations')
             ->setFormTypeOption('multiple', true)
-            ->setFormTypeOption('expanded', true) // ✅ CHECKBOX MODE
+            ->setFormTypeOption('expanded', true)
             ->setFormTypeOption('by_reference', false)
             ->setFormTypeOption('choice_label', function ($ca) {
                 if (!$ca || !$ca->getAccommodation()) return 'Unknown';
@@ -201,13 +201,7 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('choice_attr', function ($ca) {
                 return ['data-price' => $ca?->getPrice() / 100 ?? 0];
             })
-            ->setFormTypeOption('choices', $competition ? $competition->getCompetitionAccommodation()->toArray() : []);
-
-        $fields[] = Field::new('htmlInfo')
-            ->setLabel(false)
-            ->setFormTypeOption('mapped', false)
-            ->onlyOnForms()
-            ->setTemplatePath('admin/fields/html_info_validation.html.twig');         
+            ->setFormTypeOption('choices', $competitionAccommodations);    
  
         $fields[] = TextareaField::new('paymentInfo', 'Montant de l\'inscription')
             ->setFormTypeOption('disabled', true) // not editable
@@ -216,6 +210,9 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('attr', [
                 'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
             ]);
+        $fields[] = BooleanField::new('validationPayment', 'Paiement validé')                
+            ->renderAsSwitch();
+
         $fields[] = TextareaField::new('competitionInfo', 'Information utiles')
             ->setFormTypeOption('disabled', true) // not editable
             ->setFormTypeOption('mapped', false)  // not tied to any entity property

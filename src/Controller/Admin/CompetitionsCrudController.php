@@ -5,7 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Crews;
 use App\Service\PdfService;
 use App\Entity\Competitions;
-use App\Form\RegistrationType;
+use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
@@ -51,9 +51,10 @@ class CompetitionsCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
+            ->overrideTemplate('crud/index', 'admin/competitions/index.html.twig')
             ->setPageTitle('index', 'Liste des compétitions')
             ->setPageTitle('detail', 'Compétition')
-            ->setPageTitle('edit', 'Modification d\'une compétition')
+            ->setPageTitle('edit', 'Modification d\'une compétition') 
         ;
     }
 
@@ -116,7 +117,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Liste .pdf')
+        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Hébergement')
             ->setIcon('fa fa-list')
             ->linkToRoute('admin_crews_by_competition_download',                
                 function (Competitions $competition) {
@@ -136,7 +137,11 @@ class CompetitionsCrudController extends AbstractCrudController
 
         return $actions
  
- //           ->remove(Crud::PAGE_INDEX, Action::EDIT)                       
+            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-pen') // or 'fas fa-edit'
+                    ->setLabel('Modifier');
+            })                                 
             ->remove(Crud::PAGE_INDEX, Action::DELETE)           
             ->add(Crud::PAGE_INDEX, $registeredListAction)            
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
@@ -175,7 +180,9 @@ class CompetitionsCrudController extends AbstractCrudController
         $crew = new Crews; 
         $competition = $repositoryCompetition->find($competId); 
  
-        $form = $this->createForm(RegistrationType::class, $crew);
+        $form = $this->createForm(RegistrationCrewType::class, $crew, [
+                    'compet' => $competition,
+                ]);       
 
         $form->handleRequest($request);
 
@@ -190,7 +197,8 @@ class CompetitionsCrudController extends AbstractCrudController
         }
 
         return $this->render('admin/crews/crewRegistration.html.twig', [
-            'form' => $form->createView(), 
+            'form' => $form->createView(),
+            'compet' => $competition, 
         ]);
     }
 
@@ -252,12 +260,21 @@ class CompetitionsCrudController extends AbstractCrudController
         CrewsRepository $repositoryCrew,
         PdfService $pdf): Response
     {
-        $registants = $repositoryCrew->getQueryCrews($competId);
+        $registants = $repositoryCrew->getQueryCrewsAccommodation($competId);
 
-        $fileName = $registants[0]->getCompetition()->getName(); 
-        $html = $this->render('admin/competitions/printCrews.html.twig',['registants' => $registants]);             
+        if (empty($registants)) {
+            throw $this->createNotFoundException('No crews found for this competition.');
+        }
+//dd($registants);
+//        $fileName = $registants[0]->getCompetition()->getName(); 
+//        $html = $this->render('admin/crews/crewsAccommodation.html.twig',['registants' => $registants]);             
         
-        return $pdf->showPdfFile($html,$fileName);
+//        return $pdf->showPdfFile($html,$fileName);
+        return $this->render('admin/crews/crewsAccommodation.html.twig', [
+            'registants' => $registants,
+        ]);
+
+
     }
 
     public  function persistEntity(EntityManagerInterface $em,$entityInstance):void

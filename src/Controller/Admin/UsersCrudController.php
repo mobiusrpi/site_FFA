@@ -43,6 +43,10 @@ class UsersCrudController extends AbstractCrudController
             ->setPageTitle('index', 'Liste des utilisateurs')
             ->setPageTitle('detail', 'Utilisateur')
             ->setPageTitle('edit', 'Modification d\'un utilisateur')
+            ->setDefaultSort([
+                'lastname' => 'ASC',
+                'firstname' => 'ASC',
+            ])
         ;
     }
 

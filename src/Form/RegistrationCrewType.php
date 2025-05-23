@@ -22,7 +22,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
-class RegistrationType extends AbstractType
+class RegistrationCrewType extends AbstractType
 {    
     private $addNavigatorFieldListener;
     

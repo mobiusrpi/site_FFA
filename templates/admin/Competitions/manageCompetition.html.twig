@@ -4,14 +4,14 @@
 {% block main %}
     {{ parent() }}
    <section class 'container mt-4'>
-        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Informations pour l'inscripition</h2>  
+        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Paramétrage de l'inscripition</h2>  
         {% for message in app.flashes('success') %}
             <div class="alert alert-success mt-4">
               {{ message }}
             </div>   
         {% endfor %}  
         <div>
-            <p class= 'text-center'>Parametre d'inscription pour la compétition <strong>{{ compet.name }}</strong></br> 
+            <p class= 'text-center'>Montant de l'inscription selon le type de prestation pour la compétition <strong>{{ compet.name }}</strong></br> 
             se déroulant à <strong>{{ compet.location }}</strong>
             du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
             au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
@@ -20,25 +20,25 @@
         </div>
         {{ form_start(form) }}
             <div class='row'>
-
                 <div class='mt-4'> 
                     <p>Renseigner le prix de l'inscription en fonction du type de service</p>                    
                     <p>Laisser vide le champs "Prix" si non disponible</p>                    
-                    <table class="table table-bordered align-middle">
+                        <table class="table table-bordered align-middle" style="table-layout: fixed; width: 50%;">
                             <thead class="table-dark">
                             <tr>
-                                <th class='text-center col-2'>Service</th>
-                                <th class='text-center col-2'>Prix</th>
+                                <th class='text-center' style='width: 66%;'>Service</th>
+                                <th class='text-center' style='width: 34%;'>Prix</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for accomForm in form.accommodations %}
                                 <tr class="align-middle">
-                                    {# Read-only room name #}
                                     <td>{{ accomForm.accommodation.vars.data.room }}</td>
 
                                     {# Price input #}
-                                    <td>{{ form_widget(accomForm.price) }}</td>
+                                    <td> 
+                                       {{ form_widget(accomForm.price, { attr: { style: 'max-width: 100px;' } }) }}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </body>

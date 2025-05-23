@@ -6,6 +6,10 @@ admin_registered_crews_list:
     path: /admin/registered_crews_list/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::registeredListAction
 
+admin_registration_crew_new:
+    path: /admin/registered_crews_new/{competId}
+    controller: App\Controller\Admin\CompetitionsCrudController::newRegistrationAction
+
 admin_competition_manage:
     path: /admin/competition_manage/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::manageCompetitionAction

@@ -281,11 +281,6 @@ class Competitions
         return $this;
     }
 
-    public function __toString(): string
-    {
-        return $this->name ?? 'N/A'; 
-    }
-
     /**
      * @return CompetitionRole[]|null
      */
@@ -337,4 +332,10 @@ class Competitions
 
         return $this;
     }
+    
+    public function __toString(): string
+    {
+        return $this->name ?? 'N/A'; 
+    }
+
 }

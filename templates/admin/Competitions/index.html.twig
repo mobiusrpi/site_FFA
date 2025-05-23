@@ -1,0 +1,17 @@
+{% extends '@EasyAdmin/crud/index.html.twig' %}
+
+{% block content %}
+    <style>
+        .ea-list-table {
+            border-collapse: collapse;
+        }
+
+        .ea-list-table th,
+        .ea-list-table td {
+            border: 1px solid #999;
+            padding: 8px;
+        }
+    </style>
+
+    {{ parent() }}
+{% endblock %}
