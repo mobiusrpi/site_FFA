@@ -9,6 +9,7 @@ use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
+use App\Form\AccommodationByCrewType;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
@@ -18,7 +19,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
@@ -117,9 +117,9 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionDownloadAction = Action::new('crewsByCompetitionDownloadAction', 'Hébergement')
+        $accommodationByCrewAction = Action::new('accommodationByCrewAction', 'Hébergement')
             ->setIcon('fa fa-list')
-            ->linkToRoute('admin_crews_by_competition_download',                
+            ->linkToRoute('admin_accommodation_by_crew',                
                 function (Competitions $competition) {
                     return [
                         'competId' => $competition->getId(),
@@ -146,7 +146,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $registeredListAction)            
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
             ->add(Crud::PAGE_INDEX, $manageCompetitionAction)                       
-            ->add(Crud::PAGE_INDEX, $crewsByCompetitionDownloadAction)
+            ->add(Crud::PAGE_INDEX, $accommodationByCrewAction)
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction);
 
     } 
@@ -161,11 +161,11 @@ class CompetitionsCrudController extends AbstractCrudController
         CompetitionsRepository $repositoryCompetition,   
     ): Response
     {
-        $registants = $repositoryCrew->getQueryCrews($competId);
+        $crews = $repositoryCrew->getQueryCrews($competId);
         $competition = $repositoryCompetition->find($competId);      
 
-        return $this->render('admin/competitions/registantslist.html.twig', [
-            'registants' => $registants,  
+        return $this->render('admin/crews/crewslist.html.twig', [
+            'crews' => $crews,  
             'competition' => $competition,        
         ]);            
     }
@@ -260,21 +260,86 @@ class CompetitionsCrudController extends AbstractCrudController
         CrewsRepository $repositoryCrew,
         PdfService $pdf): Response
     {
-        $registants = $repositoryCrew->getQueryCrewsAccommodation($competId);
+        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
 
-        if (empty($registants)) {
+        if (empty($crews)) {
             throw $this->createNotFoundException('No crews found for this competition.');
         }
-//dd($registants);
-//        $fileName = $registants[0]->getCompetition()->getName(); 
-//        $html = $this->render('admin/crews/crewsAccommodation.html.twig',['registants' => $registants]);             
+
+        $fileName = $crews[0]->getCompetition()->getName(); 
+        $html = $this->render('admin/crews/crewsAccommodation.html.twig',['crews' => $crews]);             
         
-//        return $pdf->showPdfFile($html,$fileName);
+        return $pdf->showPdfFile($html,$fileName);
+    }
+
+    public function  accommodationByCrewAction1(
+        int $competId,        
+        Request $request,
+        CrewsRepository $repositoryCrew,
+        EntityManagerInterface $entityManager
+    ): Response
+    {
+        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
+
+        if (empty($crews)) {
+            throw $this->createNotFoundException('No crews found for this competition.');
+        }
+//dd($crews);
+        $form = $this->createForm(AccommodationByCrewType::class,  ['crews' => $crews]);
+
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            foreach ($data['crews'] as $crew) {
+                $entityManager->persist($crew);
+            }
+            $entityManager->flush();
+
+            $this->addFlash(
+              'success',
+              'Services modifiés avec succès !'
+            ); 
+
+            return $this->redirectToRoute('admin');
+        }
+
         return $this->render('admin/crews/crewsAccommodation.html.twig', [
-            'registants' => $registants,
+            'crews' => $crews, // an array or Collection of Crews
+            'form' => $form->createView(),
         ]);
+    }
+    
+    public function accommodationByCrewAction(
+        int $competId,
+        Request $request,
+        CrewsRepository $repositoryCrew,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
 
+        if (empty($crews)) {
+            throw $this->createNotFoundException('No crews found for this competition.');
+        }
 
+        // ✅ Manually handle POST request (no Symfony FormType)
+        if ($request->isMethod('POST')) {
+            $postData = $request->request->all();
+            $submitted = $postData['validationPayment'] ?? [];
+            foreach ($crews as $crew) {
+                $isValidated = isset($submitted[$crew->getId()]);
+                $crew->setValidationPayment($isValidated ? 1 : 0);
+                $entityManager->persist($crew);
+            }    
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Validation de paiement enregistrée.');
+            return $this->redirectToRoute('admin'); // Adjust route if needed
+        };
+
+        return $this->render('admin/crews/crewsAccommodation.html.twig', [
+            'crews' => $crews,
+        ]);
     }
 
     public  function persistEntity(EntityManagerInterface $em,$entityInstance):void

@@ -102,7 +102,7 @@ class RegistrationForm extends AbstractType
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,
                 'label'    => 'En m\'inscrivant j\'accepte les 
-                <a href="https://www.ffa-aero.fr/fichiers_ffa/ffa/Condition_utilisation.pdf">condition utilisation</a>',
+                <a href="files/GCU_sports.ff-aero.fr.pdf">condition générales d\'utilisation</a>',
                 'label_html' => true,
                 'label_attr' => [
                     'class' => 'form-check-label me-2'

@@ -4,13 +4,17 @@ namespace App\Controller\Admin;
 
 use App\Entity\Crews;
 use App\Form\CrewsType;
+use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
+use App\Repository\CrewsRepository;
 use App\Repository\UsersRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -269,6 +273,24 @@ class CrewsCrudController extends AbstractCrudController
 
         header("Location: $url");
         exit; // Prevent further processing
+    }
+
+    #[Route(path:'/admin/print_crews/{competId}', name: 'admin_print_crews', methods:["GET","POST"])]
+    public function  printCrews(
+        int $competId,
+        CrewsRepository $repositoryCrew,
+        PdfService $pdf): Response
+    {
+        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
+
+        if (empty($crews)) {
+            throw $this->createNotFoundException('No crews found for this competition.');
+        }
+
+        $fileName = $crews[0]->getCompetition()->getName(); 
+        $html = $this->render('admin/crews/printCrews.html.twig',['crews' => $crews]);             
+
+        return $pdf->showPdfFile($html,$fileName);
     }
 
 }

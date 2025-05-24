@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Crews;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -58,7 +59,8 @@ class CrewsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-     public function getQueryCrewsAccommodation($competId)
+
+    public function getQueryCrewsAccommodation($competId)
     {
         return $this->createQueryBuilder('crew')
             ->select('crew','compet','pilot','navigator','accommodation')

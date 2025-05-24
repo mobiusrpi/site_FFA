@@ -4,80 +4,75 @@
 
 {% block main %}
     {{ parent() }}
-    <section class="container">
+    <section class="container"> 
         <div class="row justify-content-center">
-            <div class='col-10'>
-                <h3 class='mx-auto text-center fw-bold'>Hébergement {{ registants[0].competition.name }}</h3>
+            <div class="row">
+                <div class='col-10'>
+                    <h3 class='mx-auto text-center fw-bold'>Hébergement pour le {{ crews[0].competition.name }}</h3>
+                </div>
+                <div class="text-end col-2">
+                    <span>
+                        <a href="{{ path('admin_print_crews', {'competId': crews[0].competition.id }) }}" class="btn-print">
+                            <i class="fas fa-print"> </i> Imprimer
+                        </a> 
+                    </span>
+                </div> 
             </div>
         </div>
         {% for message in app.flashes('success') %}
           <div class="alert alert-success mt-4">
             {{message}}
           </div> 
-        {% endfor %}    
-        <table class="mt-4" style="border-collapse:collapse;">
-            <thead>
-                <tr>
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">#</th>                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">H/E</th>                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">Nom-Prénom</th>                                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">Email</th>                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">Téléphone</th>                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">Inscription</th>                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">Montant</th>                 
-                    <th style="border: 1px solid #ccc; padding: 8px" scope="col">Validé</th>                 
-                </tr>                
-            </thead>
-            <tbody>                        
-                {% set n = 1 %}     
-                {% for crew in registants %}                  
-                    {% if crew.category is defined %} 
-                        <tr>   
-                            <td style="border: 1px solid #ccc; padding: 8px" >
-                                {{ n }} 
-                            </td>    
-                            <td style="border: 1px solid #ccc; padding: 8px" >{{ (crew.category.value) | slice(0,1) }} </td>                                                                   
-                            <td style="border: 1px solid #ccc; padding: 8px" >
-                                <p> {{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</p>
-                                <p> {{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</p>
-                            </td>   
-                            <td style="border: 1px solid #ccc; padding: 8px" >
-                                <p>  {{ crew.pilot.email }}</p>
-                                <p>  {{ crew.navigator.email }}</p> 
-                            </td>                        
-                            <td style="border: 1px solid #ccc; padding: 8px" >
-                                <p> {{ (crew.pilot.phone) | slice(0,2) }} {{ (crew.pilot.phone) | slice(2,2) }} {{ (crew.pilot.phone) | slice(4,2) }} {{ (crew.pilot.phone) | slice(6,2) }} {{ (crew.pilot.phone) | slice(8,2) }}</p>
-                                <p> {{ (crew.navigator.phone) | slice(0,2) }} {{ (crew.navigator.phone) | slice(2,2) }} {{ (crew.navigator.phone) | slice(4,2) }} {{ (crew.navigator.phone) | slice(6,2) }} {{ (crew.navigator.phone) | slice(8,2) }} </p> 
-                            </td> 
-                            {% if crew.competitionAccommodation is not empty %}
-                                <td style="border: 1px solid #ccc; padding: 8px" >
-                                    {% for ca in crew.competitionAccommodation %}
-                                        <p>
-                                            {{ ca.accommodation.room }} 
-                                        </p>
-                                    {% endfor %}
-                                </td>                  
-                                <td style="border: 1px solid #ccc; padding: 8px" >
-                                    {% for ca in crew.competitionAccommodation %}
-                                        <p>
-                                            {{ (ca.price / 100) |number_format(2, '.', ',') }} €
-                                        </p>
-                                    {% endfor %}
-                                </td>                            
-                            {% else %} 
-                                <td style="border: 1px solid #ccc; padding: 8px" >
-                                    <em>No accommodations</em>
-                                </td>
-                                <td style="border: 1px solid #ccc; padding: 8px" ></td>
-                            {% endif %}                  
-                            <td style="border: 1px solid #ccc; padding: 8px" >
-                                <input type="checkbox" name="selected_crews[]" value="{{ crew.validationPayment }}">
+        {% endfor %}   
+        <form method="post">
+            <table class="table table-bordered align-middle mt-4">
+                <thead class="table-light">
+                    <tr>
+                        <th>Equipage</th>
+                        <th>Hébergements</th>
+                        <th>Prix</th>
+                        <th>Validation paiement</th>
+                    </tr>
+                </thead> 
+                <tbody>
+                    {% for crew in crews %}
+                        <tr class='border-bottom'>
+                            <td>
+                                <p>{{ crew.pilot.getLastname() }} {{ crew.pilot.getFirstname() }}</p>
+                                <p>{{ crew.navigator.getLastname() }} {{ crew.navigator.getFirstname() }}</p>
+                            <td>
+                                {% for ca in crew.competitionAccommodation %}
+                                    {{ ca.accommodation.room }}<br>
+                                {% else %}
+                                    Aucun hébergement
+                                {% endfor %}
+                            </td>
+                            <td>    
+                                {% for ca in crew.competitionAccommodation %}
+                                    {{ (ca.price / 100) |number_format(2, '.', ',') }} €<br>
+                                {% else %}
+                                    Aucun prix
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                        class="form-check-input"
+                                        name="validationPayment[{{ crew.id }}]"
+                                        id="crew_switch_{{ crew.id }}"       
+                                        {% if crew.validationPayment %}
+                                            checked
+                                        {% endif %}>
+                                    <label class="form-check-label" for="crew_switch_{{ crew.id }}"></label>
+                                </div>
                             </td>
                         </tr>
-                        {% set n = n + 1 %}
-                    {% endif %}
-                {% endfor %}                     
-            </tbody>
-        </table>        
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Valider les paiements</button>
+            </div>
+        </form>
     </section>                 
-  {% endblock main %}
+{% endblock main %}

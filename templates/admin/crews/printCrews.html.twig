@@ -3,53 +3,80 @@
 {% block title %}Liste des inscrits{% endblock %}
 
 {% block body %}
-
+    <style>
+        table {
+            width: 100%;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+    </style>
     <div>
-        <h3>Liste des inscrits {{ registants[0].competition.name }}</h3>
+        <h3>Liste des inscrits - {{ crews[0].competition.name }}</h3>
     </div>
-    <table style="border-collapse:collapse;">
+    <table>
         <thead>
             <tr>
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">#</th>
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Categorie</th>
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Immat.</th>
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Vp</th>                 
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Nom-Prénom</th>                
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Aéroclub</th>                 
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">CRA</th>                 
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Licence FFA</th>
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Email</th>                 
-                <th style="border:1px solid #000; text-align: center;padding: 4px;" scope="col">Téléphone</th>                                              
+                <th>#</th>
+                <th>Equipage</th>
+                <th>Email</th>            
+                <th>Téléphone</th>    
+                <th>Chambre</th>            
+                <th>Prix</th>                    
+                <th>Validation</th>      
             </tr>                
         </thead>
-        <tbody>                        
-            {% set n = 1 %}     
-            {% for registant in registants %}                  
-                {% if registant.category is defined %} 
-                    <tr>   
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;" rowspan="2">{{ n }} </td>                            
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;" rowspan="2">{{ registant.category.value }} </td>                            
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;" rowspan="2">{{ registant.callsign }} </td>                                             
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;" rowspan="2">{{ registant.aircraftSpeed.value }} </td>                       
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.lastname }}  {{ registant.pilot.firstname }}</td>
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.flyingclub }}</td>                        
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.committee.value |slice(0, 2) }}</td>                             
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.licenseFfa }}</td>  
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.email }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.pilot.phone }}</td> 
+        <tbody> 
+            {% set n = 1 %}                           
+            {% for crew in crews %}
+                    {% if crew.category is defined %} 
+                    <tr>           
+                        <td >
+                            {{ n }} 
+                        </td>  
+                        <td > 
+                            <p> {{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</p>
+                            <p> {{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</p>
+                        </td>
+                        <td >
+                            <p>  {{ crew.pilot.email }}</p>                           
+                            <p>  {{ crew.navigator.email }}</p>
+                        </td>      
+                        <td >
+                            <p>  {{ crew.pilot.phone }}</p>
+                            <p>  {{ crew.navigator.phone }}</p> 
+                        </td>  
+                        {% if crew.competitionAccommodation is not empty %}
+                            <td>
+                                {% for ca in crew.competitionAccommodation %}
+                                    <p>
+                                        {{ ca.accommodation.room }} 
+                                    </p>
+                                {% endfor %}
+                            </td>                  
+                            <td>
+                                {% for ca in crew.competitionAccommodation %}
+                                    <p>
+                                        {{ (ca.price / 100) |number_format(2, '.', ',') }} €
+                                    </p>
+                                {% endfor %}
+                            </td>                            
+                        {% else %} 
+                            <td>
+                                <em>No accommodations</em>
+                            </td>
+                            <td ></td>
+                        {% endif %}                  
+                       <td>
+                        {% if crew.ValidationPayment == 0 %}
+                            En attente
+                        {% else %}
+                            Réglé
+                        {% endif %}
+                       </td>
+                        {% set n = n + 1 %}
                     </tr>
-                    <tr>             
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.lastname }}  {{ registant.navigator.firstname }}</td>
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.flyingclub }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.committee.value |slice(0, 2) }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.licenseFfa }}</td>                             
-                           
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.email }}</td> 
-                        <td style="border:1px solid #000; text-align: center;padding: 4px;"> {{ registant.navigator.phone }}</td>                                    
-                    </tr> 
-                    {% set n = n + 1 %}
-                {% endif %}
-            {% endfor %}                     
+                    {% endif %}
+            {% endfor %}                
         </tbody>
-    </table>        
-  {% endblock %}
+    </table>      
+{% endblock %}
