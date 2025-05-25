@@ -38,8 +38,12 @@
                     {% for crew in crews %}
                         <tr class='border-bottom'>
                             <td>
-                                <p>{{ crew.pilot.getLastname() }} {{ crew.pilot.getFirstname() }}</p>
-                                <p>{{ crew.navigator.getLastname() }} {{ crew.navigator.getFirstname() }}</p>
+                                {% if crew.competition.typeCompetition.id == 2 %}
+                                    <p>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }}</p>
+                                {% else %}
+                                    <p>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }}</p>
+                                    <p>{{ crew.navigator.lastname }} {{ crew.navigator.firstname }}</p>
+                                {% endif %}
                             <td>
                                 {% for ca in crew.competitionAccommodation %}
                                     {{ ca.accommodation.room }}<br>

@@ -56,7 +56,11 @@
                         <option value="">— Modifier un équipage —</option>
                         {% for crew in competition.crew %}
                             <option value="{{ editUrls[crew.id] }}">
-                                {{ crew.pilot.lastname }} {{ crew.pilot.firstname }} & {{ crew.navigator.lastname }} {{ crew.navigator.firstname }}
+                                {% if crew.competition.typeCompetition.id == 2 %}
+                                    {{ crew.pilot.lastname }} {{ crew.pilot.firstname }} 
+                                {% else %}
+                                    {{ crew.pilot.lastname }} {{ crew.pilot.firstname }} & {{ crew.navigator.lastname }} {{ crew.navigator.firstname }}
+                                {% endif %}
                             </option>
                         {% endfor %}
                     </select>

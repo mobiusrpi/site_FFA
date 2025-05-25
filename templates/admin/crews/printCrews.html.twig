@@ -34,16 +34,28 @@
                             {{ n }} 
                         </td>  
                         <td > 
-                            <p> {{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</p>
-                            <p> {{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</p>
+                            {% if crew.competition.typeCompetition.id == 2 %}
+                                <p>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }}</p>
+                            {% else %}
+                                <p>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }}</p>
+                                <p>{{ crew.navigator.lastname }} {{ crew.navigator.firstname }}</p>
+                            {% endif %}
                         </td>
                         <td >
-                            <p>  {{ crew.pilot.email }}</p>                           
-                            <p>  {{ crew.navigator.email }}</p>
+                            {% if crew.competition.typeCompetition.id == 2 %}
+                                <p>{{ crew.pilot.email }}</p>
+                            {% else %}
+                                <p>  {{ crew.pilot.email }}</p>                           
+                                <p>  {{ crew.navigator.email }}</p>
+                            {% endif %}
                         </td>      
                         <td >
-                            <p>  {{ crew.pilot.phone }}</p>
-                            <p>  {{ crew.navigator.phone }}</p> 
+                            {% if crew.competition.typeCompetition.id == 2 %}
+                                <p>{{ crew.pilot.phone }}</p>
+                            {% else %}
+                                <p>  {{ crew.pilot.phone }}</p>
+                                <p>  {{ crew.navigator.phone }}</p> 
+                            {% endif %}                            
                         </td>  
                         {% if crew.competitionAccommodation is not empty %}
                             <td>

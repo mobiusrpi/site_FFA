@@ -45,9 +45,10 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_MANAGER }
         # - { path: ^/admin/competition, roles: ROLE_MANAGER }
-        # - { path: ^/registration, roles: ROLE_COMPETITOR }
-         - { path: ^/registration/crews, roles: ROLE_USER }  # Secure this route
-         - { path: ^/edit_register, roles: ROLE_USER }  # Secure this route
+        # - { path: ^/registration, roles: ROLE_COMPETITOR }access_control:
+        - { path: ^/registration, roles: ROLE_USER }
+        - { path: ^/registration/crews, roles: ROLE_USER }  # Secure this route
+        - { path: ^/edit_register, roles: ROLE_USER }  # Secure this route
     role_hierarchy:
         ROLE_COMPETITOR: [ROLE_USER]        
         ROLE_MANAGER: [ROLE_COMPETITOR]

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Crews;
+use App\Entity\Users;
 use App\Entity\Competitions;
 use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
@@ -46,15 +47,18 @@ final class CrewsController extends AbstractController
     #[Route(path :'/registration/crews/{competId}', name: 'crews_registration', methods:['GET','POST'])]
     public function registration(
         $competId,
-//        $origin,
         Request $request,
         CompetitionsRepository $repositoryCompetition,                 
         EntityManagerInterface $entityManager,
         Security $security    
     ): Response
     {     
-         // Get the current logged-in user
+        /** @var Users|null $user */
         $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('User not authenticated.');
+        }
 
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
@@ -100,11 +104,16 @@ final class CrewsController extends AbstractController
     
     #[Route(path :'/crews/registration/list', name: 'crews_registration_list', methods:['GET','POST'])]
     public function registration_list(
-        Security $security,
-        CrewsRepository $repository,                      
+        CrewsRepository $repository,
+        Security $security,                 
     ): Response 
     {       
+        /** @var Users|null $user */
         $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('User not authenticated.');
+        }
 
         $competByUser = $repository->getQueryRegistrationsCrews($user->getId());
 
@@ -120,21 +129,28 @@ final class CrewsController extends AbstractController
         CrewsRepository $repositoryCrew,                 
         CompetitionsRepository $repositoryCompetition,                 
         EntityManagerInterface $entityManager,
-        Security $security              ): Response {
-        // Get the current logged-in user
+        Security $security              
+    ): Response {
+        /** @var Users|null $user */
         $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('User not authenticated.');
+        }        
+        
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
-         return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
         
-       };
+        };
+
         if (!$user->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
-         return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
         
-       };
+        };
     
         $compet = $repositoryCompetition->find($competId);  
     

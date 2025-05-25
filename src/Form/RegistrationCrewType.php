@@ -39,35 +39,37 @@ class RegistrationCrewType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {     
         $compet = $options['compet'];
+        $competId = $compet->getId();
         $builder->addEventSubscriber($this->preSubmitSubscriber);
 
         $builder   
-         ->add('competition', EntityType::class, [
-            'class' => Competitions::class,
-            'query_builder' => function (EntityRepository $er) use($compet) {
-                return $er->getCompetChoice($compet);
-            },  
-            'choice_label' => 'name',
-            'data' => $compet,
-        ])
-        ->add('pilot', EntityType::class, [
-                'class' => Users::class,   
-
-                'required' => true,
-                'attr' => [            
-                    'class' => 'form-select',                     
-                    'id' => 'pilotSelect',        
-                ],
-                'choice_value' => 'id',               
-                'choice_label' =>function (Users $user): string {
-                    return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
-                'label' => 'Pilote',
-                'label_attr' => [
-                    'for' => 'exampleSelect1',                          
-                    'class' => 'form-label fw-bold',                
-                ],
-                'placeholder' => 'Selelectionner dans la liste'
+            ->add('competition', EntityType::class, [
+                'class' => Competitions::class,
+                'query_builder' => function (EntityRepository $er) use($compet) {
+                    return $er->getCompetChoice($compet);
+                },  
+                'choice_label' => 'name',
+                'data' => $compet,
             ])
+            ->add('pilot', EntityType::class, [
+                    'class' => Users::class,   
+                    'query_builder' => function (UsersRepository $er) use($competId) {
+                            return $er->getUsersListNotYetRegistered($competId);
+                    },
+                    'required' => true,
+                    'attr' => [            
+                        'class' => 'form-select',                     
+                        'id' => 'pilotSelect',        
+                    ],              
+                    'choice_label' =>function (Users $user): string {
+                        return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
+                    'label' => 'Pilote',
+                    'label_attr' => [
+                        'for' => 'exampleSelect1',                          
+                        'class' => 'form-label fw-bold',                
+                    ],
+                    'placeholder' => 'Selelectionner dans la liste'
+                ])
 
             // additionnal navigator field according to type event
            ->addEventListener(FormEvents::PRE_SET_DATA, 

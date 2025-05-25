@@ -167,9 +167,11 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('choices', $users)
             ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
 
-        $fields[] = AssociationField::new('navigator','Navigateur')
-            ->setFormTypeOption('choices', $users)
-            ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
+        if (!$competition || $competition->getTypecompetition()?->getId() !== 2) {
+            $fields[] = AssociationField::new('navigator','Navigateur')
+                ->setFormTypeOption('choices', $users)
+                ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
+        }
 
         $fields[] = ChoiceField::new('category','Catégorie')
             ->setChoices(array_combine(

@@ -44,15 +44,16 @@ class Competitions
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'type')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?TypeCompetition $typecompetition = null;
-
+   
     /**
      * @var Collection<int, Crews>
      */
     #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'competition')]
     private Collection $crew;
+    
+    #[ORM\ManyToOne(inversedBy: 'type')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?TypeCompetition $typecompetition = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $information = null;

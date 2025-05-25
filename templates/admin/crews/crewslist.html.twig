@@ -32,25 +32,39 @@
             <tbody>      
                 {% for crew in crews %}                  
                     {% if crew.category is defined %} 
-                        <tr class='border-bottom'>   
-                            <td class="align-middle" rowspan="2">{{ crew.category.value }} </td>                            
-                            <td class="align-middle" rowspan="2">{{ crew.callsign }} </td>                                             
-                            <td class="align-middle" rowspan="2">{{ crew.aircraftSpeed.value }} </td>                       
-                            <td>{{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</td>
-                            <td>{{ crew.pilot.flyingclub }}</td>                             
-                            <td>{{ crew.navigator.licenseFfa }}</td>  
-                            <td>{{ crew.pilot.email }}</td> 
-                            <td>{{ crew.pilot.phone }}</td> 
-                            <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
-                        </tr>
-                        <tr class='border-bottom'>             
-                            <td>{{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</td>
-                            <td>{{ crew.navigator.flyingclub }}</td> 
-                            <td>{{ crew.navigator.licenseFfa }}</td>                             
-                            <td>{{ crew.navigator.email }}</td> 
-                            <td>{{ crew.navigator.phone }}</td>                                    
-                            <td>{{ crew.pilot.committee.value |slice(0, 2)}}</td>  
-                        </tr>        
+                        {% if crew.competition.typeCompetition.id == 2 %}
+                            <tr class='border-bottom'>   
+                                <td class="align-middle">{{ crew.category.value }} </td>                            
+                                <td class="align-middle">{{ crew.callsign }} </td>                                             
+                                <td class="align-middle">{{ crew.aircraftSpeed.value }} </td>                       
+                                <td>{{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</td>
+                                <td>{{ crew.pilot.flyingclub }}</td>                             
+                                <td>{{ crew.pilot.licenseFfa }}</td>  
+                                <td>{{ crew.pilot.email }}</td> 
+                                <td>{{ crew.pilot.phone }}</td> 
+                                <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
+                            </tr>
+                        {% else %}
+                            <tr class='border-bottom'>   
+                                <td class="align-middle" rowspan="2">{{ crew.category.value }} </td>                            
+                                <td class="align-middle" rowspan="2">{{ crew.callsign }} </td>                                             
+                                <td class="align-middle" rowspan="2">{{ crew.aircraftSpeed.value }} </td>                       
+                                <td>{{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</td>
+                                <td>{{ crew.pilot.flyingclub }}</td>                             
+                                <td>{{ crew.pilot.licenseFfa }}</td>  
+                                <td>{{ crew.pilot.email }}</td> 
+                                <td>{{ crew.pilot.phone }}</td> 
+                                <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
+                            </tr>
+                            <tr class='border-bottom'>             
+                                <td>{{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</td>
+                                <td>{{ crew.navigator.flyingclub }}</td> 
+                                <td>{{ crew.navigator.licenseFfa }}</td>                             
+                                <td>{{ crew.navigator.email }}</td> 
+                                <td>{{ crew.navigator.phone }}</td>                                    
+                                <td>{{ crew.pilot.committee.value |slice(0, 2)}}</td>  
+                            </tr>        
+                        {% endif %}
                     {% endif %}
                 {% endfor %} 
             </tbody>
