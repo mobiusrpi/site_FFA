@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityRepository;
 use App\Repository\UsersRepository;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use App\Entity\CompetitionAccommodation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use App\Form\EventSubscriber\PreSubmitSubscriber;
@@ -41,7 +42,13 @@ class RegistrationCrewType extends AbstractType
         $compet = $options['compet'];
         $competId = $compet->getId();
         $builder->addEventSubscriber($this->preSubmitSubscriber);
+        $accommodations = [];
 
+        if ($compet !== null && $compet->getCompetitionAccommodation() !== null) {
+            // toArray() returns a plain array of CompetitionAccommodation entities
+            $accommodations = $compet->getCompetitionAccommodation()->toArray();
+        }
+//dd($compet,$accommodations);
         $builder   
             ->add('competition', EntityType::class, [
                 'class' => Competitions::class,
@@ -164,7 +171,26 @@ class RegistrationCrewType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label'
                 ],
-            ])              
+            ])                       
+            ->add('competitionAccommodation', EntityType::class, [
+                'attr' => [
+                    'class' => "form-check form-check-lg",                    
+                ],
+                'class' => CompetitionAccommodation::class,
+                'choices' => array_unique(array_merge(
+                    $accommodations,
+                    $options['data']->getCompetitionAccommodation()->toArray()
+                ), SORT_REGULAR),
+                'choice_label' => fn($a) => $a->getAccommodation()?->getRoom() ?? 'Sans nom',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'by_reference' => false, 
+                'label' => 'Type d\'hébergement',
+                'label_attr' => [
+                    'class' => 'form-label'
+                ],
+            ])                
             ->addEventListener(FormEvents::PRE_SUBMIT, 
                 [$this->preSubmitSubscriber, 'onPreSubmit'])
         ; 
