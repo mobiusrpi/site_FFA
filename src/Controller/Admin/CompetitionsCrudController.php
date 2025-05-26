@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Crews;
+use App\Entity\Users;
 use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Form\RegistrationCrewType;
@@ -16,6 +17,7 @@ use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
 use App\Repository\AccommodationsRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -31,7 +33,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
-
 class CompetitionsCrudController extends AbstractCrudController
 {          
     private $competId;
@@ -46,6 +47,17 @@ class CompetitionsCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Competitions::class;
+    }
+
+    public  function persistEntity(EntityManagerInterface $em,$entityInstance):void
+    {
+        if (!$entityInstance instanceof Competitions) return;
+        $entityInstance->setCreatedAt(new \DateTimeImmutable);
+        parent::persistEntity($em,$entityInstance);
+    }
+
+    private function DateFormated(?\DateTimeInterface $date): string {
+        return $date ? $date->format('d-m-Y') : '';
     }
 
     public function configureCrud(Crud $crud): Crud
@@ -108,8 +120,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $manageCompetitionAction = Action::new('manageCompetitionAction', 'Gestion')
-            ->setIcon('fa fa-clone')
+        $manageCompetitionAction = Action::new('manageCompetitionAction', 'Paramètrage')
+            ->setIcon('fa fa-cog')
             ->linkToRoute('admin_competition_manage',                
                 function (Competitions $competition) {
                     return [
@@ -154,7 +166,6 @@ class CompetitionsCrudController extends AbstractCrudController
     // Define the route and controller method to handle the custom action
     //The route admin_registered_crews_list is redirected to this function in the file
     //config/routes/easyadmin.yaml
-
     public function registeredListAction( 
         int $competId,
         CrewsRepository $repositoryCrew,  
@@ -170,16 +181,28 @@ class CompetitionsCrudController extends AbstractCrudController
         ]);            
     }
 
+    // Define the route and controller method to handle the custom action
+    //The route admin_registration_crew_new is redirected to this function in the file
+    //config/routes/easyadmin.yaml
     public function newRegistrationAction(  
         int $competId,   
         Request $request,  
         CompetitionsRepository $repositoryCompetition, 
-        EntityManagerInterface $em
+        EntityManagerInterface $entityManager,
+        Security $security,
     ): Response
     {   
+        $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('User not authenticated.');
+        }
         $crew = new Crews; 
         $competition = $repositoryCompetition->find($competId); 
- 
+        $crew->setCompetition($competition);
+        $crew->setRegisteredAt(new \DateTimeImmutable());        
+        $crew->setRegisteredby($user);
+
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
                     'compet' => $competition,
                 ]);       
@@ -187,21 +210,26 @@ class CompetitionsCrudController extends AbstractCrudController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($form->getData());
 
-            $em->flush();
+            $entityManager->flush();
             $this->addFlash('success', 'Inscription mise à jour avec succès.');
 
-            return $this->redirectToRoute('admin_registered_crews_list', [
-                'competId' => $crew->getCompetition()->getId()  
-            ], Response::HTTP_SEE_OTHER);
+            return $this->redirect($this->generateUrl('admin', [
+                'crudAction' => 'index',
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+            ]));
         }
-
         return $this->render('admin/crews/crewRegistration.html.twig', [
             'form' => $form->createView(),
             'compet' => $competition, 
         ]);
+
     }
 
+    // Define the route and controller method to handle the custom action
+    //The route admin_competition_manage is redirected to this function in the file
+    //config/routes/easyadmin.yaml
     public function manageCompetitionAction(
         int $competId,        
         CompetitionAccommodationRepository $repositoryCompetAccom,
@@ -246,7 +274,10 @@ class CompetitionsCrudController extends AbstractCrudController
               'Services modifiés avec succès !'
             ); 
 
-            return $this->redirectToRoute('admin');
+            return $this->redirect($this->generateUrl('admin', [
+                'crudAction' => 'index',
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+            ]));
         }
 
         return $this->render('admin/competitions/manageCompetition.html.twig', [
@@ -255,61 +286,30 @@ class CompetitionsCrudController extends AbstractCrudController
         ]);
     }
 
+    // Define the route and controller method to handle the custom action
+    //The route admin_competition_manage is redirected to this function in the file
+    //config/routes/easyadmin.yaml
     public function  crewsByCompetitionDownloadAction(
         int $competId,
         CrewsRepository $repositoryCrew,
         PdfService $pdf): Response
     {
         $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
-
+dd($crews);
         if (empty($crews)) {
             throw $this->createNotFoundException('No crews found for this competition.');
         }
 
         $fileName = $crews[0]->getCompetition()->getName(); 
+   
         $html = $this->render('admin/crews/crewsAccommodation.html.twig',['crews' => $crews]);             
-        
+    dd($html);    
         return $pdf->showPdfFile($html,$fileName);
     }
-
-    public function  accommodationByCrewAction1(
-        int $competId,        
-        Request $request,
-        CrewsRepository $repositoryCrew,
-        EntityManagerInterface $entityManager
-    ): Response
-    {
-        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
-
-        if (empty($crews)) {
-            throw $this->createNotFoundException('No crews found for this competition.');
-        }
-//dd($crews);
-        $form = $this->createForm(AccommodationByCrewType::class,  ['crews' => $crews]);
-
-        $form->handleRequest($request);
     
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            foreach ($data['crews'] as $crew) {
-                $entityManager->persist($crew);
-            }
-            $entityManager->flush();
-
-            $this->addFlash(
-              'success',
-              'Services modifiés avec succès !'
-            ); 
-
-            return $this->redirectToRoute('admin');
-        }
-
-        return $this->render('admin/crews/crewsAccommodation.html.twig', [
-            'crews' => $crews, // an array or Collection of Crews
-            'form' => $form->createView(),
-        ]);
-    }
-    
+    // Define the route and controller method to handle the custom action
+    //The route admin_accommodation_by_crew is redirected to this function in the file
+    //config/routes/easyadmin.yaml
     public function accommodationByCrewAction(
         int $competId,
         Request $request,
@@ -334,7 +334,11 @@ class CompetitionsCrudController extends AbstractCrudController
             $entityManager->flush();
 
             $this->addFlash('success', 'Validation de paiement enregistrée.');
-            return $this->redirectToRoute('admin'); // Adjust route if needed
+
+            return $this->redirect($this->generateUrl('admin', [
+                'crudAction' => 'index',
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+            ]));
         };
 
         return $this->render('admin/crews/crewsAccommodation.html.twig', [
@@ -342,17 +346,9 @@ class CompetitionsCrudController extends AbstractCrudController
         ]);
     }
 
-    public  function persistEntity(EntityManagerInterface $em,$entityInstance):void
-    {
-        if (!$entityInstance instanceof Competitions) return;
-        $entityInstance->setCreatedAt(new \DateTimeImmutable);
-        parent::persistEntity($em,$entityInstance);
-    }
-
-    private function DateFormated(?\DateTimeInterface $date): string {
-        return $date ? $date->format('d-m-Y') : '';
-    }
-
+    // Define the route and controller method to handle the custom action
+    //The route admin_crews_by_competition_export is redirected to this function in the file
+    //config/routes/easyadmin.yaml
     public function crewsByCompetitionExportAction( 
         int $competId,
         CrewsRepository $repositoryCrew,  

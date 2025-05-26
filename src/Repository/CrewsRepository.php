@@ -32,7 +32,7 @@ class CrewsRepository extends ServiceEntityRepository
         ;
     } 
 
-    public function getQueryEditRegistrationsCrews($userId,$competId)
+    public function getQueryCrewCompetition($userId,$competId)
     {  ;
         return $this->createQueryBuilder('crew') 
             ->leftJoin('App\Entity\Competitions', 'compet','WITH',' crew.competition = compet.id')        

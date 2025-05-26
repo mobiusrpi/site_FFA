@@ -69,8 +69,13 @@ final class AccommodationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_accommodation_delete', methods: ['POST'])]
-    public function delete(Request $request, Accommodations $accommodation, EntityManagerInterface $entityManager): Response
-    {
+    public function delete(
+        int $id,
+        Request $request,
+        Accommodations $accommodation, 
+        EntityManagerInterface $entityManager,
+    ): Response
+    { // dd($id)
         if ($this->isCsrfTokenValid('delete'.$accommodation->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($accommodation);
             $entityManager->flush();

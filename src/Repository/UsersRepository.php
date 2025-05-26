@@ -53,7 +53,7 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         } else {
             $qb->andWhere('t.pilot IS NULL AND t.navigator IS NULL');
         }
- 
+
         $qb->orderBy('user.lastname', 'ASC');
 
         return $qb;

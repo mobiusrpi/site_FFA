@@ -68,7 +68,7 @@ class Crews
     /**
      * @var Collection<int, CompetitionAccommodation>
      */
-    #[ORM\ManyToMany(targetEntity: CompetitionAccommodation::class, inversedBy: 'crew_accommodation')]
+    #[ORM\ManyToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'crewAccommodation')]
     private Collection $competitionAccommodation;
 
     #[ORM\Column(nullable: true)]

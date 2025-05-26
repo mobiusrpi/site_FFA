@@ -36,7 +36,7 @@ class PdfService
         $this->domPdf->render();    
 
         $this->domPdf->stream( $newFileName . ".pdf", [
-            'Attachement' => false
+            'Attachement' => true
         ]);        
         
         $output = $this->domPdf->output();

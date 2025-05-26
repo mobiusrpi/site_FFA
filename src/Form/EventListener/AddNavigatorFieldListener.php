@@ -15,22 +15,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class AddNavigatorFieldListener implements EventSubscriberInterface
 {
     private $requestStack;
-    private $competTypeId;
-    private $competId;
 
     public function __construct(RequestStack $requestStack)
     {
-        $this->requestStack = $requestStack;        
-    }
-
-    public function setCompetTypeId($competTypeId): void
-    {
-        $this->competTypeId = $competTypeId;
-    }
-
-    public function setCompetId($competId): void
-    {
-        $this->competId = $competId;
+        $this->requestStack = $requestStack;   
+    
     }
 
     public static function getSubscribedEvents(): array
@@ -47,34 +36,48 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
             return;
         }
         $data = $event->getData();
-
-        if ($data instanceof Crews) {
- //           $compet = $data->getCompetition();
-            $competId = $this->competId;
-            $form = $event->getForm();
-
-            if ( $this->competTypeId <> 2) {
-                $form->add('navigator', EntityType::class, [
-                    'class' => Users::class,   
-                    'query_builder' => function (UsersRepository $er) use($competId) {
-                          return $er->getUsersListNotYetRegistered($competId);
-                    },
-                    'attr' => [            
-                        'class' => 'form-select',                   
-                        'id' => 'navigatorSelect',    
-                    ],
-                    'required' => false,
-                    'choice_label' =>function (Users $user): string {
-                        return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
-                    'label' => 'Navigateur',              
-                    'label_attr' => [
-                        'for' => 'exampleSelect1',                         
-                        'class' => 'form-label fw-bold'
-                    ],
-                    'placeholder' => 'Selelectionner dans la liste'
-                ]);
-            }
-
+        if (!$data instanceof Crews) {
+            return; // Not the expected object
         }
-     }       
+
+        $competition = $data->getCompetition();
+        if (!$competition) {
+            return; // No competition set (probably a bug in form setup)
+        }
+        $typeCompetition = $competition->getTypeCompetition();
+        
+        if (!$typeCompetition || $typeCompetition->getId() === 2) {
+            return; // No competition set (probably a bug in form setup)
+        }    
+        $competId = $competition->getId();
+
+        $navigatorId = $data->getNavigator()?->getId();
+
+        $includedUserIds = [];
+        if ($navigatorId !== null) {
+            $includedUserIds[] = $navigatorId;
+        }
+
+        $form = $event->getForm();
+
+        $form->add('navigator', EntityType::class, [
+            'class' => Users::class,   
+            'query_builder' => function (UsersRepository $er) use($competId,$includedUserIds) {
+                    return $er->getUsersListNotYetRegistered($competId, [$includedUserIds]);
+            },
+            'attr' => [            
+                'class' => 'form-select',                   
+                'id' => 'navigatorSelect',    
+            ],
+            'required' => false,
+            'choice_label' =>function (Users $user): string {
+                return sprintf("%s %s", $user->getLastName(), $user->getFirstName());},
+            'label' => 'Navigateur',              
+            'label_attr' => [
+                'for' => 'exampleSelect1',                         
+                'class' => 'form-label fw-bold'
+            ],
+            'placeholder' => 'Selelectionner dans la liste'
+        ]);
+    }      
 }

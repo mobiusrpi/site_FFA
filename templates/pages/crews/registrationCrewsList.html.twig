@@ -36,8 +36,8 @@
                     {% endif %}
                 </tr>
             </thead>
-            <tbody>      
-                {% for compet in competByUser_list %}
+            <tbody>     
+                {% for compet in competByUser_list %} 
                     <tr>
                         <th scope="row">{{ compet.name }}</td>
                             <td>{{ compet.typecompetition.typeComp }}</td> 
@@ -53,7 +53,7 @@
                         {% if is_granted('ROLE_USER') %}   
                             {% if compet.endRegistration >= date('now') %}
                             <td>  
-                                <a href='{{ path('edit_registration',{'competId': compet.id}) }}' 
+                                <a href='{{ path('edit_crew',{'competId': compet.id}) }}' 
                                 class= 'btn btn-outline-success btn-sm'>Modifier</a>   
                             </td>                     
                             {% else %}

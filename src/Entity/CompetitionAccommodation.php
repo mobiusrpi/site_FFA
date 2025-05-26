@@ -16,23 +16,24 @@ class CompetitionAccommodation
     private ?int $id = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private ?float $price = null;
+    private ?string $price = null;
 
     #[ORM\ManyToOne(inversedBy: 'competitionAccommodation')]
     private ?Competitions $competition = null;
 
-    #[ORM\ManyToOne]
+   #[ORM\ManyToOne(inversedBy: 'competitionAccommodation')]
     private ?Accommodations $accommodation = null;
 
     /**
      * @var Collection<int, Crews>
      */
-    #[ORM\ManyToMany(targetEntity: Crews::class, mappedBy: 'crew_accommodation')]
-    private Collection $crew_accommodation;
+    #[ORM\ManyToMany(targetEntity: Crews::class, inversedBy: 'competitionAccommodation')]
+    #[ORM\JoinTable(name: 'crew_competition_accommodation')]
+    private Collection $crewAccommodation;
 
     public function __construct()
     {
-        $this->crew_accommodation = new ArrayCollection();
+        $this->crewAccommodation = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -40,12 +41,12 @@ class CompetitionAccommodation
         return $this->id;
     }
 
-    public function getPrice(): ?float
+    public function getPrice(): ?string
     {
         return $this->price;
     }
 
-    public function setPrice(?float $price): static
+    public function setPrice(?string $price): self
     {
         $this->price = $price;
 
@@ -81,13 +82,13 @@ class CompetitionAccommodation
      */
     public function getCrewAccommodation(): Collection
     {
-        return $this->crew_accommodation;
+        return $this->crewAccommodation;
     }
 
     public function addCrewAccommodation(Crews $crewAccommodation): static
     {
-        if (!$this->crew_accommodation->contains($crewAccommodation)) {
-            $this->crew_accommodation->add($crewAccommodation);
+        if (!$this->crewAccommodation->contains($crewAccommodation)) {
+            $this->crewAccommodation->add($crewAccommodation);
             $crewAccommodation->addCompetitionAccommodation($this);
         }
 
@@ -96,7 +97,7 @@ class CompetitionAccommodation
 
     public function removeCrewAccommodation(Crews $crewAccommodation): static
     {
-        if ($this->crew_accommodation->removeElement($crewAccommodation)) {
+        if ($this->crewAccommodation->removeElement($crewAccommodation)) {
             $crewAccommodation->removeCompetitionAccommodation($this);
         }
 

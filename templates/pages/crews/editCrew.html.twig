@@ -11,11 +11,12 @@
             </div>   
         {% endfor %}  
         <div>
-            <p class= 'text-center'>Inscription <strong>{{ compet.name }}</strong> se déroulant à </br><strong>{{ compet.location }}</strong>
+            <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ compet.location }}</strong>
             du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
             au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
-            <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>
+            <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>     </div>
         </div>
+
         {{ form_start(form) }}
             <div class="mx-auto" style="width: 800px;">
                 {% if form_errors(form) is not empty %}
@@ -27,49 +28,50 @@
                     <div class='col-3'>
                       {{ form_widget(form.competition) }}
                     </div>        
-                </div>                              
+                </div>                          
                 <div class='col-12'>
                     <hr class="bg-danger border-4 border-top border-danger" />
                 </div>
             </div>  
 
             <div class="row mx-auto">
-                    <div class="col-4 mx-auto">
-                        <div class="form-group border rounded-4 border-primary mt-4 p-3">                         
-                            <div class="row"> 
+                <div class="col-4 mx-auto">
+                    <div class="form-group border rounded-4 border-primary mt-4 p-3">                         
+                        <div class="row"> 
+                            <div>
+                                {{ form_label(form.pilot) }}
+                                {% if form.vars.required %}
+                                    <span class="required-asterisk text-danger">*</span>
+                                {% endif %}
+                            </div>
+                            {{ form_widget(form.pilot) }}
+                            {{ form_errors(form.pilot) }}
+                        </div>
+                        <div class="row">                
+                            {% if form.navigator is defined %}
                                 <div>
-                                    {{ form_label(form.pilot) }}
+                                    {{ form_label(form.navigator) }}
                                     {% if form.vars.required %}
                                         <span class="required-asterisk text-danger">*</span>
                                     {% endif %}
                                 </div>
-                                {{ form_widget(form.pilot) }}
-                                {{ form_errors(form.pilot) }}
-                            </div>
-                            <div class="row">                
-                                {% if form.navigator is defined %}
-                                    <div>
-                                        {{ form_label(form.navigator) }}
-                                        {% if form.vars.required %}
-                                            <span class="required-asterisk text-danger">*</span>
-                                        {% endif %}
-                                    </div>
-                                    {{ form_widget(form.navigator) }}
-                                    {{ form_errors(form.navigator) }}
-                                {% endif %}              
-                            </div>
-                        </div>
+                                {{ form_widget(form.navigator) }}
+                                {{ form_errors(form.navigator) }}
+                            {% endif %}              
+                        </div>                    
                     </div>
-                    <div class="col-4  mx-auto">
-                        <div class="form-group border rounded-4 border-primary mt-4 p-3">   
-                            {{ form_label(form.category) }}
-                            {% if form.vars.required %}
-                                <span class="required-asterisk text-danger">*</span>
-                            {% endif %}
-                            {{ form_widget(form.category) }}
-                            {{ form_errors(form.category) }}
-                        </div> 
-                    </div>
+                </div>
+            
+                <div class="col-4  mx-auto">
+                    <div class="form-group border rounded-4 border-primary mt-4 p-3">   
+                        {{ form_label(form.category) }}
+                        {% if form.vars.required %}
+                            <span class="required-asterisk text-danger">*</span>
+                        {% endif %}
+                        {{ form_widget(form.category) }}
+                        {{ form_errors(form.category) }}
+                    </div> 
+                </div>
             </div>
             
             <div class="row m-4">                          
@@ -83,6 +85,12 @@
                         {{ form_row(form.callsign) }}  
                     </div> 
                     <div class="row"> 
+                        {{ form_row(form.aircraftFlyingclub) }}   
+                    </div>                                         
+                    <div class="row">            
+                        {{ form_row(form.aircraftType) }}
+                    </div>
+                    <div class="row"> 
                         <div>
                             {{ form_label(form.aircraftSpeed) }}
                             {% if form.vars.required %}
@@ -94,14 +102,8 @@
                         </div>
                         {{ form_errors(form.aircraftSpeed) }}
                     </div>
-                    <div class="row mt-2"> 
-                        {{ form_row(form.aircraftFlyingclub) }}   
-                    </div>                                         
-                    <div class="row">            
-                        {{ form_row(form.aircraftType) }}
-                    </div>
 
-                    <div class="col border border-dark text-center rounded-3  bg-secondary text-white mt-2">
+                    <div class="col border border-dark text-center rounded-3  bg-secondary text-white mt-4">
                         {{ form_errors(form.aircraftSharing) }}
                         <div>
                             {{ form_label(form.aircraftSharing) }}
@@ -154,7 +156,7 @@
                             </table>
 
                             {{ compet.paymentInfo|raw }}
-                            
+
                             <div class="text-center mt-4">
                                 <button type="button" id="infoBtn" class='btn btn-info'>Informations complémentaires</button>
                                 <!-- Modal background -->
@@ -188,15 +190,14 @@
                                             <button type="button" id="okBtn" style="padding: 8px 16px;" class="btn btn-success">OK</button>
                                         </div>
                                     </div>     
-                                </div>                     
-                            </div>
+                                </div> 
+                            </div>                                                            
                         </div>   
                     </div>                    
-                </div>                                         
-            </div>            
+                </div>              </div>            
             {{ form_row(form._token) }}  
 
-            <div class="row justify-content-center my-4">
+            <div class="row justify-content-center mb-5">
                 <div class="col-10 text-center">   
                     <button class='btn btn-primary me-4',type='submit'> Valider</button>              
                     <a href ="{{ path('crews_registration_list') }}" class="btn btn-info btn-sm ms-4">
@@ -205,9 +206,9 @@
                     </br>  
                 </div>   
             </div>
-       {{  form_end(form, {'render_rest': false}) }}     
+        {{  form_end(form) }}     
     </section>
-  
+
     <script>
         const infoBtn = document.getElementById('infoBtn');
         const infoModal = document.getElementById('infoModal');
@@ -244,5 +245,4 @@
             document.getElementById('infoModal').style.display = 'none';
         });
     </script>
-
 {% endblock %}

@@ -27,15 +27,15 @@
                 {% endif %}
                 <div class="row justify-content-center">
                     <div class='col-3'>
-  
+                      {{ form_widget(form.competition) }}
                     </div>        
-                </div>                          
+                </div>                       
                 <div class='col-12'>
                     <hr class="bg-danger border-4 border-top border-danger" />
                 </div>
             </div>  
 
-            <div class="row mx-auto">
+            <div class="row border rounded-4 border-light mx-5 p-3"  >
                 <div class="col-4 mx-auto">
                     <div class="row"> 
                         <div>
@@ -60,18 +60,15 @@
                         {% endif %}              
                     </div>
                 </div>
-            
-                <div class="col-4  mx-auto">
-                    <div class="form-group border rounded-4 border-primary mt-4 p-3">   
-                        {{ form_label(form.category) }}
-                        {{ form_widget(form.category) }}
-                        {{ form_errors(form.category) }}
-                    </div> 
+                <div class="col-4  mx-auto">   
+                    {{ form_label(form.category) }}
+                    {{ form_widget(form.category) }}
+                    {{ form_errors(form.category) }}
                 </div>
             </div>
             
             <div class="row m-4">                          
-                <div class="col-5 form-group border rounded-4 border-primary  mx-auto p-2">     
+                <div class="col-4 form-group border rounded-4 border-light  mx-auto p-2">     
                     <div class="justify-content-center fw-bold">
                         <p class='text-center'>
                             Avion
@@ -79,14 +76,8 @@
                     </div>  
                     <div class="row">        
                         {{ form_row(form.callsign) }}  
-                    </div> 
-                    <div class="row"> 
-                        {{ form_row(form.aircraftFlyingclub) }}   
-                    </div>                                         
-                    <div class="row">            
-                        {{ form_row(form.aircraftType) }}
-                    </div>
-                    <div class="row"> 
+                    </div>                     
+                    <div class="row my-2"> 
                         <div>
                             {{ form_label(form.aircraftSpeed) }}
                         </div>
@@ -94,6 +85,12 @@
                             {{ form_widget(form.aircraftSpeed) }}
                         </div>
                         {{ form_errors(form.aircraftSpeed) }}
+                    </div>
+                    <div class="row"> 
+                        {{ form_row(form.aircraftFlyingclub) }}   
+                    </div>                                         
+                    <div class="row mt-2">            
+                        {{ form_row(form.aircraftType) }}
                     </div>
 
                     <div class="col border border-dark text-center rounded-3  bg-secondary text-white mt-4">
@@ -109,13 +106,50 @@
                         {{ form_row(form.pilotShared) }}              
                     </div>
                 </div>                                         
-                <div class="col-5 form-group border rounded-4 border-primary  mx-auto">     
-                    <div class="justify-content-center fw-bold">
-                        <p class='text-center'>
-                            Hébergement
-                        </p>
-                    </div>         
-                </div>                                         
+                <div class="col-7 form-group border rounded-4 border-light mx-auto">     
+                    <div class='p-3'>
+                        {{ form_errors(form.competitionAccommodation) }}
+                        <div>
+                            <table class="table table-bordered"style="border-color: white;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Hébergement</th>
+                                        <th class="text-center">Choix</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for checkbox in form.competitionAccommodation %}     
+                                        {% set accommodations = compet.competitionAccommodation %}                                        
+                                        {% set id = checkbox.vars.value %}
+                                        {% set competitionAccommodation = null %}
+                                        {% for ca in accommodations %}
+                                            {% if ca.id == id %}
+                                                {% set competitionAccommodation = ca %}                                       
+                                            {% endif %}
+                                        {% endfor %}
+                                        <tr>
+                                            <td class="text-end align-middle">
+                                                {{ form_label(checkbox, null, {'label_attr': {'class': 'mb-0 fw-bold'}}) }}
+                                                {% if competitionAccommodation %}
+                                                    <small class="text-muted ms-2">( {{ (competitionAccommodation.price / 100) |number_format(2, '.', ',') }} € )</small>
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="bg-dark-subtle text-center align-middle">
+                                                <div class="d-flex justify-content-center align-items-center w-100 h-100">
+                                                    {{ form_widget(checkbox, {'attr': {'class': 'form-check-input m-0'}}) }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>      
+
+                            {{ compet.paymentInfo|raw }}
+
+                        </div>   
+                    </div>                    
+                </div>                                       
             </div>            
             {{ form_row(form._token) }}  
 
@@ -133,7 +167,7 @@
   
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var checkbox = document.getElementById('registration_aircraftSharing');
+            var checkbox = document.getElementById('registration_crew_aircraftSharing');
             var pilotSharedContainer = document.getElementById('pilot_shared_container');
 
             console.log('Checkbox:', checkbox);

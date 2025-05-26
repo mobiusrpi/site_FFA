@@ -97,6 +97,7 @@ dd($result);
         JWTService $jwt
     ): Response {
        
+        /** @var Users|null $user */
         $user = $security->getUser();
         $user->setUpdatedAt( new \DateTimeImmutable());  
         $form = $this->createForm(EditProfilType::class, $user);

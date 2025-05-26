@@ -74,11 +74,12 @@ final class CrewsController extends AbstractController
        };
         $compet = $repositoryCompetition->find($competId);     
 
-        $this->addNavigatorFieldListener->setCompetTypeId($compet->getTypeCompetition()->getId());
-        $this->addNavigatorFieldListener->setCompetId($compet->getId());
+    //    $this->addNavigatorFieldListener->setCompetTypeId($compet->getTypeCompetition()->getId());
+    //    $this->addNavigatorFieldListener->setCompetId($compet->getId());
         $crew = new Crews();      
         $crew->setRegisteredAt(new \DateTimeImmutable());        
         $crew->setRegisteredby($user);
+        $crew->setCompetition($compet);
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
             'compet' => $compet,
@@ -122,8 +123,8 @@ final class CrewsController extends AbstractController
         ]);
     }
 
-    #[Route('/crews/edit/registration/{competId}', name: 'edit_registration')]
-    public function edit_registration(
+    #[Route('/crews/edit/registration/{competId}', name: 'edit_crew')]
+    public function editCrew(
         Competitions $competId,
         Request $request,   
         CrewsRepository $repositoryCrew,                 
@@ -153,14 +154,14 @@ final class CrewsController extends AbstractController
         };
     
         $compet = $repositoryCompetition->find($competId);  
-    
-        $crew = $repositoryCrew->getQueryEditRegistrationsCrews($user->getId(),$compet->getId());        
+
+        $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
+
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
                     'compet' => $compet,
                 ]);       
 
         $form->handleRequest($request);
-
 
         if ($form->isSubmitted() && $form->isValid()) {
 
@@ -169,7 +170,7 @@ final class CrewsController extends AbstractController
             $entityManager->flush();
             return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
        }
-        return $this->render('pages/crews/edit_registration.html.twig', [
+        return $this->render('pages/crews/editCrew.html.twig', [
             'compet' => $compet,
             'form' => $form,
             ]);

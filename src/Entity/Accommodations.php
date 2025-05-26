@@ -44,6 +44,11 @@ class Accommodations
         return $this;
     }
 
+    public function getCompetitionAccommodation(): Collection
+    {
+        return $this->competitionAccommodation;
+    }
+    
     public function addCompetitionAccommodation(CompetitionAccommodation $compAcc): self
     {
         if (!$this->competitionAccommodation->contains($compAcc)) {

@@ -37,7 +37,7 @@
 
                                     {# Price input #}
                                     <td> 
-                                       {{ form_widget(accomForm.price, { attr: { style: 'max-width: 100px;' } }) }}
+                                       {{ form_widget(accomForm.price|number_format(2, '.', ','), { attr: { style: 'max-width: 100px;' } }) }}
                                     </td>
                                 </tr>
                             {% endfor %}

@@ -14,9 +14,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class AccommodationsCrudController extends AbstractCrudController
-{   
-    use Trait\BlockDeleteTrait;  
-    
+{    
     public static function getEntityFqcn(): string
     {
         return Accommodations::class;
