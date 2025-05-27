@@ -35,10 +35,6 @@ class DashboardController extends AbstractDashboardController
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
         return $this->redirect($adminUrlGenerator->setController(CompetitionsCrudController::class)->generateUrl());
-//        return $this->render('admin/dashboard.html.twig', [
-//            'competitions' => $competitions,
-//    ]);
-
     }
 
     public function configureDashboard(): Dashboard
@@ -58,7 +54,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
         yield MenuItem::subMenu('Logistique', 'fa fa-hotel')->setSubItems([
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
-            MenuItem::linkToCrud('Sélection', 'fas fa-list', CompetitionAccommodation::class),
+            MenuItem::linkToRoute('Prix des services', 'fas fa-id-card', 'admin_competitionAccommodation_selector'),       
         ]);   
         yield MenuItem::linkToRoute('Accueil', 'fa fa-home','home');     
     }

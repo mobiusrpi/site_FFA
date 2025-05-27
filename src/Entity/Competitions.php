@@ -43,8 +43,15 @@ class Competitions
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $information = null;
 
-   
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $PaymentInfo = null;
+
+    #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true, enumType: CompetitionRole::class)]
+    private ?array $role = null;
+
     /**
      * @var Collection<int, Crews>
      */
@@ -55,20 +62,11 @@ class Competitions
     #[ORM\JoinColumn(nullable: false)]
     private ?TypeCompetition $typecompetition = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $information = null;
-
     /**
      * @var Collection<int, CompetitionAccommodation>
      */
     #[ORM\OneToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'competition')]
     private Collection $competitionAccommodation;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $PaymentInfo = null;
-
-    #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true, enumType: CompetitionRole::class)]
-    private ?array $role = null;
 
     /**
      * @var Collection<int, CompetitionsUsers>

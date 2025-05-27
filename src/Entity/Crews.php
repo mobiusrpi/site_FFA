@@ -47,6 +47,9 @@ class Crews
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $pilotShared = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $ValidationPayment = null;
+
    #[ORM\Column]
     private ?\DateTimeImmutable $registeredAt = null;
 
@@ -70,9 +73,6 @@ class Crews
      */
     #[ORM\ManyToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'crewAccommodation')]
     private Collection $competitionAccommodation;
-
-    #[ORM\Column(nullable: true)]
-    private ?bool $ValidationPayment = null;
 
     public function __construct()
     {
@@ -239,19 +239,36 @@ class Crews
         return $this->competitionAccommodation;
     }
 
-    public function addCompetitionAccommodation(CompetitionAccommodation $accommodation): static
+    public function addCompetitionAccommodation(CompetitionAccommodation $ca): self
     {
-        if (!$this->competitionAccommodation->contains($accommodation)) {
-            $this->competitionAccommodation->add($accommodation);
+        if (!$this->competitionAccommodation->contains($ca)) {
+            $this->competitionAccommodation[] = $ca;
+            $ca->addCrewAccommodation($this); // sync owning side
+        }
+        return $this;
+    }    
+    
+    public function setCompetitionAccommodation(Collection $competitionAccommodation): self
+    {
+        // Clear existing relationships
+        foreach ($this->competitionAccommodation as $existingCA) {
+            $existingCA->removeCrewAccommodation($this); // Remove from owning side
+        }
+
+        $this->competitionAccommodation = new ArrayCollection();
+
+        foreach ($competitionAccommodation as $ca) {
+            $this->addCompetitionAccommodation($ca); // Will sync both sides
         }
 
         return $this;
     }
 
-    public function removeCompetitionAccommodation(CompetitionAccommodation $accommodation): static
+    public function removeCompetitionAccommodation(CompetitionAccommodation $ca): self
     {
-        $this->competitionAccommodation->removeElement($accommodation);
-
+        if ($this->competitionAccommodation->removeElement($ca)) {
+            $ca->removeCrewAccommodation($this); // sync owning side
+        }
         return $this;
     }
     

@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: AccommodationsRepository::class)]
 class Accommodations
 {
-
     #[ORM\OneToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'accommodation', cascade: ['persist', 'remove'])]
     private Collection $competitionAccommodation;
 

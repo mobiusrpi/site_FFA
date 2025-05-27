@@ -3,7 +3,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Competitions;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,3 +46,4 @@ class CrewSelectorController extends AbstractController
         ]);
     }
 }
+ 

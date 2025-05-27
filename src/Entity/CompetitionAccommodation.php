@@ -18,7 +18,7 @@ class CompetitionAccommodation
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private ?string $price = null;
 
-    #[ORM\ManyToOne(inversedBy: 'competitionAccommodation')]
+    #[ORM\ManyToOne(targetEntity: Competitions::class, inversedBy: 'competitionAccommodation')]
     private ?Competitions $competition = null;
 
    #[ORM\ManyToOne(inversedBy: 'competitionAccommodation')]
@@ -85,24 +85,19 @@ class CompetitionAccommodation
         return $this->crewAccommodation;
     }
 
-    public function addCrewAccommodation(Crews $crewAccommodation): static
+    public function addCrewAccommodation(Crews $crew): self
     {
-        if (!$this->crewAccommodation->contains($crewAccommodation)) {
-            $this->crewAccommodation->add($crewAccommodation);
-            $crewAccommodation->addCompetitionAccommodation($this);
+        if (!$this->crewAccommodation->contains($crew)) {
+            $this->crewAccommodation[] = $crew;
         }
-
         return $this;
     }
 
-    public function removeCrewAccommodation(Crews $crewAccommodation): static
+    public function removeCrewAccommodation(Crews $crew): self
     {
-        if ($this->crewAccommodation->removeElement($crewAccommodation)) {
-            $crewAccommodation->removeCompetitionAccommodation($this);
-        }
-
+        $this->crewAccommodation->removeElement($crew);
         return $this;
-    }    
+    }   
     
     public function __toString(): string
     {
