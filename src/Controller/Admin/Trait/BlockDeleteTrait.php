@@ -11,8 +11,7 @@ trait BlockDeleteTrait
     public function configureActions(Actions $actions): Actions
     {
         $actions
-            ->disable( Action::DELETE)
-            ->add(Crud::PAGE_INDEX, Action::DETAIL);
+            ->disable( Action::DELETE);
 
         return $actions;
     }

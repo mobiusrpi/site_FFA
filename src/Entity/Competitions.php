@@ -296,11 +296,11 @@ class Competitions
     }
 
     public function getOrganizers(): array
-{
-    return $this->competitionsUsers->filter(function (CompetitionsUsers $cu) {
-        return in_array($cu->getRole(), ['director', 'coach', 'manager']);
-    })->toArray();
-}
+    {
+        return $this->competitionsUsers->filter(function (CompetitionsUsers $cu) {
+            return in_array($cu->getRole(), ['director', 'coach', 'manager']);
+        })->toArray();
+    }
 
     /**
      * @return Collection<int, CompetitionsUsers>

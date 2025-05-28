@@ -53,8 +53,9 @@ class DashboardController extends AbstractDashboardController
 //        yield MenuItem::linkToCrud('Crews', 'fas fa-users', Crews::class);
         yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
         yield MenuItem::subMenu('Logistique', 'fa fa-hotel')->setSubItems([
-            MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
             MenuItem::linkToRoute('Prix des services', 'fas fa-id-card', 'admin_competitionAccommodation_selector'),       
+            MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
+            MenuItem::linkToCrud('Supprimer un service', 'fas fa-id-card', CompetitionAccommodation::class),
         ]);   
         yield MenuItem::linkToRoute('Accueil', 'fa fa-home','home');     
     }

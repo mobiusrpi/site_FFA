@@ -26,8 +26,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use App\Repository\CompetitionAccommodationRepository;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -35,13 +37,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CompetitionsCrudController extends AbstractCrudController
 {          
-    private $competId;
+    private AdminUrlGenerator $adminUrlGenerator;
 
-    private $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
+    public function __construct(     
+        AdminUrlGenerator $adminUrlGenerator)
+    {       
+        $this->adminUrlGenerator = $adminUrlGenerator;
     }
 
     public static function getEntityFqcn(): string
@@ -154,7 +155,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ->setIcon('fa fa-pen') // or 'fas fa-edit'
                     ->setLabel('Modifier');
             })                                 
-            ->remove(Crud::PAGE_INDEX, Action::DELETE)           
+//            ->remove(Crud::PAGE_INDEX, Action::DELETE)           
             ->add(Crud::PAGE_INDEX, $registeredListAction)            
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
             ->add(Crud::PAGE_INDEX, $manageCompetitionAction)                       
@@ -164,6 +165,33 @@ class CompetitionsCrudController extends AbstractCrudController
     } 
 
     // Define the route and controller method to handle the custom action
+    
+    public function delete(AdminContext $context): RedirectResponse
+    {
+        /** @var Competitions $entity */
+        $entity = $context->getEntity()->getInstance();
+
+        if (!$entity instanceof Competitions) {
+            throw new \LogicException('Unexpected entity type.');
+        }
+
+        if (!$entity->getCrew()->isEmpty() or 
+            !$entity->getCompetitionAccommodation()->isEmpty() or 
+            !$entity->getCompetitionsUsers()->isEmpty()) 
+        {
+            $this->addFlash('danger', 'Impossible de supprimer cette compétition qui utilisée.');
+
+            $url = $context->getReferrer() ?? $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction('index')
+                ->generateUrl();
+
+            return $this->redirect($url);
+        }
+
+        return parent::delete($context);
+    }
+
     //The route admin_registered_crews_list is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function registeredListAction( 

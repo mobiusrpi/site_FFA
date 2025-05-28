@@ -1,0 +1,18 @@
+{% extends '@EasyAdmin/page/admin.html.twig' %}
+
+{% block title %}
+    Services par Compétition
+{% endblock %}
+
+{% block main %}
+    <h2>Création ou modification d'un service</h2>
+    <p>La page est bien rendue via EasyAdmin admin.html.twig</p>
+
+    {% for competition in competitions %}
+        <div>
+            <strong>{{ competition.name }}</strong>
+        </div>
+    {% else %}
+        <p>Aucune compétition disponible.</p>
+    {% endfor %}
+{% endblock %}

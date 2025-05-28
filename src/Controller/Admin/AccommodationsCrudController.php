@@ -8,13 +8,24 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class AccommodationsCrudController extends AbstractCrudController
 {    
+    private AdminUrlGenerator $adminUrlGenerator;
+
+    public function __construct(
+        AdminUrlGenerator $adminUrlGenerator)
+    {
+        $this->adminUrlGenerator = $adminUrlGenerator;
+    }
+
     public static function getEntityFqcn(): string
     {
         return Accommodations::class;
@@ -37,4 +48,26 @@ class AccommodationsCrudController extends AbstractCrudController
         ];
     }
 
+    public function delete(AdminContext $context): RedirectResponse
+    {
+        /** @var Accommodations $entity */
+        $entity = $context->getEntity()->getInstance();
+
+        if (!$entity instanceof Accommodations) {
+            throw new \LogicException('Unexpected entity type.');
+        }
+
+        if (!$entity->getCompetitionAccommodation()->isEmpty()) {
+            $this->addFlash('danger', 'Impossible de supprimer : ce service est assigné à un ou plusieurs équipage(s).');
+
+            $url = $context->getReferrer() ?? $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction('index')
+                ->generateUrl();
+
+            return $this->redirect($url);
+        }
+
+        return parent::delete($context);
+    }
 }

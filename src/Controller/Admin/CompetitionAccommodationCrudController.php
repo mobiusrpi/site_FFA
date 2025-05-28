@@ -19,6 +19,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Exception\ForbiddenActionException;
 
 class CompetitionAccommodationCrudController extends AbstractCrudController
 {
@@ -47,9 +48,7 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setPageTitle('index', 'Hébergement et restauration')
-            ->setPageTitle('detail', 'Gestion')
-            ->setPageTitle('edit', 'Paramétrage')       
+            ->setPageTitle('index', 'Hébergement et restauration')   
             ->setPageTitle('new', 'Paramétres d\'un service');
     }
 
@@ -87,10 +86,10 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
             );
         }
         return [
-            IdField::new('id')->hideOnForm(),
+            IdField::new('id')->hideOnForm()->hideOnIndex(),
             $competitionField,
             $accommodationField,
-            MoneyField::new('price')->setCurrency('EUR'),
+            MoneyField::new('price')->setCurrency('EUR')->hideOnIndex(),
         ];
     }
 
@@ -114,8 +113,7 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions        
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)         
-            ->remove(Crud::PAGE_INDEX, Action::DELETE)                       
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)                             
         ;
     }
 
@@ -136,6 +134,30 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
 
         parent::updateEntity($entityManager, $entityInstance);
     }
+
+    public function delete(AdminContext $context): RedirectResponse
+    {
+        /** @var CompetitionAccommodation $entity */
+        $entity = $context->getEntity()->getInstance();
+
+        if (!$entity instanceof CompetitionAccommodation) {
+            throw new \LogicException('Unexpected entity type.');
+        }
+
+        if (!$entity->getCrewAccommodation()->isEmpty()) {
+            $this->addFlash('danger', 'Impossible de supprimer : ce service est assigné à un ou plusieurs équipage(s).');
+
+            $url = $context->getReferrer() ?? $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction('index')
+                ->generateUrl();
+
+            return $this->redirect($url);
+        }
+
+        return parent::delete($context);
+    }
+
 
     protected function getRedirectResponseAfterSave(AdminContext $context, string $action): RedirectResponse
     {

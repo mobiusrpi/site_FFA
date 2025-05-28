@@ -3,14 +3,13 @@
 
 namespace App\Controller\Admin;
 
-
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\CompetitionAccommodationRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,7 +27,6 @@ class CompetitionAccommodationSelectorController extends AbstractController
         $competitions = $competitionRepo->findAll();
 
         $editUrls = [];
-        $deleteUrls = [];
 
         foreach ($competitions as $competition) {
             $uniqueRooms = [];
@@ -45,20 +43,16 @@ class CompetitionAccommodationSelectorController extends AbstractController
                         ->setController(CompetitionAccommodationCrudController::class)
                         ->setAction('edit')
                         ->setEntityId($ca->getId())
-                        ->generateUrl();
-
+                        ->generateUrl();                        
                 }
             }
-
             // Add temporary public property (if necessary)
             $competition->uniqueCompetitionAccommodation = $uniqueCompetitionAccommodations;
+
         }
-
-
         return $this->render('admin/competitionAccommodation_selector.html.twig', [
             'competitions' => $competitions,
-            'editUrls' => $editUrls,            
-            'deleteUrls' => $deleteUrls,
+            'editUrls' => $editUrls,
         ]);
     }
 }

@@ -33,6 +33,8 @@ error_log("CrewsCrudController loaded from: " . __FILE__);
 
 class CrewsCrudController extends AbstractCrudController
 {   
+    use Trait\BlockDeleteTrait;    
+    
     private RequestStack $requestStack;    
     private EntityManagerInterface $entityManager;
     private Security $security;  
@@ -234,8 +236,7 @@ class CrewsCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions        
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)                       
-            ->remove(Crud::PAGE_INDEX, Action::DELETE)  
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)                        
         ;
     }
 
