@@ -46,26 +46,51 @@
                 <div class="competition-name">
                     {{ competition.name }}
                 </div>
-                <a class="add-link" href="{{ path('admin', {
+                <a class="btn btn-sm btn-success"
+                href="{{ path('admin', {
                     crudControllerFqcn: 'App\\Controller\\Admin\\CrewsCrudController',
                     crudAction: 'new',
                     competition: competition.id
-                }) }}">➕</a>                
+                }) }}">
+                ➕ Nouveau équipage
+                </a>                               
                 {% if competition.crew|length > 0 %}
-                    <select class="crew-select" onchange="if (this.value) window.location.href = this.value;">
-                        <option value="">— Modifier un équipage —</option>
-                        {% for crew in competition.crew %}
-                            <option value="{{ editUrls[crew.id] }}">
-                                {% if crew.competition.typeCompetition.id == 2 %}
-                                    {{ crew.pilot.lastname }} {{ crew.pilot.firstname }} 
-                                {% else %}
-                                    {{ crew.pilot.lastname }} {{ crew.pilot.firstname }} & {{ crew.navigator.lastname }} {{ crew.navigator.firstname }}
-                                {% endif %}
-                            </option>
-                        {% endfor %}
-                    </select>
+                    <button type="button"
+                            class="btn btn-sm btn-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editModal-{{ competition.id }}">
+                        ✏️ Modifier un équipage
+                    </button>
                 {% endif %}
-            </div>        
+            </div>                   
+             <!-- Modal -->
+            <div class="modal fade" id="editModal-{{ competition.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ competition.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel-{{ competition.id }}">Modifier un équipage{{ competition.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% for crew in competition.crew %}
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                {% if crew.competition.typeCompetition.id == 2 %}
+                                    <span>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }} </span>
+                                {% else %}
+                                    <span>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }} & {{ crew.navigator.lastname }} {{ crew.navigator.firstname }}</span>
+                                {% endif %}
+                                <a href="{{ editUrls[crew.id] }}" class="btn btn-sm btn-outline-primary">✏️ Modifier</a>
+                            </div>
+                        {% else %}
+                            <p>Aucun équipage à modifier.</p>
+                        {% endfor %}                       
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                    </div>
+                </div>
+            </div>   
         {% endfor %}
     </div>
 {% endblock main %}
