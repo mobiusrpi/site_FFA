@@ -3,19 +3,31 @@
 {% block title %}Liste des inscrits{% endblock %}
 
 {% block body %}
+    <style>
+        table {
+            width: 100%;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        .centered-cell {
+            border: 1px solid #000;
+            text-align: center;
+            padding: 4px;
+        }
+    </style>
     <div>
         <h3>Liste des inscrits - {{ crews[0].competition.name }}</h3>
     </div>
     <table>
         <thead>
             <tr>
-                <th>#</th>
-                <th>Equipage</th>
-                <th>Téléphone</th>                 
-                <th>Email</th>            
-                <th>Chambre</th>            
-                <th>Prix</th>                    
-                <th>Validation</th>      
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">#</th>
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">Equipage</th>
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">Téléphone</th>                 
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">Email</th>            
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">Chambre</th>            
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">Prix</th>                    
+                <th style="border:1px solid #000; text-align: center;padding: 4px;">Validation</th>      
             </tr>                
         </thead>
         <tbody> 
@@ -23,30 +35,27 @@
             {% for crew in crews %}
                 {% if crew.category is defined %} 
                     <tr>           
-                        <td>
+                        <td class="centered-cell">
                             {{ n }} 
                         </td>  
-                        <td> 
+                        <td class="centered-cell">
                             <p>{{ crew.pilot.lastname }} {{ crew.pilot.firstname }}</p>
-                            <p>{{ crew.navigator.lastname }} {{ crew.navigator.firstname }}</p>
                         </td>
-                        <td>
-                            <p>  {{ crew.pilot.phone }}</p>
-                            <p>  {{ crew.navigator.phone }}</p>                            
+                       <td class="centered-cell">
+                            <p>{{ crew.pilot.phone }}</p>                         
                         </td>                         
-                        <td>
-                            <p>  {{ crew.pilot.email }}</p>                           
-                            <p>  {{ crew.navigator.email }}</p>
+                        <td class="centered-cell">   
+                            <p>{{ crew.pilot.email }}</p>
                         </td>      
                         {% if crew.competitionAccommodation is not empty %}
-                            <td>
+                           <td class="centered-cell">
                                 {% for ca in crew.competitionAccommodation %}
                                     <p>
                                         {{ ca.accommodation.room }} 
                                     </p>
                                 {% endfor %}
                             </td>                  
-                            <td>
+                           <td class="centered-cell">
                                 {% for ca in crew.competitionAccommodation %}
                                     <p>
                                         {{ (ca.price / 100) |number_format(2, '.', ',') }} €
@@ -54,12 +63,12 @@
                                 {% endfor %}
                             </td>                            
                         {% else %} 
-                            <td>
+                           <td class="centered-cell">
                                 <em>No accommodations</em>
                             </td>
-                            <td></td  
-                        {% endif %}               
-                        <td>
+                           <td class="centered-cell"></td>
+                        {% endif %}                  
+                       <td class="centered-cell">
                             {% if crew.ValidationPayment == 0 %}
                                 En attente
                             {% else %}

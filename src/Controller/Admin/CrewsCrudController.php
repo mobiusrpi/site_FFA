@@ -236,7 +236,12 @@ class CrewsCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions        
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)                        
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)    
+            ->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
+                fn (Action $action) => $action
+                    ->setLabel('Créer et ajouter un équipage')
+                    ->setIcon('fa fa-plus')
+            )                      
         ;
     }
 
@@ -277,31 +282,6 @@ class CrewsCrudController extends AbstractCrudController
 
         header("Location: $url");
         exit; // Prevent further processing
-    }
-
-    #[Route(path:'/admin/print_crews/{competId}', name: 'admin_print_crews', methods:["GET","POST"])]
-    public function  printCrews(
-        int $competId,
-        CrewsRepository $repositoryCrew,        
-        CompetitionsRepository $repositoryCompetition,
-        PdfService $pdf): Response
-    {
-        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
-        $compet = $repositoryCompetition->find($competId);
-
-        if (empty($crews)) {
-            throw $this->createNotFoundException('No crews found for this competition.');
-        }
-
-        $fileName = $crews[0]->getCompetition()->getName(); 
-        if  ($compet->getTypeCompetition()->getId() == 2) {
-            $html = $this->render('admin/crews/printPilots.html.twig',['crews' => $crews]);             
-        }
-        else{
-            $html = $this->render('admin/crews/printCrews.html.twig',['crews' => $crews]);             
-        }
-
-        return $pdf->showPdfFile($html,$fileName);
     }
 
 }

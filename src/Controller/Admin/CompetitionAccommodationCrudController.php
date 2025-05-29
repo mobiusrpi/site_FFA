@@ -54,7 +54,7 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {            
-        $competitionField = AssociationField::new('competition');
+        $competitionField = AssociationField::new('competition','Compétition');
 
         $request = $this->requestStack->getCurrentRequest();
         $competitionId = $request->query->get('competition');
@@ -62,7 +62,7 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
         if ($competitionId && in_array($pageName, [Crud::PAGE_NEW, Crud::PAGE_EDIT])) {
             $competitionField = $competitionField->setFormTypeOption('disabled', true);
         }
-        $accommodationField = AssociationField::new('accommodation');
+        $accommodationField = AssociationField::new('accommodation','Hébergement');
 
         if ($competitionId && in_array($pageName, [Crud::PAGE_NEW, Crud::PAGE_EDIT])) {
             $competition = $this->competitionRepo->find($competitionId);
@@ -113,7 +113,19 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions        
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)                             
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)                   
+            ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)                       
+            ->remove(Crud::PAGE_INDEX, Action::NEW) 
+            ->update(Crud::PAGE_NEW, Action::SAVE_AND_RETURN,
+                fn (Action $action) => $action
+                    ->setLabel('Enregistrer')
+                    ->setIcon('fa fa-plus')
+            )                        
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-trash') // or 'fas fa-edit'
+                    ->setLabel('Supprimer');
+            })
         ;
     }
 

@@ -65,12 +65,13 @@ class CompetitionsCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
+            ->setEntityLabelInSingular('Compétition') // singular label
+            ->setEntityLabelInPlural('Compétitions')  // plural label
             ->overrideTemplate('crud/index', 'admin/competitions/index.html.twig')
-            ->setPageTitle('index', 'Liste des compétitions')
-            ->setPageTitle('detail', 'Compétition')
-            ->setPageTitle('edit', 'Modification d\'une compétition') 
-            ->setPageTitle('new', 'Nouvelle compétition') 
-        ;
+            ->setPageTitle(Crud::PAGE_INDEX, 'Liste des compétitions')
+            ->setPageTitle(Crud::PAGE_DETAIL, 'Compétition')
+            ->setPageTitle(Crud::PAGE_EDIT, 'Modification d\'une compétition') 
+            ->setPageTitle(Crud::PAGE_NEW, 'Nouvelle compétition');
     }
 
     public function configureFields(string $pageName): iterable
@@ -330,27 +331,6 @@ class CompetitionsCrudController extends AbstractCrudController
             'compet' => $competition,
         ]);
     }
-
-    // Define the route and controller method to handle the custom action
-    //The route admin_accommodation_by_crew  is redirected to this function in the file
-    //config/routes/easyadmin.yaml
-    public function  crewsByCompetitionDownloadAction(
-        int $competId,
-        CrewsRepository $repositoryCrew,
-        PdfService $pdf): Response
-    {
-        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
-dd($crews);
-        if (empty($crews)) {
-            throw $this->createNotFoundException('No crews found for this competition.');
-        }
-
-        $fileName = $crews[0]->getCompetition()->getName(); 
-   
-        $html = $this->render('admin/crews/crewsAccommodation.html.twig',['crews' => $crews]);             
-    dd($html);    
-        return $pdf->showPdfFile($html,$fileName);
-    }
     
     // Define the route and controller method to handle the custom action
     //The route admin_accommodation_by_crew is redirected to this function in the file
@@ -484,4 +464,29 @@ dd($crews);
                 ->generateUrl());
         }
     }
+
+    public function  printCrews(
+        int $competId,
+        CrewsRepository $repositoryCrew,        
+        CompetitionsRepository $repositoryCompetition,
+        PdfService $pdf): Response
+    {
+        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
+        $compet = $repositoryCompetition->find($competId);
+
+        if (empty($crews)) {
+            throw $this->createNotFoundException('No crews found for this competition.');
+        }
+
+        $fileName = $crews[0]->getCompetition()->getName(); 
+        if  ($compet->getTypeCompetition()->getId() == 2) {
+            $html = $this->render('admin/competitions/printPilots.html.twig',['crews' => $crews]);             
+        }
+        else{
+            $html = $this->render('admin/competitions/printCrews.html.twig',['crews' => $crews]);             
+        }
+
+        return $pdf->showPdfFile($html,$fileName);
+    }
+
 }

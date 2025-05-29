@@ -15,13 +15,4 @@ final class HomeController extends AbstractController
     {
         return $this->render('pages/home.html.twig');
     }
-
-    #[Route(path: '/testpdf', name:'test_pdf', methods:['GET'])]
-    public function testpdf(PdfService $pdf)
-    {            
-        $html = '<h1>Test</h1>';
-        $fileName = 'testpdf';
-        return $pdf->showPdfFile($html,$fileName);
-    }
-
 }

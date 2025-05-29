@@ -22,4 +22,6 @@ admin_accommodation_by_crew:
     path: /admin/accommodation_by_crew/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::accommodationByCrewAction
 
-
+admin_print_crews:
+    path: /admin/print_crews/{competId}
+    controller: App\Controller\Admin\CompetitionsCrudController::printCrews

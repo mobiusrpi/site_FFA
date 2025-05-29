@@ -46,7 +46,14 @@ class UsersCrudController extends AbstractCrudController
             ->setDefaultSort([
                 'lastname' => 'ASC',
                 'firstname' => 'ASC',
-            ])
+            ])            
+            ->setEntityLabelInSingular('Utilisateur') // singular label
+            ->setEntityLabelInPlural('Utilisateurs')  // plural label
+//            ->overrideTemplate('crud/index', 'admin/users/index.html.twig')
+            ->setPageTitle(Crud::PAGE_INDEX, 'Liste des utilisateurs')
+            ->setPageTitle(Crud::PAGE_DETAIL, 'Utilisateur')
+            ->setPageTitle(Crud::PAGE_EDIT, 'Modification d\'un utilisateur') 
+            ->setPageTitle(Crud::PAGE_NEW, 'Nouvel utilisateur');
         ;
     }
 
@@ -54,8 +61,23 @@ class UsersCrudController extends AbstractCrudController
         {
             $actions
                 ->disable( Action::DELETE)
-                ->add(Crud::PAGE_INDEX, Action::DETAIL);
-
+                ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->update(Crud::PAGE_INDEX, Action::NEW,
+                    fn (Action $action) => $action
+                        ->setLabel('Ajouter')
+                        ->setIcon('fa fa-plus')
+                )
+                ->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
+                    fn (Action $action) => $action
+                        ->setLabel('Créer et ajouter un utilisateur')
+                        ->setIcon('fa fa-plus')
+                )
+                ->update(Crud::PAGE_NEW, Action::SAVE_AND_RETURN,
+                    fn (Action $action) => $action
+                        ->setLabel('Créer')
+                        ->setIcon('fa fa-plus')
+                )
+            ;
             return $actions;
         }
 
