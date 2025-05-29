@@ -80,6 +80,7 @@ final class CrewsController extends AbstractController
         $crew->setRegisteredAt(new \DateTimeImmutable());        
         $crew->setRegisteredby($user);
         $crew->setCompetition($compet);
+        $crew->setPilot($user);
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
             'compet' => $compet,

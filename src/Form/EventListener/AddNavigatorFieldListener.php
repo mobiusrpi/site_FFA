@@ -28,7 +28,7 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
             FormEvents::PRE_SET_DATA => 'onPreSetData',
         ];
     }
-
+ 
     public function onPreSetData(PreSetDataEvent $event): void
     {           
         $request = $this->requestStack->getCurrentRequest();

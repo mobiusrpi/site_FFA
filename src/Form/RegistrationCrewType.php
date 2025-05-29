@@ -8,7 +8,6 @@ use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use Doctrine\ORM\EntityRepository;
 use App\Repository\UsersRepository;
-use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use App\Entity\CompetitionAccommodation;
 use Symfony\Component\Form\AbstractType;
@@ -20,13 +19,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class RegistrationCrewType extends AbstractType
 {    
     private $addNavigatorFieldListener;
-    
     private $preSubmitSubscriber;
 
     public function __construct(
