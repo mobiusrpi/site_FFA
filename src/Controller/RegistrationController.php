@@ -129,28 +129,30 @@ dd($result);
         UsersRepository $usersRepository,
         EntityManagerInterface $em
     ): Response{
-        if ($jwt->isValid($token) && !$jwt->isExpired($token) &&
-        $jwt->check($token, $this->getParameter('app.jwtsecret')))
-        { 
-            $payload = $jwt->getPayload($token);
-            $user =$usersRepository->find($payload['user_id']);
+   if ($jwt->isValid($token) && !$jwt->isExpired($token) && $jwt->check($token, $this->getParameter('app.jwtsecret'))) {
+        $payload = $jwt->getPayload($token);
+        $user = $usersRepository->find($payload['user_id']);
 
-            if ($user && !$user->isVerified())
-            {  
-                $user->setIsVerified(true);
-                $em->flush($user);
-
-                $this->addFlash('succes','Cet utilisateur a été validé ');
-
-                return $this->redirectToRoute(('home'));
-            } 
-            if ($user){
-                $this->addFlash('succes','Cet utilisateur est inconnu');
+        if ($user && !$user->isVerified())
+        {  
+            $user->setIsVerified(true);
+            if (empty($user->getRoles())) {
+                $user->setRoles(['ROLE_USER']);                 
             }
-            else{
-                $this->addFlash('danger','Utilisateur déjà vérifié !');
-            }       
-            
+
+            $em->flush($user);
+
+            $this->addFlash('success','Cet utilisateur a été validé ');
+
+            return $this->redirectToRoute(('home'));
+        } 
+        if ($user){
+            $this->addFlash('success','Cet utilisateur est inconnu');
+        }
+        else{
+            $this->addFlash('danger','Utilisateur déjà vérifié !');
+        }       
+        
             return $this->redirectToRoute(('login'));   
         }
 

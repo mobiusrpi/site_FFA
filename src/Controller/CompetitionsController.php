@@ -38,7 +38,7 @@ final class CompetitionsController extends AbstractController
     ) : Response{
 
         $form = $this->createForm(CompetitionsType::class,$competitions);
-
+dump('test');
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $competitions = $form->getData();;

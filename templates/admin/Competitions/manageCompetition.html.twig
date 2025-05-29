@@ -36,9 +36,15 @@
                                     <td>{{ accomForm.accommodation.vars.data.room }}</td>
 
                                     {# Price input #}
-                                    <td> 
-                                       {{ form_widget(accomForm.price|number_format(2, '.', ','), { attr: { style: 'max-width: 100px;' } }) }}
+                                    <td>
+                                        {{ form_widget(accomForm.price, {
+                                            'attr': {
+                                                'style': 'max-width: 100px;',
+                                                'value': accomForm.price.vars.value|number_format(2, '.', ',')
+                                            }
+                                        }) }}
                                     </td>
+
                                 </tr>
                             {% endfor %}
                         </body>

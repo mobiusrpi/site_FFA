@@ -43,18 +43,18 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_MANAGER }
+
+        - { path: ^/login, roles: PUBLIC_ACCESS }         
+        - { path: ^/admin, roles: ROLE_ROUTER }
         # - { path: ^/admin/competition, roles: ROLE_MANAGER }
-        # - { path: ^/registration, roles: ROLE_COMPETITOR }access_control:
         - { path: ^/registration, roles: ROLE_USER }
-        - { path: ^/registration/crews, roles: ROLE_USER }  # Secure this route
-        - { path: ^/edit_register, roles: ROLE_USER }  # Secure this route
-    role_hierarchy:
-        ROLE_COMPETITOR: [ROLE_USER]        
-        ROLE_MANAGER: [ROLE_COMPETITOR]
-        ROLE_JUDGE: [ROLE_COMPETITOR]
+        - { path: ^/registration/crews, roles: ROLE_USER }
+        - { path: ^/edit_register, roles: ROLE_USER }  
+    role_hierarchy:      
+        ROLE_MANAGER: [ROLE_USER]
+        ROLE_JUDGE: [ROLE_USER]
         ROLE_ROUTER: [ROLE_MANAGER]
-        ROLE_ADMIN: [ROLE_ROUTEUR]
+        ROLE_ADMIN: [ROLE_ROUTER]
 
 
 when@test:

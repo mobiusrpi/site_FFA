@@ -21,7 +21,7 @@
               Compétitions
           </a>        
         </li>
-        {% if is_granted('ROLE_USER') %}        
+        {% if is_granted('ROLE_MANAGER') %}        
           <li class="nav-item">
             <a class="nav-link {% if app.request.attributes.get('_route') == 'user.list' %}active{% endif %}" 
               href="{{ path('admin') }}">            

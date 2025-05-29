@@ -33,6 +33,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CompetitionsCrudController extends AbstractCrudController
@@ -68,6 +69,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->setPageTitle('index', 'Liste des compétitions')
             ->setPageTitle('detail', 'Compétition')
             ->setPageTitle('edit', 'Modification d\'une compétition') 
+            ->setPageTitle('new', 'Nouvelle compétition') 
         ;
     }
 
@@ -155,6 +157,21 @@ class CompetitionsCrudController extends AbstractCrudController
                     ->setIcon('fa fa-pen') // or 'fas fa-edit'
                     ->setLabel('Modifier');
             })                                 
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-trash') // or 'fas fa-edit'
+                    ->setLabel('Supprimer');
+            })                                 
+            ->update(Crud::PAGE_INDEX, Action::NEW,
+                fn (Action $action) => $action
+                    ->setLabel('Ajouter')
+                    ->setIcon('fa fa-plus')
+            )
+            ->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
+                fn (Action $action) => $action
+                    ->setLabel('Créer et ajouter une compétition')
+                    ->setIcon('fa fa-plus')
+            )
 //            ->remove(Crud::PAGE_INDEX, Action::DELETE)           
             ->add(Crud::PAGE_INDEX, $registeredListAction)            
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
@@ -315,7 +332,7 @@ class CompetitionsCrudController extends AbstractCrudController
     }
 
     // Define the route and controller method to handle the custom action
-    //The route admin_competition_manage is redirected to this function in the file
+    //The route admin_accommodation_by_crew  is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function  crewsByCompetitionDownloadAction(
         int $competId,
@@ -343,35 +360,46 @@ dd($crews);
         Request $request,
         CrewsRepository $repositoryCrew,
         EntityManagerInterface $entityManager
-    ): Response {
-        $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
+    )
+    {
+        try {
+            $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
 
-        if (empty($crews)) {
-            throw $this->createNotFoundException('No crews found for this competition.');
-        }
+            if (empty($crews)) {
+                throw $this->createNotFoundException('Pas d\'équipage pour cette compétition.');
+            }
 
-        // ✅ Manually handle POST request (no Symfony FormType)
-        if ($request->isMethod('POST')) {
-            $postData = $request->request->all();
-            $submitted = $postData['validationPayment'] ?? [];
-            foreach ($crews as $crew) {
-                $isValidated = isset($submitted[$crew->getId()]);
-                $crew->setValidationPayment($isValidated ? 1 : 0);
-                $entityManager->persist($crew);
-            }    
-            $entityManager->flush();
+            if ($request->isMethod('POST')) {
+                $postData = $request->request->all();
+                $submitted = $postData['validationPayment'] ?? [];
 
-            $this->addFlash('success', 'Validation de paiement enregistrée.');
+                foreach ($crews as $crew) {
+                    $isValidated = isset($submitted[$crew->getId()]);
+                    $crew->setValidationPayment($isValidated ? 1 : 0);
+                    $entityManager->persist($crew);
+                }
+
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Validation de paiement enregistrée.');
+
+                return $this->redirect($this->generateUrl('admin', [
+                    'crudAction' => 'index',
+                    'crudControllerFqcn' => CompetitionsCrudController::class,
+                ]));
+            }
+
+            return $this->render('admin/crews/crewsAccommodation.html.twig', [
+                'crews' => $crews,
+            ]);
+        }catch (NotFoundHttpException $e) {
+            $this->addFlash('danger', $e->getMessage());
 
             return $this->redirect($this->generateUrl('admin', [
                 'crudAction' => 'index',
                 'crudControllerFqcn' => CompetitionsCrudController::class,
             ]));
-        };
-
-        return $this->render('admin/crews/crewsAccommodation.html.twig', [
-            'crews' => $crews,
-        ]);
+        }
     }
 
     // Define the route and controller method to handle the custom action
@@ -384,62 +412,76 @@ dd($crews);
         AdminUrlGenerator $adminUrlGenerator
     ): Response
     {
-        $results = $repositoryCrew->getQueryCrews($competId);   
-        $competName = $results[0]->getCompetition()->getName();
-//dd($results);
-        $data = [];           
-        foreach ($results as $result) {
-            $data[] = [
-                'Competition' => $competName,
-                'Equipage' => $result->getId(),
-                'Categorie' => $result->getCategory()?->value ?? '',   
-                'Pilote' => $result->getPilot()->getLastname() . ' ' . $result->getPilot()->getFirstname(),
-                'Pilote_Licence_FFA' => $result->getPilot()->getLicenseFfa() ,
-                'Pilote_Telephone' => $result->getPilot()->getPhone() ? $result->getPilot()->getPhone() : '',
-                'Pilote_Email' => $result->getPilot()->getEmail() ,
-                'Pilote_Date_Naissance' => $this->DateFormated($result->getPilot()->getDateBirth()),
-                'Pilote_Aeroclub' => $result->getPilot()->getFlyingclub() ? $result->getPilot()->getFlyingclub() : '',
-                'Pilote_CRA' => $result->getPilot()->getCommittee()?->value ?? '',                          
-                'Pilote_Sexe' => $result->getPilot()->getGender()?->value ?? '',
-                'Pilote_taille_polo' => $result->getPilot()->getPoloSize() ?->value ?? '',
-                'Navigateur' => $result->getNavigator()->getLastname() . ' ' . $result->getNavigator()->getFirstname(),
-                'Navigateur_Licence_FFA' => $result->getNavigator()->getLicenseFfa(),
-                'Navigateur_Telephone' => $result->getNavigator()->getPhone() ? $result->getNavigator()->getPhone() : '',
-                'Navigateur_Email' => $result->getNavigator()->getEmail() ,
-                'Navigateur_Date_Naissance' => $this->DateFormated($result->getNavigator()->getDateBirth()),
-                'Navigateur_Aeroclub' => $result->getNavigator()->getFlyingclub() ? $result->getNavigator()->getFlyingclub() : '',
-                'Navigateur_CRA' => $result->getNavigator()->getCommittee() ?->value ?? '',                          
-                'Pilote_Sexe' => $result->getPilot()->getGender()?->value ?? '',
-                'Navigateur_taille_polo' => $result->getNavigator()->getPoloSize() ?->value ?? '',
-                'Immatriculation' => $result->getCallsign() ? $result->getCallSign() : '',
-                'Vitesse' => $result->getAircraftSpeed() ?->value ?? '', 
-                'Type_avion' => $result->getAircraftType() ? $result->getPilotShared() : '',
-                'Avion_partage' => $result->isAircraftSharing() ? 'Oui' : 'Non',
-                'Pilote_de_partage' => $result->getPilotShared() ? $result->getPilotShared() : '' ,
-                'Creation' => $this->DateFormated($result->getRegisteredAt()),
-                'Enregistre_par' => $result->getRegisteredBy()->getLastname() . ' ' . $result->getRegisteredBy()->getFirstname(),
-            ];
-         }
-//dd($data);
-        $response = new Response();
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="Insciptions_'.$competName.'.csv"');
+        try {
+            $crews = $repositoryCrew->getQueryCrews($competId);   
+
+            if (empty($crews)) {
+                throw $this->createNotFoundException('Pas d\'équipage pour cette compétition.');
+            }
+            $competName = $crews[0]->getCompetition()->getName();
+
+            $data = [];           
+            foreach ($crews as $crew) {
+                $data[] = [
+                    'Competition' => $competName,
+                    'Equipage' => $crew->getId(),
+                    'Categorie' => $crew->getCategory()?->value ?? '',   
+                    'Pilote' => $crew->getPilot()->getLastname() . ' ' . $crew->getPilot()->getFirstname(),
+                    'Pilote_Licence_FFA' => $crew->getPilot()->getLicenseFfa() ,
+                    'Pilote_Telephone' => $crew->getPilot()->getPhone() ? $crew->getPilot()->getPhone() : '',
+                    'Pilote_Email' => $crew->getPilot()->getEmail() ,
+                    'Pilote_Date_Naissance' => $this->DateFormated($crew->getPilot()->getDateBirth()),
+                    'Pilote_Aeroclub' => $crew->getPilot()->getFlyingclub() ? $crew->getPilot()->getFlyingclub() : '',
+                    'Pilote_CRA' => $crew->getPilot()->getCommittee()?->value ?? '',                          
+                    'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                    'Pilote_taille_polo' => $crew->getPilot()->getPoloSize() ?->value ?? '',
+                    'Navigateur' => $crew->getNavigator()->getLastname() . ' ' . $crew->getNavigator()->getFirstname(),
+                    'Navigateur_Licence_FFA' => $crew->getNavigator()->getLicenseFfa(),
+                    'Navigateur_Telephone' => $crew->getNavigator()->getPhone() ? $crew->getNavigator()->getPhone() : '',
+                    'Navigateur_Email' => $crew->getNavigator()->getEmail() ,
+                    'Navigateur_Date_Naissance' => $this->DateFormated($crew->getNavigator()->getDateBirth()),
+                    'Navigateur_Aeroclub' => $crew->getNavigator()->getFlyingclub() ? $crew->getNavigator()->getFlyingclub() : '',
+                    'Navigateur_CRA' => $crew->getNavigator()->getCommittee() ?->value ?? '',                          
+                    'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                    'Navigateur_taille_polo' => $crew->getNavigator()->getPoloSize() ?->value ?? '',
+                    'Immatriculation' => $crew->getCallsign() ? $crew->getCallSign() : '',
+                    'Vitesse' => $crew->getAircraftSpeed() ?->value ?? '', 
+                    'Type_avion' => $crew->getAircraftType() ? $crew->getPilotShared() : '',
+                    'Avion_partage' => $crew->isAircraftSharing() ? 'Oui' : 'Non',
+                    'Pilote_de_partage' => $crew->getPilotShared() ? $crew->getPilotShared() : '' ,
+                    'Creation' => $this->DateFormated($crew->getRegisteredAt()),
+                    'Enregistre_par' => $crew->getRegisteredBy()->getLastname() . ' ' . $crew->getRegisteredBy()->getFirstname(),
+                ];
+            }
+    //dd($data);
+            $response = new Response();
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="Insciptions_'.$competName.'.csv"');
 
 
-        // Ouvrir un flux de sortie
-        $handle = fopen('php://output', 'w+');
+            // Ouvrir un flux de sortie
+            $handle = fopen('php://output', 'w+');
 
-        // Écrire les en-têtes
-        fputcsv($handle, array_keys($data[0]),';');
+            // Écrire les en-têtes
+            fputcsv($handle, array_keys($data[0]),';');
 
-        // Écrire les données
-        foreach ($data as $row) {
-            fputcsv($handle, $row,';');
+            // Écrire les données
+            foreach ($data as $row) {
+                fputcsv($handle, $row,';');
+            }
+
+            fclose($handle);
+
+            return $response;
+
+        } catch (NotFoundHttpException $e) {
+            $this->addFlash('danger', $e->getMessage());
+
+            // Redirect to a suitable route, e.g., the admin dashboard or the competition list
+            return $this->redirect($adminUrlGenerator
+                ->setController(CompetitionsCrudController::class)
+                ->setAction('index')
+                ->generateUrl());
         }
-
-        fclose($handle);
-
-        return $response;
     }
-
 }
