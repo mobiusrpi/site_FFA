@@ -5,10 +5,77 @@
 {% endblock %}
 
 {% block body %}
-  <img src="{{ asset('images/banner_top.jpg') }}" alt="FFA">
+  <style>
+    /* Mobile first (default) */
+    .responsive-title {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .responsive-lead {
+      font-size: 0.75rem;
+    }
+    
+    .banner-overlay {
+      padding: 0.25rem;
+    }
+
+    /* Small screens (≥600px) */
+    @media (min-width: 800px) {
+      .responsive-title {
+        font-size: 1.5rem;
+      }
+
+      .responsive-lead {
+        font-size: 1rem;
+      }
+         
+    .banner-overlay {
+      padding: 0.5rem;
+    }
+
+    }
+    /* Medium screens (≥900px) */
+    @media (min-width: 900px) {
+      .responsive-title {
+        font-size: 2rem;
+      }
+
+      .responsive-lead {
+        font-size: 1.25rem;
+      }
+         
+      .banner-overlay {
+        padding: 0.5rem;
+      }
+
+    }
+
+    /* Large screens (≥1200px) */
+    @media (min-width: 1200px) {
+      .responsive-title {
+        font-size: 2.5rem;
+      }
+
+      .responsive-lead {
+        font-size: 1.5rem;
+      }
+         
+      .banner-overlay {
+        padding: 0.5rem;
+      }
+
+    }
+  </style>
+  <div class="position-relative">
+    <img src="{{ asset('images/banner_top.jpg') }}" alt="FFA" class="img-fluid w-100" style="height: auto;">
+
+    <div class="position-absolute top-0 start-0 w-100 text-center text-white banner-overlay">
+      <h1 class="responsive-title">Sports aériens : Rallye - Pilotage de précision - ANR</h1>
+    </div>
+  </div>
+
   <div class='container mt-4'>
-    <div class="jumbotron text-center">
-      <h1 class="display-6">Sports aériens : Rallye - Pilotage de précision - ANR</h1>
-      <p class="lead">Gestion des épreuves de compétitons organisées par la Fédération Française Aéronautique</p>
-    </div>  </div>
+    {# Additional content can go here #}
+  </div>
 {% endblock %}
