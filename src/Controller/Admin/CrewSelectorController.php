@@ -3,8 +3,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Users;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -23,10 +25,21 @@ class CrewSelectorController extends AbstractController
     public function index(
         EntityManagerInterface $em, 
         AdminUrlGenerator $adminUrlGenerator,
-        CompetitionsRepository $competitionRepo
+        CompetitionsRepository $competitionRepo,
+        Security $security,
     ): Response
     {
-        $competitions = $competitionRepo->findAll();
+        $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas connecté.');
+        }
+        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            $competitions = $competitionRepo->findAll();
+        } else {
+            $competitions = $competitionRepo->getQueryAllowedUsers($user->getId());
+        }
+
         $editUrls = [];
 
         foreach ($competitions as $competition) {

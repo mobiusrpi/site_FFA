@@ -11,6 +11,7 @@ use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -68,9 +69,20 @@ class DashboardController extends AbstractDashboardController
     public function importPage(
         Request $request,
         CompetitionsRepository $competitionRepo,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        Security $security,
     ): Response {
-        $competitions = $competitionRepo->findAll();
+
+        $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas connecté.');
+        }
+        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            $competitions = $competitionRepo->findAll();
+        } else {
+            $competitions = $competitionRepo->getQueryAllowedUsers($user->getId());
+        }
 
         if ($request->isMethod('POST')) {
             $competitionId = $request->request->get('competition_id');

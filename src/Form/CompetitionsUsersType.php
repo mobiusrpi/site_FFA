@@ -27,10 +27,8 @@ class CompetitionsUsersType extends AbstractType
                 'choice_label' => fn(Users $user) => $user->getLastname().' '.$user->getFirstname(),                'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('u')
                         ->where('u.roles LIKE :manager')
-                        ->orWhere('u.roles LIKE :router')
                         ->orWhere('u.roles LIKE :admin')
                         ->setParameter('manager', '%ROLE_MANAGER%')
-                        ->setParameter('router', '%ROLE_ROUTER%')
                         ->setParameter('admin', '%ROLE_ADMIN%');                    
                     },
             ])

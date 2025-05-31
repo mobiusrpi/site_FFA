@@ -83,4 +83,17 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    public function getQueryAllowedUsers( $userId)
+    {
+        return $this->createQueryBuilder('compet')
+            ->innerJoin('compet.competitionsUsers', 'competitionsUsers') // Join the CompetitionsUsers entity
+            ->innerJoin('competitionsUsers.user', 'user') // Join the User entity through CompetitionsUsers
+            ->where('user.id = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('compet.startDate', 'ASC') // Assuming you want to order by user's lastname
+            ->getQuery()
+            ->getResult();
+    }  
+    
 }

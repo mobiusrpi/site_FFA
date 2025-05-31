@@ -45,16 +45,13 @@ security:
     access_control:
 
         - { path: ^/login, roles: PUBLIC_ACCESS }         
-        - { path: ^/admin, roles: ROLE_ROUTER }
-        # - { path: ^/admin/competition, roles: ROLE_MANAGER }
+        - { path: ^/admin, roles: ROLE_MANAGER }
         - { path: ^/registration, roles: ROLE_USER }
         - { path: ^/registration/crews, roles: ROLE_USER }
         - { path: ^/edit_register, roles: ROLE_USER }  
     role_hierarchy:      
         ROLE_MANAGER: [ROLE_USER]
-        ROLE_JUDGE: [ROLE_USER]
-        ROLE_ROUTER: [ROLE_MANAGER]
-        ROLE_ADMIN: [ROLE_ROUTER]
+        ROLE_ADMIN: [ROLE_MANAGER]
 
 
 when@test:

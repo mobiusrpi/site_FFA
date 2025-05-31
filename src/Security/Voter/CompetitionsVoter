@@ -12,11 +12,11 @@ class CompetitionsVoter extends Voter
 {
     const ADD = 'COMPETITION_ADD';
     const EDIT = 'COMPETITION_EDIT';
-     const DELETE = 'COMPETITION_DELETE';
+    const DELETE = 'COMPETITION_DELETE';
 
     private $security;
 
-    public function __construct( $security)
+    public function __construct( Security $security)
     {
         $this->security = $security;
     }
