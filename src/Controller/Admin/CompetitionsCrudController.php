@@ -6,13 +6,17 @@ use App\Entity\Crews;
 use App\Entity\Users;
 use App\Service\PdfService;
 use App\Entity\Competitions;
+use Doctrine\ORM\QueryBuilder;
+use App\Entity\CompetitionsUsers;
 use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
+use App\Entity\Enum\CompetitionRole;
 use App\Form\AccommodationByCrewType;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
 use App\Repository\AccommodationsRepository;
@@ -21,6 +25,8 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
@@ -33,18 +39,26 @@ use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CompetitionsCrudController extends AbstractCrudController
 {          
+    private $security;
+    private EntityManagerInterface $entityManager;
     private AdminUrlGenerator $adminUrlGenerator;
 
     public function __construct(     
-        AdminUrlGenerator $adminUrlGenerator)
+        AdminUrlGenerator $adminUrlGenerator,
+        Security $security,
+        ManagerRegistry $registry    )
     {       
         $this->adminUrlGenerator = $adminUrlGenerator;
-    }
+        $this->security = $security;
+        $this->entityManager = $registry->getManager();  
+    } 
 
     public static function getEntityFqcn(): string
     {
@@ -103,6 +117,43 @@ class CompetitionsCrudController extends AbstractCrudController
                 ->setLabel('Organisateurs de la compétition')
         ];
     }
+    
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters,
+    ): QueryBuilder {
+       
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        // Get the current authenticated user
+        $user = $this->security->getUser();
+        // Check if the user has a specific role and modify the query accordingly
+        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            // If the user is an admin, show all users   
+            $qb->orderBy('entity.startDate', 'ASC'); 
+            return $qb;
+        }
+
+        if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
+
+            $competitionIds = $this->entityManager
+                ->getRepository(CompetitionsUsers::class)
+                ->findCompetitionIdsForUserWithRoles($user, ['ADMINISTRATOR', 'DIRECTOR','ROUTER']);
+                        
+            if (count($competitionIds) > 0) {
+                        $qb->andWhere($qb->expr()->in('entity.id', ':allowedCompetitions'))
+                        ->setParameter('allowedCompetitions', $competitionIds);
+                    } else {
+                        $qb->andWhere('1 = 0'); // No access
+                    }
+                }
+
+        // Apply ordering if needed
+        $qb->orderBy('entity.startDate', 'ASC');
+
+        return $qb;
+    }
 
     public function configureActions(Actions $actions): Actions
     {
@@ -151,8 +202,41 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
+        $user = $this->security->getUser();
+
+        // Fetch all CompetitionUser entries for this user
+        $cuEntries = $this->entityManager
+            ->getRepository(CompetitionsUsers::class)
+            ->findBy(['user' => $user]);
+
+        $hasAdminRole = false;
+
+        foreach ($cuEntries as $cu) {
+            foreach ($cu->getRole() as $role) {
+                if ($role === CompetitionRole::ROUTER) {
+                    $hasAdminRole = true;
+                    break 2;
+                }
+            }
+        }
+
+        if (!$hasAdminRole) {
+            // Disable the "New" action if user is not administrator
+            $actions = $actions->disable(Action::NEW);
+        } else {                                
+            $actions = $actions->update(Crud::PAGE_INDEX, Action::NEW,
+                fn (Action $action) => $action
+                    ->setLabel('Ajouter')
+                    ->setIcon('fa fa-plus')
+            );
+             $actions = $actions->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
+                        fn (Action $action) => $action
+                            ->setLabel('Créer et ajouter une compétition')
+                            ->setIcon('fa fa-plus')
+            );
+        }
+
         return $actions
- 
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
                 return $action
                     ->setIcon('fa fa-pen') // or 'fas fa-edit'
@@ -162,24 +246,12 @@ class CompetitionsCrudController extends AbstractCrudController
                 return $action
                     ->setIcon('fa fa-trash') // or 'fas fa-edit'
                     ->setLabel('Supprimer');
-            })                                 
-            ->update(Crud::PAGE_INDEX, Action::NEW,
-                fn (Action $action) => $action
-                    ->setLabel('Ajouter')
-                    ->setIcon('fa fa-plus')
-            )
-            ->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
-                fn (Action $action) => $action
-                    ->setLabel('Créer et ajouter une compétition')
-                    ->setIcon('fa fa-plus')
-            )
-//            ->remove(Crud::PAGE_INDEX, Action::DELETE)           
+            }) 
             ->add(Crud::PAGE_INDEX, $registeredListAction)            
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
             ->add(Crud::PAGE_INDEX, $manageCompetitionAction)                       
             ->add(Crud::PAGE_INDEX, $accommodationByCrewAction)
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction);
-
     } 
 
     // Define the route and controller method to handle the custom action

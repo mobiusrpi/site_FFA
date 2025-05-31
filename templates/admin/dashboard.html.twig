@@ -1,7 +1,26 @@
 {# templates/admin/my_dashboard.html.twig #}
 {% extends '@EasyAdmin/layout.html.twig' %}
 
+
 {% block main %}
     {{ parent() }}
 
 {% endblock main %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', () => {
+                    const input = button.closest('.position-relative').querySelector('input');
+                    const icon = button.querySelector('i');
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    icon.classList.toggle('fa-eye', !isPassword);
+                    icon.classList.toggle('fa-eye-slash', isPassword);
+                });
+            });
+        });
+    </script>
+{% endblock %}

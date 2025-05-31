@@ -107,6 +107,25 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
    #[ORM\OneToMany(mappedBy: 'user', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
     private Collection $competitionsUsers;
 
+    private ?string $plainPassword = null;
+
+    /**
+     * @return string|null
+     */
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    /**
+     * @param string|null $plainPassword
+     */
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        return $this;
+    }
+    
     public function __construct()
     {
         $this->registeredBy = new ArrayCollection();

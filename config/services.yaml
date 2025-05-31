@@ -35,6 +35,9 @@ services:
     App\Form\EventSubscriber\PreSubmitSubscriber:
         tags:
             - { name: kernel.event_subscriber }
+    App\EventSubscriber\UserPasswordSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
 
     App\Service\SmileService:
         arguments:

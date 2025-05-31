@@ -3,32 +3,23 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Users;
-use DateTimeImmutable;
 use App\Entity\Enum\Gender;
 use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
 use Doctrine\ORM\QueryBuilder;
 use App\Entity\CompetitionsUsers;
-use Symfony\Component\Form\FormEvents;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Security;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use Symfony\Component\Form\FormBuilderInterface;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
@@ -43,6 +34,7 @@ class UsersCrudController extends AbstractCrudController
 
     use Trait\BlockDeleteTrait;
 
+
     public static function getEntityFqcn(): string
     {
         return Users::class;
@@ -55,19 +47,78 @@ class UsersCrudController extends AbstractCrudController
     ) {
         $this->security = $security;
         $this->entityManager = $registry->getManager();
-    }   
+    } 
 
-     public function configureFields(string $pageName): iterable
+    public function configureCrud(Crud $crud): Crud
     {
-       return [
+        return $crud
+            ->setEntityLabelInSingular('Utilisateur')
+            ->setEntityLabelInPlural('Utilisateurs')
+            ->setPaginatorPageSize(12)
+            ->setDefaultSort(['lastname' => 'ASC'])
+            ->setPageTitle('index', 'Liste des utilisateurs')
+            ->setPageTitle('detail', 'Utilisateur')
+            ->setPageTitle('edit', 'Modification d\'un utilisateur')       
+            ->setPageTitle('new', 'Nouvel utilisateur');
+
+    }
+   
+    public function configureFields(string $pageName): iterable
+    {    
+        $password = TextField::new('password')
+            ->setFormType(RepeatedType::class)
+            ->setFormTypeOptions([
+                'type' => PasswordType::class,
+                'first_options' => [
+                    'label' => 'Mot de passe',
+                    'help' => 'Laisez vidide pou ne pas changer',
+                ],
+                'second_options' => ['label' => '(Répéter)'],
+                'mapped' => false,
+                
+            ])
+            ->setRequired($pageName === Crud::PAGE_NEW)
+            ->onlyOnForms()
+        ;
+        if ($pageName === Crud::PAGE_EDIT) {
+            $password->setHelp('Laissez vide pour conserver le mot de passe actuel');
+}
+
+        $user = $this->security->getUser();
+
+        $availableRoles = [];
+
+        // Only allow assigning roles that are equal or lower in privilege
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $availableRoles = [
+                'Administrateur' => 'ROLE_ADMIN',
+                'Manager' => 'ROLE_MANAGER',
+                'Utilisateur' => 'ROLE_USER',
+            ];
+        } elseif ($this->security->isGranted('ROLE_MANAGER')) {
+            $availableRoles = [
+                'Manager' => 'ROLE_MANAGER',
+                'Utilisateur' => 'ROLE_USER',
+            ];
+        } else {
+            $availableRoles = [
+                'Utilisateur' => 'ROLE_USER',
+            ];
+        }
+        return [
             IdField::new('id')->hideOnForm()->hideOnIndex(),
             TextField::new('lastname','Nom'),            
             TextField::new('firstname','Prénom'),
-            EmailField::new('email','Email'),            
-            TextField::new('password','Mot de passe')->hideOnIndex(),               
+            EmailField::new('email','Email'), 
+            $password,      
+            BooleanField::new('isCompetitor','Compétiteur')->hideOnIndex(),            
             TextField::new('phone','Téléphone'),            
             TextField::new('licenseFfa','Licence FFA'),            
-            ArrayField::new('roles','Rôles')->hideOnIndex(),             
+            ChoiceField::new('roles')
+                ->setChoices($availableRoles)
+                ->allowMultipleChoices(true)
+                ->renderExpanded(true), // or false for a dropdown
+
             DateField::new('dateBirth','Date de naissance')->hideOnIndex(),       
                
       
@@ -91,11 +142,9 @@ class UsersCrudController extends AbstractCrudController
 
             TextField::new('flyingclub','Aéroclub')->hideOnIndex(),  
             BooleanField::new('isVerified','Vérifié')->hideOnIndex(),            
-            BooleanField::new('isCompetitor','Compétiteur')->hideOnIndex(),      
-
+      
         ];
-
-               }
+   }
  
     public function createIndexQueryBuilder(
         SearchDto $searchDto,
@@ -104,43 +153,42 @@ class UsersCrudController extends AbstractCrudController
         FilterCollection $filters,
     ): QueryBuilder {
        
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
         // Get the current authenticated user
         $user = $this->security->getUser();
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             // If the user is an admin, show all users
-            $queryBuilder = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
-            return $queryBuilder;
+            $qb->orderBy('entity.lastname', 'ASC'); // <-- manually set order 
+
+            return $qb;
         }
 
-        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
+            // First: Get all user IDs linked via pilot or navigator roles in competitions managed by this user
+            $subQb = $this->entityManager->createQueryBuilder()
+                ->select('DISTINCT u.id')
+                ->from(Users::class, 'u')
+                ->leftJoin('u.pilot', 'pilotCrew')
+                ->leftJoin('u.navigator', 'navigatorCrew')
+                ->leftJoin(CompetitionsUsers::class, 'cu', 'WITH', 'cu.user = :manager')
+                ->leftJoin('pilotCrew.competition', 'comp1')
+                ->leftJoin('navigatorCrew.competition', 'comp2')
+                ->where('cu.competition = comp1 OR cu.competition = comp2')
+                ->setParameter('manager', $user);
 
-    if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
-        // First: Get all user IDs linked via pilot or navigator roles in competitions managed by this user
-        $subQb = $this->entityManager->createQueryBuilder()
-            ->select('DISTINCT u.id')
-            ->from(Users::class, 'u')
-            ->leftJoin('u.pilot', 'pilotCrew')
-            ->leftJoin('u.navigator', 'navigatorCrew')
-            ->leftJoin(CompetitionsUsers::class, 'cu', 'WITH', 'cu.user = :manager')
-            ->leftJoin('pilotCrew.competition', 'comp1')
-            ->leftJoin('navigatorCrew.competition', 'comp2')
-            ->where('cu.competition = comp1 OR cu.competition = comp2')
-            ->setParameter('manager', $user);
+            $userIds = array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult());
 
-        $userIds = array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult());
+            if (count($userIds) > 0) {
+                $qb->andWhere($qb->expr()->in('entity.id', ':userIds'))
+                ->setParameter('userIds', $userIds);
+            } else {
+                $qb->andWhere('1 = 0');
+            }
 
-           if (count($userIds) > 0) {
-            $qb->andWhere($qb->expr()->in('entity.id', ':userIds'))
-               ->setParameter('userIds', $userIds);
-        } else {
-            $qb->andWhere('1 = 0');
+            // Apply the ordering here
+            $qb->orderBy('entity.lastname', 'ASC');
         }
-
-        // ✅ Apply the ordering here
-        $qb->orderBy('entity.lastname', 'ASC');
-    }
-
 
         return $qb;
     }
