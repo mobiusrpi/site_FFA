@@ -6,6 +6,7 @@ use App\Entity\Crews;
 use App\Entity\Users;
 use App\Service\PdfService;
 use App\Entity\Competitions;
+use App\Service\CsvExporter;
 use Doctrine\ORM\QueryBuilder;
 use App\Entity\CompetitionsUsers;
 use App\Form\RegistrationCrewType;
@@ -13,7 +14,6 @@ use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
 use App\Entity\Enum\CompetitionRole;
-use App\Form\AccommodationByCrewType;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -33,7 +33,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
@@ -166,7 +168,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $newRegistrationAction = Action::new('newRegistrationAction', 'Inscription')
+        $newRegistrationAction = Action::new('newRegistrationAction', 'Nouvelle inscription')
             ->setIcon('fa fa-flag')              
             ->linkToRoute('admin_registration_crew_new',
                 function (Competitions $competition) {
@@ -175,8 +177,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $manageCompetitionAction = Action::new('manageCompetitionAction', 'Paramètrage')
-            ->setIcon('fa fa-cog')
+        $manageCompetitionAction = Action::new('manageCompetitionAction', 'Prix de l\'inscription')
+            ->setIcon('fa fa-money')
             ->linkToRoute('admin_competition_manage',                
                 function (Competitions $competition) {
                     return [
@@ -185,7 +187,7 @@ class CompetitionsCrudController extends AbstractCrudController
                 });
 
         $accommodationByCrewAction = Action::new('accommodationByCrewAction', 'Hébergement')
-            ->setIcon('fa fa-list')
+            ->setIcon('fa fa-hotel')
             ->linkToRoute('admin_accommodation_by_crew',                
                 function (Competitions $competition) {
                     return [
@@ -196,6 +198,15 @@ class CompetitionsCrudController extends AbstractCrudController
         $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Exporter .csv')
             ->setIcon('fa fa-file-export')
             ->linkToRoute('admin_crews_by_competition_export',                
+                function (Competitions $competition) {
+                    return [
+                        'competId' => $competition->getId(),
+                    ];
+                });
+
+        $exportPipperByCompetitionAction = Action::new('exportPipperByCompetitionAction', 'Exporter Pipper .csv')
+            ->setIcon('fa fa-file-export')
+            ->linkToRoute('admin_pipper_by_competition_export',                
                 function (Competitions $competition) {
                     return [
                         'competId' => $competition->getId(),
@@ -251,7 +262,18 @@ class CompetitionsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
             ->add(Crud::PAGE_INDEX, $manageCompetitionAction)                       
             ->add(Crud::PAGE_INDEX, $accommodationByCrewAction)
-            ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction);
+            ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction)            
+            ->add(Crud::PAGE_INDEX, $exportPipperByCompetitionAction)
+            ->reorder(Crud::PAGE_INDEX, [
+                'registeredListAction',
+                'newRegistrationAction',
+                'accommodationByCrewAction',
+                'manageCompetitionAction',
+                'crewsByCompetitionExportAction',
+                'exportPipperByCompetitionAction',
+                Action::EDIT,               
+                Action::DELETE             
+            ]);
     } 
 
     // Define the route and controller method to handle the custom action
@@ -383,8 +405,15 @@ class CompetitionsCrudController extends AbstractCrudController
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
-
-            $entityManager->persist($form->getData());
+            foreach ($formModel->getAccommodations() as $item) {
+                if ($item->getPrice() === null || floatval($item->getPrice()) <= 0.00) {
+                    if ($item->getId()) {
+                        $entityManager->remove($item);
+                    }
+                } else {
+                    $entityManager->persist($item);
+                }
+            }
             $entityManager->flush();
 
             $this->addFlash(
@@ -460,81 +489,98 @@ class CompetitionsCrudController extends AbstractCrudController
     public function crewsByCompetitionExportAction( 
         int $competId,
         CrewsRepository $repositoryCrew,  
-        Request $request,
-        AdminUrlGenerator $adminUrlGenerator
-    ): Response
+        CsvExporter $csvExporter,
+    ): StreamedResponse
     {
-        try {
-            $crews = $repositoryCrew->getQueryCrews($competId);   
+        $crews = $repositoryCrew->getQueryCrews($competId);   
 
-            if (empty($crews)) {
-                throw $this->createNotFoundException('Pas d\'équipage pour cette compétition.');
-            }
-            $competName = $crews[0]->getCompetition()->getName();
-
-            $data = [];           
-            foreach ($crews as $crew) {
-                $data[] = [
-                    'Competition' => $competName,
-                    'Equipage' => $crew->getId(),
-                    'Categorie' => $crew->getCategory()?->value ?? '',   
-                    'Pilote' => $crew->getPilot()->getLastname() . ' ' . $crew->getPilot()->getFirstname(),
-                    'Pilote_Licence_FFA' => $crew->getPilot()->getLicenseFfa() ,
-                    'Pilote_Telephone' => $crew->getPilot()->getPhone() ? $crew->getPilot()->getPhone() : '',
-                    'Pilote_Email' => $crew->getPilot()->getEmail() ,
-                    'Pilote_Date_Naissance' => $this->DateFormated($crew->getPilot()->getDateBirth()),
-                    'Pilote_Aeroclub' => $crew->getPilot()->getFlyingclub() ? $crew->getPilot()->getFlyingclub() : '',
-                    'Pilote_CRA' => $crew->getPilot()->getCommittee()?->value ?? '',                          
-                    'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
-                    'Pilote_taille_polo' => $crew->getPilot()->getPoloSize() ?->value ?? '',
-                    'Navigateur' => $crew->getNavigator()->getLastname() . ' ' . $crew->getNavigator()->getFirstname(),
-                    'Navigateur_Licence_FFA' => $crew->getNavigator()->getLicenseFfa(),
-                    'Navigateur_Telephone' => $crew->getNavigator()->getPhone() ? $crew->getNavigator()->getPhone() : '',
-                    'Navigateur_Email' => $crew->getNavigator()->getEmail() ,
-                    'Navigateur_Date_Naissance' => $this->DateFormated($crew->getNavigator()->getDateBirth()),
-                    'Navigateur_Aeroclub' => $crew->getNavigator()->getFlyingclub() ? $crew->getNavigator()->getFlyingclub() : '',
-                    'Navigateur_CRA' => $crew->getNavigator()->getCommittee() ?->value ?? '',                          
-                    'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
-                    'Navigateur_taille_polo' => $crew->getNavigator()->getPoloSize() ?->value ?? '',
-                    'Immatriculation' => $crew->getCallsign() ? $crew->getCallSign() : '',
-                    'Vitesse' => $crew->getAircraftSpeed() ?->value ?? '', 
-                    'Type_avion' => $crew->getAircraftType() ? $crew->getPilotShared() : '',
-                    'Avion_partage' => $crew->isAircraftSharing() ? 'Oui' : 'Non',
-                    'Pilote_de_partage' => $crew->getPilotShared() ? $crew->getPilotShared() : '' ,
-                    'Creation' => $this->DateFormated($crew->getRegisteredAt()),
-                    'Enregistre_par' => $crew->getRegisteredBy()->getLastname() . ' ' . $crew->getRegisteredBy()->getFirstname(),
-                ];
-            }
-    //dd($data);
-            $response = new Response();
-            $response->headers->set('Content-Type', 'text/csv');
-            $response->headers->set('Content-Disposition', 'attachment; filename="Insciptions_'.$competName.'.csv"');
-
-
-            // Ouvrir un flux de sortie
-            $handle = fopen('php://output', 'w+');
-
-            // Écrire les en-têtes
-            fputcsv($handle, array_keys($data[0]),';');
-
-            // Écrire les données
-            foreach ($data as $row) {
-                fputcsv($handle, $row,';');
-            }
-
-            fclose($handle);
-
-            return $response;
-
-        } catch (NotFoundHttpException $e) {
-            $this->addFlash('danger', $e->getMessage());
-
-            // Redirect to a suitable route, e.g., the admin dashboard or the competition list
-            return $this->redirect($adminUrlGenerator
-                ->setController(CompetitionsCrudController::class)
-                ->setAction('index')
-                ->generateUrl());
+        if (empty($crews)) {
+            throw $this->createNotFoundException('Aucun équipage pour cette compétition.');
         }
+    
+        $competName = $crews[0]->getCompetition()->getName();
+        $filename = 'Competiteurs_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $competName) . '.csv';
+            
+        $data = [];
+
+        foreach ($crews as $crew) {
+            $data[] = [
+                'Equipage' => $crew->getId(),
+                'Categorie' => $crew->getCategory()?->value ?? '',   
+                'Pilote' => $crew->getPilot()->getLastname() . ' ' . $crew->getPilot()->getFirstname(),
+                'Pilote_Licence_FFA' => $crew->getPilot()->getLicenseFfa() ,
+                'Pilote_Telephone' => $crew->getPilot()->getPhone() ? $crew->getPilot()->getPhone() : '',
+                'Pilote_Email' => $crew->getPilot()->getEmail() ,
+                'Pilote_Date_Naissance' => $this->DateFormated($crew->getPilot()->getDateBirth()),
+                'Pilote_Aeroclub' => $crew->getPilot()->getFlyingclub() ? $crew->getPilot()->getFlyingclub() : '',
+                'Pilote_CRA' => $crew->getPilot()->getCommittee()?->value ?? '',                          
+                'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                'Pilote_taille_polo' => $crew->getPilot()->getPoloSize() ?->value ?? '',
+                'Navigateur' => $crew->getNavigator()->getLastname() . ' ' . $crew->getNavigator()->getFirstname(),
+                'Navigateur_Licence_FFA' => $crew->getNavigator()->getLicenseFfa(),
+                'Navigateur_Telephone' => $crew->getNavigator()->getPhone() ? $crew->getNavigator()->getPhone() : '',
+                'Navigateur_Email' => $crew->getNavigator()->getEmail() ,
+                'Navigateur_Date_Naissance' => $this->DateFormated($crew->getNavigator()->getDateBirth()),
+                'Navigateur_Aeroclub' => $crew->getNavigator()->getFlyingclub() ? $crew->getNavigator()->getFlyingclub() : '',
+                'Navigateur_CRA' => $crew->getNavigator()->getCommittee() ?->value ?? '',                          
+                'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                'Navigateur_taille_polo' => $crew->getNavigator()->getPoloSize() ?->value ?? '',
+                'Immatriculation' => $crew->getCallsign() ? $crew->getCallSign() : '',
+                'Vitesse' => $crew->getAircraftSpeed() ?->value ?? '', 
+                'OACI' => $crew->getAircraftOaci() ?$crew->getAircraftOaci() : '', 
+                'Type_avion' => $crew->getAircraftType() ? $crew->getAircraftType() : '',
+                'Avion_partage' => $crew->isAircraftSharing() ? 'Oui' : 'Non',
+                'Pilote_de_partage' => $crew->getPilotShared() ? $crew->getPilotShared() : '' ,
+                'Creation' => $this->DateFormated($crew->getRegisteredAt()),
+                'Enregistre_par' => $crew->getRegisteredBy()->getLastname() . ' ' . $crew->getRegisteredBy()->getFirstname(),
+            ];
+        }
+        return $csvExporter->export($data, $filename);
+    }
+
+    // Define the route and controller method to handle the custom action
+    //The route admin_pipper_by_competition_export is redirected to this function in the file
+    //config/routes/easyadmin.yaml
+    public function exportPipperByCompetitionAction( 
+        int $competId,
+        CrewsRepository $repositoryCrew,  
+        CsvExporter $csvExporter,
+    ): StreamedResponse
+    {
+        $crews = $repositoryCrew->getQueryCrews($competId);   
+
+        if (empty($crews)) {
+            throw $this->createNotFoundException('Aucun équipage pour cette compétition.');
+        }
+    
+        $competName = $crews[0]->getCompetition()->getName();
+        $filename = 'ExportPipper_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $competName) . '.csv';
+            
+        $data = [];
+                
+        foreach ($crews as $crew) {
+            $data[] = [
+                'registration_number' => (string) $crew->getId(),
+                'category' => $crew->getCategory()?->value ?? '',   
+                'pilot_lastname' => $crew->getPilot()->getLastname(),
+                'pilot_firstname' =>  $crew->getPilot()->getFirstname() ,
+                'pilot_sex' => $crew->getPilot()->getGender()?->value[0] ?? '',
+                'pilot_club' =>  (string) $crew->getPilot()->getFlyingclub() ?? '',
+                'pilot_cra' =>  $crew->getPilot()->getCommittee()->getCode() ?? '',  
+                'copilot_lastname' => $crew->getNavigator()->getLastname() ,
+                'copilot_firstname' => $crew->getNavigator()->getFirstname(),
+                'copilot_sex' => $crew->getNavigator()->getGender()?->value[0] ?? '',
+                'copilot_club' => (string) $crew->getNavigator()->getFlyingclub() ?? '',
+                'copilot_cra' => $crew->getNavigator()->getCommittee()->getCode() ?? '',
+                'aircraft_brand' => '', 
+                'aircraft_type' => (string) $crew->getAircraftType() ? $crew->getAircraftType() : '',
+                'aircraft_matriculation' => (string) $crew->getCallsign() ? $crew->getCallSign() : '', 
+                'aircraft_colors' => '', 
+                'aircraft_oaci' => (string) $crew->getAircraftOaci() ? $crew->getAircraftOaci() : '', 
+                'aircraft_speed' => $crew->getAircraftSpeed() ?->value ?? '', 
+            ];
+        }   
+        return $csvExporter->export($data, $filename);
     }
 
     public function  printCrews(
@@ -547,7 +593,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $compet = $repositoryCompetition->find($competId);
 
         if (empty($crews)) {
-            throw $this->createNotFoundException('No crews found for this competition.');
+            throw $this->createNotFoundException('Pas d\équipage trouvé pour cette compétition.');
         }
 
         $fileName = $crews[0]->getCompetition()->getName(); 

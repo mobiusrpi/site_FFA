@@ -18,6 +18,10 @@ admin_crews_by_competition_export:
     path: /admin/registered_crews_export/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::crewsByCompetitionExportAction
 
+admin_pipper_by_competition_export:
+    path: /admin/pipper_crews_export/{competId}
+    controller: App\Controller\Admin\CompetitionsCrudController::exportPipperByCompetitionAction
+ 
 admin_accommodation_by_crew:
     path: /admin/accommodation_by_crew/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::accommodationByCrewAction

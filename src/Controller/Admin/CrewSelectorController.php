@@ -4,6 +4,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Users;
+use App\Repository\CrewsRepository;
 use App\Repository\CompetitionsRepository;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,6 +18,7 @@ class CrewSelectorController extends AbstractController
     public function index( 
         AdminUrlGenerator $adminUrlGenerator,
         CompetitionsRepository $competitionRepo,
+        CrewsRepository $crewsRepository,
         Security $security,
     ): Response
     {
@@ -34,7 +36,15 @@ class CrewSelectorController extends AbstractController
         $editUrls = [];
 
         foreach ($competitions as $competition) {
-            foreach ($competition->getCrew() as $crew) {
+            
+            $sortedCrews = $crewsRepository->findByCompetitionOrderedByPilotLastname($competition);
+
+            $viewData[] = [
+                'competition' => $competition,
+                'crews' => $sortedCrews,
+            ];
+
+            foreach ($sortedCrews as $crew) {
                 $editUrls[$crew->getId()] = $adminUrlGenerator
                     ->unsetAll()
                     ->setController(CrewsCrudController::class)
@@ -45,7 +55,7 @@ class CrewSelectorController extends AbstractController
         }
 
         return $this->render('admin/crew_selector.html.twig', [
-            'competitions' => $competitions,
+            'competitionData' => $viewData,
             'editUrls' => $editUrls,
         ]);
     }

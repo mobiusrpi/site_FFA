@@ -159,6 +159,17 @@ class RegistrationCrewType extends AbstractType
                     'class' => 'form-label'
                 ],
             ])
+            ->add('aircraftOaci',TextType::class,[
+                'attr' => [
+                    'class' => 'form-control',                    
+                    'maxlength' => '8'
+                ],                
+                'required' => false,
+                'label' => 'Code OACI',
+                'label_attr' => [
+                    'class' => 'form-label'
+                ],
+            ])
             ->add('aircraftSharing',CheckboxType::class,[   
                 'attr' => [
                     'class' => 'form-check-input',                    

@@ -29,11 +29,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UsersCrudController extends AbstractCrudController
 {   
+    use Trait\BlockDeleteTrait;   
     private $security;
+    private $createdAt;    
+    private $updatedAt;
     private EntityManagerInterface $entityManager;
-
-    use Trait\BlockDeleteTrait;
-
 
     public static function getEntityFqcn(): string
     {
@@ -42,11 +42,14 @@ class UsersCrudController extends AbstractCrudController
 
     public function __construct(
         public UserPasswordHasherInterface $userPasswordHasher,
+        private readonly UserPasswordHasherInterface $passwordHasher,
         Security $security,
         ManagerRegistry $registry
     ) {
         $this->security = $security;
         $this->entityManager = $registry->getManager();
+        $this->createdAt = new \DateTimeImmutable();        
+        $this->updatedAt = new \DateTimeImmutable();
     } 
 
     public function configureCrud(Crud $crud): Crud
@@ -71,7 +74,6 @@ class UsersCrudController extends AbstractCrudController
                 'type' => PasswordType::class,
                 'first_options' => [
                     'label' => 'Mot de passe',
-                    'help' => 'Laisez vidide pou ne pas changer',
                 ],
                 'second_options' => ['label' => '(Répéter)'],
                 'mapped' => false,
@@ -82,7 +84,7 @@ class UsersCrudController extends AbstractCrudController
         ;
         if ($pageName === Crud::PAGE_EDIT) {
             $password->setHelp('Laissez vide pour conserver le mot de passe actuel');
-}
+        }
 
         $user = $this->security->getUser();
 
@@ -144,8 +146,52 @@ class UsersCrudController extends AbstractCrudController
             BooleanField::new('isVerified','Vérifié')->hideOnIndex(),            
       
         ];
-   }
- 
+    }
+
+    private function handlePassword(Users $user): void
+    {
+        $request = $this->container->get('request_stack')->getCurrentRequest();
+        $formData = $request->request->all();
+
+        if (!isset($formData['Users']['password']['first']) || empty($formData['Users']['password']['first'])) {
+            return;
+        }
+
+        $plainPassword = $formData['Users']['password']['first'];
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+        $user->setPassword($hashedPassword);
+    }
+
+
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Users) {
+            return;
+        }
+            if ($entityInstance->getCreatedAt() === null) {
+                $entityInstance->setCreatedAt(new \DateTimeImmutable());
+            }
+
+            $this->handlePassword($entityInstance); // Set hashed password
+
+            parent::persistEntity($entityManager, $entityInstance);
+        }
+
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Users) {
+            return;
+        }
+
+        if ($entityInstance->getUpdatedAt() === null) {
+            $entityInstance->setUpdatedAt(new \DateTimeImmutable());
+        }
+
+        $this->handlePassword($entityInstance);
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
     public function createIndexQueryBuilder(
         SearchDto $searchDto,
         EntityDto $entityDto,

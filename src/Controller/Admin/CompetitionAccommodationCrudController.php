@@ -2,16 +2,15 @@
 
 namespace App\Controller\Admin;
 
-use Doctrine\ORM\EntityRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
-use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
@@ -19,7 +18,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Exception\ForbiddenActionException;
 
 class CompetitionAccommodationCrudController extends AbstractCrudController
 {
@@ -52,46 +50,48 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
             ->setPageTitle('new', 'Paramétres d\'un service');
     }
 
-    public function configureFields(string $pageName): iterable
-    {            
-        $competitionField = AssociationField::new('competition','Compétition');
+public function configureFields(string $pageName): iterable
+{
+    $request = $this->requestStack->getCurrentRequest();
+    $competitionId = $request->query->get('competition');
 
-        $request = $this->requestStack->getCurrentRequest();
-        $competitionId = $request->query->get('competition');
+    $competitionField = AssociationField::new('competition', 'Compétition');
+    $accommodationField = AssociationField::new('accommodation', 'Hébergement');
 
-        if ($competitionId && in_array($pageName, [Crud::PAGE_NEW, Crud::PAGE_EDIT])) {
-            $competitionField = $competitionField->setFormTypeOption('disabled', true);
-        }
-        $accommodationField = AssociationField::new('accommodation','Hébergement');
+    if ($competitionId && in_array($pageName, [Crud::PAGE_NEW, Crud::PAGE_EDIT])) {
+        $competitionField = $competitionField->setFormTypeOption('disabled', true);
 
-        if ($competitionId && in_array($pageName, [Crud::PAGE_NEW, Crud::PAGE_EDIT])) {
-            $competition = $this->competitionRepo->find($competitionId);
+        $competition = $this->competitionRepo->find($competitionId);
+        $accommodationField = $accommodationField->setQueryBuilder(function ($qb) use ($competition) {
+            $qb->andWhere($qb->expr()->not(
+                $qb->expr()->exists(
+                    $qb->getEntityManager()->createQueryBuilder()
+                        ->select('1')
+                        ->from('App\Entity\CompetitionAccommodation', 'ca2')
+                        ->where('ca2.accommodation = entity')
+                        ->andWhere('ca2.competition = :competition')
+                        ->getDQL()
+                )
+            ))
+            ->setParameter('competition', $competition);
 
-            $accommodationField = $accommodationField->setQueryBuilder(
-                function (\Doctrine\ORM\QueryBuilder $qb) use ($competition) {
-                    $qb->andWhere($qb->expr()->not(
-                        $qb->expr()->exists(
-                            $qb->getEntityManager()->createQueryBuilder()
-                                ->select('1')
-                                ->from('App\Entity\CompetitionAccommodation', 'ca2')
-                                ->where('ca2.accommodation = entity')
-                                ->andWhere('ca2.competition = :competition')
-                                ->getDQL()
-                        )
-                    ))
-                    ->setParameter('competition', $competition);
-;
-                    return $qb;
-                }
-            );
-        }
-        return [
-            IdField::new('id')->hideOnForm()->hideOnIndex(),
-            $competitionField,
-            $accommodationField,
-            MoneyField::new('price')->setCurrency('EUR')->hideOnIndex(),
-        ];
+            return $qb;
+        });
     }
+
+    if ($pageName === Crud::PAGE_INDEX) {
+        // Use TextField instead of AssociationField to prevent linking
+        $competitionField = TextField::new('competition.name', 'Compétition');
+        $accommodationField = TextField::new('accommodation.room', 'Hébergement');
+    }
+
+    return [
+        IdField::new('id')->hideOnForm()->hideOnIndex(),
+        $competitionField,
+        $accommodationField,
+        MoneyField::new('price')->setCurrency('EUR')->hideOnIndex(),
+    ];
+}
 
     public function createEntity(string $entityFqcn)
     {
@@ -170,17 +170,4 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
         return parent::delete($context);
     }
 
-
-    protected function getRedirectResponseAfterSave(AdminContext $context, string $action): RedirectResponse
-    {
-        /** @var CompetitionAccommodation $entity */
-        $entity = $context->getEntity()->getInstance();
-
-        $url = $this->adminUrlGenerator
-            ->unsetAll()
-            ->setRoute('admin_competitionAccommodation_selector')
-            ->generateUrl();
-
-        return new RedirectResponse($url);
-    }
 }

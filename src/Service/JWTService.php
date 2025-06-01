@@ -76,7 +76,7 @@ class JWTService
         $payload = $this->getPayload($token);
 
         $verifToken = $this->generate($header,$payload,$secret,0);
-    dump($verifToken);
+
         return $token === $verifToken;
     }
 }

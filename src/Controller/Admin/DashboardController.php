@@ -2,7 +2,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Crews;
 use App\Entity\Users;
 use App\Entity\Results;
 use App\Entity\Competitions;
@@ -14,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
@@ -54,10 +52,9 @@ class DashboardController extends AbstractDashboardController
             ->setDefaultSort(['startDate' => 'ASC',]);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
             ->setDefaultSort(['email' => 'ASC']);
-//        yield MenuItem::linkToCrud('Crews', 'fas fa-users', Crews::class);
         yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
-        yield MenuItem::subMenu('Logistique', 'fa fa-hotel')->setSubItems([
-            MenuItem::linkToRoute('Prix des services', 'fas fa-id-card', 'admin_competitionAccommodation_selector'),       
+        yield MenuItem::subMenu('Administration', 'fa fa-cog')->setSubItems([
+            MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector'),        
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
             MenuItem::linkToCrud('Supprimer un service', 'fas fa-id-card', CompetitionAccommodation::class),
         ]);   

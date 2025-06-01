@@ -22,7 +22,7 @@
             <div class='row'>
                 <div class='mt-4'> 
                     <p>Renseigner le prix de l'inscription en fonction du type de service</p>                    
-                    <p>Laisser vide le champs "Prix" si non disponible</p>                    
+                    <p>Laisser le champs "Prix" à 0.00 si non disponible</p>                    
                         <table class="table table-bordered align-middle" style="table-layout: fixed; width: 50%;">
                             <thead class="table-dark">
                             <tr>
@@ -51,15 +51,19 @@
                     </table>
                 </div>                    
             </div>    
+            <div>
+                Test {{ form_widget(form._token) }}
+            </div>             
             <div class="row justify-content-center my-5">
                 <div class="col-10 text-center">   
-                    <button class='btn btn-primary me-4',type='submit'> Valider</button>              
+                    <button class='btn btn-primary me-4' type='submit'> Valider</button>              
                     <a href ="{{ path('crews_registration_list') }}" class="btn btn-info btn-sm ms-4">
                       Annuler
                     </a>  
                     </br>  
                 </div>   
-            </div>              
+            </div>       
+      
         {{ form_end(form, {'render_rest': false}) }}
     </section>
 

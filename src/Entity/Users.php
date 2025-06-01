@@ -16,6 +16,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'Il y a  déjà un compte avec cet email')]
 #[UniqueEntity(fields: ['licenseFfa'], message: 'Licence FFA déjà enregistrée')]
@@ -37,6 +38,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\NotBlank(groups: ['create'])]
     private ?string $password = null;
 
     #[ORM\Column]
@@ -59,8 +61,24 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $now = new \DateTimeImmutable();
+        if ($this->createdAt === null) {
+            $this->createdAt = $now;
+        }
+        $this->updatedAt = $now;
+    }    
+    
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $resetToken = null;
@@ -117,7 +135,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->plainPassword;
     }
 
-    /**
+    /***
      * @param string|null $plainPassword
      */
     public function setPlainPassword(?string $plainPassword): self
@@ -125,17 +143,15 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->plainPassword = $plainPassword;
         return $this;
     }
-    
-    public function __construct()
-    {
-        $this->registeredBy = new ArrayCollection();
-    }
 
-    public function __construc()
+    public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();       
         $this->updatedAt = new \DateTimeImmutable();   
         $this->competitionsUsers = new ArrayCollection();   
+        $this->registeredBy = new ArrayCollection();
+        $this->pilot = new ArrayCollection();
+        $this->navigator = new ArrayCollection();
     }
 
     public function getId(): ?int

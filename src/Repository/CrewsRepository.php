@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Crews;
 use Doctrine\ORM\Query;
+use App\Entity\Competitions;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -74,4 +75,15 @@ class CrewsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByCompetitionOrderedByPilotLastname(Competitions $competition): array
+{
+    return $this->createQueryBuilder('c')
+        ->innerJoin('c.pilot', 'p')
+        ->where('c.competition = :competition')
+        ->setParameter('competition', $competition)
+        ->orderBy('p.lastname', 'ASC')
+        ->getQuery()
+        ->getResult();
+}
 }

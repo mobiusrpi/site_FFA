@@ -74,6 +74,9 @@ class Crews
     #[ORM\ManyToMany(targetEntity: CompetitionAccommodation::class, mappedBy: 'crewAccommodation')]
     private Collection $competitionAccommodation;
 
+    #[ORM\Column(length: 8, nullable: true)]
+    private ?string $aircraftOaci = null;
+
     public function __construct()
     {
         $this->competitionAccommodation = new ArrayCollection();
@@ -95,6 +98,11 @@ class Crews
         $this->category = $category;
 
         return $this;
+    }
+
+    public function getCategoryLabel(): string
+    {
+        return $this->category?->value[0] ?? '';
     }
 
     public function getCallsign(): ?string
@@ -287,6 +295,18 @@ class Crews
     public function __toString(): string
     {
        return 'test_crew';
+    }
+
+    public function getAircraftOaci(): ?string
+    {
+        return $this->aircraftOaci;
+    }
+
+    public function setAircraftOaci(?string $aircraftOaci): static
+    {
+        $this->aircraftOaci = $aircraftOaci;
+
+        return $this;
     }
 }
 

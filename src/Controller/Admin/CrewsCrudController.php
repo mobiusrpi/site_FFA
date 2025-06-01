@@ -189,6 +189,7 @@ class CrewsCrudController extends AbstractCrudController
             ->renderExpanded(false) // dropdown
             ->autocomplete(false)
             ->allowMultipleChoices(false);
+        $fields[] = TextField::new('aircraftOaci','Code OACI');
         $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?');
         $fields[] = TextField::new('pilotShared','Pilote de partage');
 

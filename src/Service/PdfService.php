@@ -38,8 +38,11 @@ class PdfService
         $this->domPdf->stream( $newFileName . ".pdf", [
             'Attachement' => true
         ]);        
+
+        exit;
         
-        $output = $this->domPdf->output();
+/*         
+ $output = $this->domPdf->output();
         
         return new Response(
             $output,
@@ -54,6 +57,8 @@ class PdfService
     public function generateBinaryPDF($html) {
         $this->domPdf->loadHtml($html);
         $this->domPdf->render();
-        $this->domPdf->output();
+        $this->domPdf->output(); 
+        */
     }
+       
 }

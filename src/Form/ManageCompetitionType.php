@@ -2,16 +2,10 @@
 
 namespace App\Form;
 
-use App\Entity\Competitions;
-use App\Entity\Accommodations;
-use App\Entity\CompetitionAccommodation;
 use Symfony\Component\Form\AbstractType;
 use App\Form\Model\AccommodationCollection;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 
 class ManageCompetitionType extends AbstractType
@@ -33,6 +27,8 @@ class ManageCompetitionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => AccommodationCollection::class,
+            'csrf_protection' => true, // ✅ required to render and validate the CSRF token
+
         ]);
     }  
 }
