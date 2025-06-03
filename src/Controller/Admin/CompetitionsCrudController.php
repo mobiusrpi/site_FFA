@@ -8,6 +8,7 @@ use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Service\CsvExporter;
 use Doctrine\ORM\QueryBuilder;
+use App\Entity\TypeCompetition;
 use App\Entity\CompetitionsUsers;
 use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
@@ -20,6 +21,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
 use App\Repository\AccommodationsRepository;
+use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
@@ -104,7 +106,7 @@ class CompetitionsCrudController extends AbstractCrudController
             DateField::new('startDate', 'Date de début')->setFormat('dd/MM/yy'),
             DateField::new('endDate', 'Date de fin')->setFormat('dd/MM/yy'),
             BooleanField::new('selectable','Sélection')
-                ->renderAsSwitch(),             
+                ->renderAsSwitch()->onlyOnForms(),             
             DateField::new('createdAt')->onlyOnDetail() ,
             TextareaField::new('paymentInfo','Informations de réglement')->onlyOnForms(),             
             TextareaField::new('information','Informations utiles')->onlyOnForms(), 
@@ -263,6 +265,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $accommodationByCrewAction)
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction)            
             ->add(Crud::PAGE_INDEX, $exportPipperByCompetitionAction)
+            ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
             ->reorder(Crud::PAGE_INDEX, [
                 'registeredListAction',
                 'newRegistrationAction',
@@ -274,8 +277,6 @@ class CompetitionsCrudController extends AbstractCrudController
                 Action::DELETE             
             ]);
     } 
-
-    // Define the route and controller method to handle the custom action
     
     public function delete(AdminContext $context): RedirectResponse
     {
@@ -320,7 +321,6 @@ class CompetitionsCrudController extends AbstractCrudController
         ]);            
     }
 
-    // Define the route and controller method to handle the custom action
     //The route admin_registration_crew_new is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function newRegistrationAction(  
@@ -366,7 +366,6 @@ class CompetitionsCrudController extends AbstractCrudController
 
     }
 
-    // Define the route and controller method to handle the custom action
     //The route admin_competition_manage is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function manageCompetitionAction(
@@ -432,7 +431,6 @@ class CompetitionsCrudController extends AbstractCrudController
         ]);
     }
     
-    // Define the route and controller method to handle the custom action
     //The route admin_accommodation_by_crew is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function accommodationByCrewAction(
@@ -440,7 +438,7 @@ class CompetitionsCrudController extends AbstractCrudController
         Request $request,
         CrewsRepository $repositoryCrew,
         EntityManagerInterface $entityManager
-    )
+    ): Response
     {
         try {
             $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
@@ -482,7 +480,6 @@ class CompetitionsCrudController extends AbstractCrudController
         }
     }
 
-    // Define the route and controller method to handle the custom action
     //The route admin_crews_by_competition_export is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function crewsByCompetitionExportAction( 
@@ -537,7 +534,6 @@ class CompetitionsCrudController extends AbstractCrudController
         return $csvExporter->export($data, $filename);
     }
 
-    // Define the route and controller method to handle the custom action
     //The route admin_pipper_by_competition_export is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function exportPipperByCompetitionAction( 
@@ -605,5 +601,22 @@ class CompetitionsCrudController extends AbstractCrudController
 
         return $pdf->showPdfFile($html,$fileName);
     }
+        
+    public function showByType(
+        int $typeCompetId,
+        CompetitionsRepository $competitionsRepository,
+        TypeCompetitionRepository $typeCompetitionRepository): Response
+    {
 
+        $typeCompetition = $typeCompetitionRepository->find($typeCompetId);
+        $competitions = $competitionsRepository->selectCompetitionByType($typeCompetId);
+        if (!$competitions) {
+            throw $this->createNotFoundException('Compétition non trouvée.');
+        }
+ //dd($competitions);
+        return $this->render('admin/results_by_type.html.twig', [
+            'typeCompetition' => $typeCompetition,
+            'competitions' => $competitions,
+        ]);
+    }
 }

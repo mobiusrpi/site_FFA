@@ -29,3 +29,12 @@ admin_accommodation_by_crew:
 admin_print_crews:
     path: /admin/print_crews/{competId}
     controller: App\Controller\Admin\CompetitionsCrudController::printCrews
+
+admin_results_selection:
+    path: /admin/results_selection/{typeCompetId}
+    controller: App\Controller\Admin\CompetitionsCrudController::showByType
+
+admin_results_selected_email:
+    path: /admin/results_selection_rally
+    controller: App\Controller\Admin\ResultsCrudController::selectedEmail
+

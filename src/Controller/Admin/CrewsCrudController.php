@@ -230,7 +230,8 @@ class CrewsCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions        
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)    
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)  
+            ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)  
             ->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
                 fn (Action $action) => $action
                     ->setLabel('Créer et ajouter un équipage')

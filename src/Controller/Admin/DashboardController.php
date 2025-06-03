@@ -6,9 +6,11 @@ use App\Entity\Users;
 use App\Entity\Results;
 use App\Entity\Competitions;
 use App\Entity\Accommodations;
+use App\Entity\TypeCompetition;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
+use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,17 +19,28 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {   
     private EntityManagerInterface $entityManager;
+    private TypeCompetitionRepository $typeCompetitionRepository;
+    private UrlGeneratorInterface $urlGenerator;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        TypeCompetitionRepository $typeCompetitionRepository,
+        UrlGeneratorInterface $urlGenerator
+
+)
     {
         $this->entityManager = $entityManager;
+        $this->typeCompetitionRepository = $typeCompetitionRepository;
+        $this->urlGenerator = $urlGenerator;
     }
+ 
 
     private function createResultRallyFromRow(array $row, Competitions $competition): Results
     {          
@@ -104,8 +117,13 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
             MenuItem::linkToCrud('Supprimer un service', 'fas fa-id-card', CompetitionAccommodation::class),
         ]);   
-        yield MenuItem::linkToRoute('Importer résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page');  
-        yield MenuItem::linkToRoute('Retour accueil', 'fa-solid fa-right-from-bracket','home');     
+        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page');  
+        yield MenuItem::subMenu('Résultats CDF', 'fa fa-list')->setSubItems([
+            MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
+            MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
+            MenuItem::linkToRoute('ANR','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'3'])
+        ]);
+        yield MenuItem::linkToRoute('Retour accueil', 'fa-solid fa-right-from-bracket', 'home');
     }
 
     #[Route('/results-import', name: 'admin_results_import_page')]
@@ -184,8 +202,7 @@ class DashboardController extends AbstractDashboardController
                         } else {
                             foreach ($resultsToRemove as $oldResult) {
                                     $em->remove($oldResult);
-                            }
-dd('test PP');                            
+                            }                           
                             $em->flush();
 
                             $result = $this->createResultPPFromRow($firstRow, $competition);

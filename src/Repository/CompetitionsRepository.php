@@ -120,7 +120,7 @@ class CompetitionsRepository extends ServiceEntityRepository
     public function resultCompetitions($start,$end): array
     {
     return $this->createQueryBuilder('c')
-            ->leftJoin('c.results', 'r')
+            ->innerJoin('c.results', 'r')
             ->addSelect('r')
             ->where('c.startDate BETWEEN :start AND :end')
             ->setParameter('start', $start)
@@ -139,6 +139,20 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->setParameter('now', $now)
             ->orderBy('compet.startDate', 'ASC')
             ->setMaxResults(2) // Limit as needed
+            ->getQuery()
+            ->getResult();
+    }
+    
+    public function selectCompetitionByType($typeCompetId): array
+    {
+        return $this->createQueryBuilder('compet')
+            ->innerJoin('compet.results', 'r')
+            ->addSelect('r')
+            ->innerJoin('compet.typecompetition', 'tc')
+            ->where('compet.selectable = true')            
+            ->andWhere('tc.id = :typeCompetId')
+            ->setParameter('typeCompetId', $typeCompetId)
+            ->orderBy('compet.startDate', 'ASC')
             ->getQuery()
             ->getResult();
     }
