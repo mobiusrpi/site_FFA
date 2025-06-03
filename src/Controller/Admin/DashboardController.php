@@ -29,6 +29,54 @@ class DashboardController extends AbstractDashboardController
         $this->entityManager = $entityManager;
     }
 
+    private function createResultRallyFromRow(array $row, Competitions $competition): Results
+    {          
+        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
+
+        $result = new Results();
+
+        $result->setCompetition($competition);
+        $result->setCategory($row[4]);
+        $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
+        $result->setCrew($row[16]);
+        if (!in_array($row[17], ['M', 'F'])) {
+            $result->setGender("");
+        } else {
+            $result->setGender($row[17]);
+        }
+        $result->setFlyingclub($row[18]);
+        $result->setCommittee($row[19]);
+        $result->setFlightPlanning(0);    
+        $result->setObservation(is_numeric($row[20]) ? (int)$row[20] : 0);
+        $result->setNavigation(is_numeric($row[21]) ? (int)$row[21] : 0);
+        $result->setLanding(is_numeric($row[22]) ? (int)$row[22] : 0);
+
+        return $result;
+    }
+        private function createResultPPFromRow(array $row, Competitions $competition): Results
+    {          
+        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
+
+        $result = new Results();
+        $result->setCompetition($competition);
+        $result->setCategory($row[4]);
+        $result->setRanking(is_numeric($row[16]) ? (int)$row[16] : 0);
+        $result->setCrew($row[17]);
+        if (!in_array($row[18], ['M', 'F'])) {
+            $result->setGender("");
+        } else {
+            $result->setGender($row[18]);
+        }
+        $result->setFlyingclub($row[19]);
+        $result->setCommittee($row[20]);
+        $result->setFlightPlanning(is_numeric($row[21]) ? (int)$row[21] : 0);
+        $result->setObservation(is_numeric($row[22]) ? (int)$row[22] : 0);
+        $result->setNavigation(is_numeric($row[23]) ? (int)$row[23] : 0); 
+        $result->setLanding(is_numeric($row[24]) ? (int)$row[24] : 0);
+
+        return $result;
+    }
+
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
@@ -86,86 +134,83 @@ class DashboardController extends AbstractDashboardController
             $csvFile = $request->files->get('csv_file');
             $confirmOverwrite = $request->request->get('confirm_overwrite');
 
-
             if ($competitionId && ($csvFile || $confirmOverwrite)) {
                 $competition = $competitionRepo->find($competitionId);
+ //       dd($competitionId,$csvFile);
 
-                if ($competition) {
-                    if ($csvFile) {
-                        $rawContent = file_get_contents($csvFile->getPathname());
-                        $encoding = mb_detect_encoding($rawContent, ['Windows-1252', 'ISO-8859-1', 'UTF-8'], true);
+                if ($csvFile) {
+                    $rawContent = file_get_contents($csvFile->getPathname());
+                    $encoding = mb_detect_encoding($rawContent, ['Windows-1252', 'ISO-8859-1', 'UTF-8'], true);
 
-                        if ($encoding === false) {
-                            $this->addFlash('error', 'Impossible de détecter l\'encodage du fichier.');
-                            return $this->redirectToRoute('admin_results_import_page');
-                        }
+                    if ($encoding === false) {
+                        $this->addFlash('error', 'Impossible de détecter l\'encodage du fichier.');
+                        return $this->redirectToRoute('admin_results_import_page');
+                    }
 
-                        // Convert content to UTF-8
-                        $utf8Content = mb_convert_encoding($rawContent, 'UTF-8', $encoding);
+                    // Convert content to UTF-8
+                    $utf8Content = mb_convert_encoding($rawContent, 'UTF-8', $encoding);
 
-                        // Write to a temporary UTF-8 file
-                        $tempFilePath = tempnam(sys_get_temp_dir(), 'csv_utf8_');
-                        file_put_contents($tempFilePath, $utf8Content);
+                    // Write to a temporary UTF-8 file
+                    $tempFilePath = tempnam(sys_get_temp_dir(), 'csv_utf8_');
+                    file_put_contents($tempFilePath, $utf8Content);
 
-                        $handle = fopen($tempFilePath, 'r');                   
-                        
-                        // Read the first line to get the category
-                        $firstRow = fgetcsv($handle, 0, ',');
-                        $firstRow = array_map(fn($v) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $v)), $firstRow);
-                        $category = $firstRow[4] ?? null;
+                    $handle = fopen($tempFilePath, 'r');                   
+                    
+                    // Read the first line to get the category
+                    $firstRow = fgetcsv($handle, 0, ',');
+                    $firstRow = array_map(fn($v) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $v)), $firstRow);
+                    $category = $firstRow[4] ?? null;
 
-                        if ($category) {
-                            // Remove existing results only for this competition + category
-                            $existingResults = $em->getRepository(Results::class)->findBy([
-                                'competition' => $competition,
-                                'category' => $category,
-                            ]);
+                    if ($category) {
+                        // Remove existing results only for this competition + category
+                        $resultsToRemove = $em->getRepository(Results::class)->findBy([
+                            'competition' => $competition,
+                            'category' => $category,
+                        ]);
 
-                            $resultsToRemove = $em->getRepository(Results::class)->findBy([
-                                'competition' => $competition,
-                                'category' => $category,
-                            ]);
+                        if ($competition->getTypecompetition()->getId() == 1)
+                        {
                             foreach ($resultsToRemove as $oldResult) {
                                     $em->remove($oldResult);
-                                }
+                            }
+                            $em->flush();    
+
+                            $result = $this->createResultRallyFromRow($firstRow, $competition);
+                            $em->persist($result);
 
                             while (($row = fgetcsv($handle, 0, ',')) !== false) {
-                                // Trim and clean each field
                                 $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
-                                $result = new Results();
-                                if ($competition->getTypeCompetition()->getType() !== 2) {
-                                    $result->setFlightPlanning(0);
-                                }
-                                $result->setCompetition($competition);
-                                $result->setCategory($row[4]);
-                                $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
-                                $result->setCrew($row[16]);
-                                if (!in_array($row[17], ['M', 'F'])) {
-                                    $result->setGender("");  
-                                }
-                                else {
-                                    $result->setGender($row[17]);
-                                }
-                                $result->setFlyingclub($row[18]);
-                                $result->setCommittee($row[19]);
-                                $result->setObservation(is_numeric($row[20]) ? (int)$row[20] : 0);
-                                $result->setNavigation(is_numeric($row[21]) ? (int)$row[21] : 0);
-                                $result->setLanding(is_numeric($row[22]) ? (int)$row[22] : 0);
-
+                                $result = $this->createResultRallyFromRow($row, $competition);                                
                                 $em->persist($result);
                             }
-                            fclose($handle);
-                            unlink($tempFilePath);
+                        } else {
+                            foreach ($resultsToRemove as $oldResult) {
+                                    $em->remove($oldResult);
+                            }
                             $em->flush();
+
+                            $result = $this->createResultPPFromRow($firstRow, $competition);
+                            $em->persist($result);
+
+                            while (($row = fgetcsv($handle, 0, ',')) !== false) {
+                                $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
+                                $result = $this->createResultPPFromRow($row, $competition);                               
+                                $em->persist($result);
+                            }
                         }
-                        $this->addFlash('success', 'Résultats importés avec succès.');
-                        return $this->redirectToRoute('admin_results_import_page');            
-                    } else {
-                        $this->addFlash('error', 'Catégorie introuvable dans le fichier CSV.');
+                        fclose($handle);
+                        unlink($tempFilePath);
+//    
+                    $em->flush();
                     }
+                    $this->addFlash('success', 'Résultats importés avec succès.');
+                    return $this->redirectToRoute('admin_results_import_page');            
+                } else {
+                    $this->addFlash('danger', 'Catégorie introuvable dans le fichier CSV.');
                 }
+            
             }
-            $this->addFlash('error', 'Merci de choisir une compétition et un fichier CSV valide.');
+            $this->addFlash('danger', 'Merci de choisir une compétition et un fichier CSV valide.');
         }
         return $this->render('admin/results_import.html.twig', [
             'competitions' => $competitions,

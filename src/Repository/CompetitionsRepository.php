@@ -95,6 +95,26 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->orderBy('compet.startDate', 'ASC') // Assuming you want to order by user's lastname
             ->getQuery()
             ->getResult();
-    }  
- 
+    }
+
+    public function findDistinctYears(): array
+    {
+        $dates = $this->createQueryBuilder('c')
+            ->select('c.startDate')
+            ->orderBy('c.startDate', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $years = [];
+
+        foreach ($dates as $dateRow) {
+            $year = $dateRow['startDate']->format('Y');
+            if (!in_array($year, $years)) {
+                $years[] = $year;
+            }
+        }
+
+        rsort($years); // Tri décroissant
+        return $years;
+    }
 }

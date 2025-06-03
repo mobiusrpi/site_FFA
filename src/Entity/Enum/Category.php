@@ -1,5 +1,5 @@
 <?php
-# ..src\Entity\Enum\CRAList.php
+# ..src\Entity\Enum\Category.php
 
 declare(strict_types=1);
 

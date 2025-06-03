@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Résultats complets - {{ competition.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+  <h1>Résultats complets - {{ competition.name }}</h1>
+  <p>Date : {{ competition.startDate|date('d M Y') }}</p>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Classement</th>
+        <th>Équipe</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in competition.results|sort((a, b) => a.ranking <=> b.ranking) %}
+        <tr>
+          <td>{{ result.ranking }}</td>
+          <td>{{ result.crew }}</td>
+          <td>{{ result.navigation }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3">Aucun résultat disponible</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{{ path('home') }}" class="btn btn-secondary mt-3">Retour à l’accueil</a>
+</div>
+{% endblock %}

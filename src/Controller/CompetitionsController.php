@@ -56,4 +56,12 @@ dump('test');
             'competitions' => $form->createView()
         ]);
     }
+    
+    #[Route('/competitions/{id}/results', name: 'competition_results')]
+    public function results(Competitions $competition): Response
+    {
+        return $this->render('pages/competitions/results.html.twig', [
+            'competition' => $competition,
+        ]);
+    }
 }

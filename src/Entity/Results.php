@@ -159,6 +159,11 @@ class Results
         return $this;
     }
 
+    public function getScore(): int
+    {
+        return $this->navigation + $this->observation + $this->landing;
+    }
+
     public function getCategory(): ?string
     {
         return $this->category;
