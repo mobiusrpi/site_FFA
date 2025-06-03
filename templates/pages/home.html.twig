@@ -59,40 +59,36 @@
       .responsive-lead {
         font-size: 1.5rem;
       }
-         
-      .banner-overlay {
-        padding: 0.5rem;
+    }     
+    .banner-overlay {
+      padding: 0.5rem;
+    }
+    .scroll-banner {
+      overflow: hidden;
+      position: relative;
+      height: 3rem;
+    }
+
+    .scroll-track {
+      display: flex;
+      gap: 3rem;
+      white-space: nowrap;
+      animation: scroll-left 20s linear infinite;
+    }
+
+    .scroll-item {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    @keyframes scroll-left {
+      0% {
+        transform: translateX(100%);
+      }
+      100% {
+        transform: translateX(-100%);
       }
 
-      .scroll-banner {
-        overflow: hidden;
-        white-space: nowrap;
-        position: relative;
-        height: 3rem; /* Control banner height */
-        line-height: 3rem;
-      }
-
-      .scroll-track {
-        display: inline-block;
-        white-space: nowrap;
-        padding-left: 100%;
-        animation: scroll-left 20s linear infinite;
-      }
-
-      .scroll-item {
-        display: inline-block;
-        white-space: nowrap;
-        padding-right: 2rem;
-      }
-      
-      @keyframes scroll-left {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-100%);
-        }
-      }
     }
   </style>
   <div class="position-relative">
@@ -102,21 +98,22 @@
       <h1 class="responsive-title">Sports aériens : Rallye - Pilotage de précision - ANR</h1>
     </div>
   </div>
-
-  <div class='container mt-4'>
-    {% if nextCompetitions is not empty %}
-      <div class="scroll-banner bg-primary text-white py-2">
-        <div class="scroll-track">
-          {% for comp in nextCompetitions %}
-            <div class="scroll-item me-5">
-              📅 <strong>{{ comp.name }}</strong>
-              ({{ comp.startDate|format_datetime(locale='fr', pattern='dd MMMM') }})
-              à {{ comp.location ?? 'Lieu inconnu' }}
-            </div>
-          {% endfor %}
-        </div>
+  {% if nextCompetitions is not empty %}
+    <div class="scroll-banner bg-dark text-white py-2">
+      <div class="scroll-track">
+      Prochaines compétitions : 
+        {% for comp in nextCompetitions %}
+          <div class="scroll-item me-5">
+            📅 <strong>{{ comp.location ?? 'Lieu inconnu' }}</strong> – {{ comp.typecompetition.typecomp ?? '' }} – 
+            ({{ comp.startDate|format_datetime(locale='fr', pattern='dd MMMM') }}) 
+          </div>
+        {% endfor %}
       </div>
-    {% endif %}
+    </div>
+  {% endif %}
+
+    
+  <div class='container mt-4'>
     <div class="row">
       {# Left column: Filter by year #}
       <div class="col-md-2 mb-4">
