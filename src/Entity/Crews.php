@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CrewsRepository;
 use Doctrine\Common\Collections\Collection;

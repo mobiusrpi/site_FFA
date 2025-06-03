@@ -161,7 +161,7 @@ class Results
 
     public function getScore(): int
     {
-        return $this->navigation + $this->observation + $this->landing;
+        return $this->navigation + $this->observation + $this->landing + $this->flightPlanning;
     }
 
     public function getCategory(): ?string

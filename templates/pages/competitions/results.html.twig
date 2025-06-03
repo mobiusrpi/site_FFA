@@ -1,33 +1,97 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Résultats complets - {{ competition.name }}{% endblock %}
+{% block title %}Résultats - {{ competition.name }}{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-  <h1>Résultats complets - {{ competition.name }}</h1>
-  <p>Date : {{ competition.startDate|date('d M Y') }}</p>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>{{ competition.name }} – {{ competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</h2>
+    <div class="text-end">
+      <a href="{{ path('home') }}" class="btn btn-outline-secondary">← Retour à l'accueil</a>
+    </div>
+  </div>
+  <p class="text-muted">{{ competition.location }} – {{ competition.typecompetition.typecomp }}</p>
 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Classement</th>
-        <th>Équipe</th>
-        <th>Score</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for result in competition.results|sort((a, b) => a.ranking <=> b.ranking) %}
-        <tr>
-          <td>{{ result.ranking }}</td>
-          <td>{{ result.crew }}</td>
-          <td>{{ result.navigation }}</td>
-        </tr>
+  <div class="row gx-4">
+    <div class="col-md-6">
+      <div class='text-center'>
+        <h6><strong>Catégorie Elites</strong></h6>
+      </div>
+      {% if elites is not empty %}
+        <table class="table table-sm table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Équipage</th>
+              {% if competition.typecompetition.id == 2 %}
+                <th>Theo</th>        
+              {% endif %}  
+              <th>Nav</th>
+              <th>Obs</th>
+              <th>Att</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for result in elites|sort((a, b) => a.ranking <=> b.ranking) %}
+              <tr>
+                <td>{{ result.ranking }}</td>
+                <td>{{ result.crew }}</td>
+                {% if competition.typecompetition.id == 2 %}
+                  <td>{{ result.flightPlanning }}</td>
+                {% endif %}
+                <td>{{ result.navigation }}</td>
+                <td>{{ result.observation }}</td>
+                <td>{{ result.landing }}</td>
+                <td><strong>{{ result.score }}</strong></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       {% else %}
-        <tr><td colspan="3">Aucun résultat disponible</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        <p class="text-muted">Aucun résultat dans cette catégorie.</p>
+      {% endif %}
+    </div>
 
-  <a href="{{ path('home') }}" class="btn btn-secondary mt-3">Retour à l’accueil</a>
+    <div class="col-md-6">
+      <div class='text-center'>
+        <h6><strong>Catégorie Honneurs</strong></h6>
+      </div>
+      {% if honneurs is not empty %}
+        <table class="table table-sm table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Équipage</th>
+              {% if competition.typecompetition.id == 2 %}
+                <th>Theo</th>        
+              {% endif %}      
+              <th>Nav</th>
+              <th>Obs</th>
+              <th>Att</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for result in honneurs|sort((a, b) => a.ranking <=> b.ranking) %}
+              <tr>
+                <td>{{ result.ranking }}</td>
+                <td>{{ result.crew }}</td>
+                {% if competition.typecompetition.id == 2 %}
+                  <td>{{ result.flightPlanning }}</td>
+                {% endif %}
+                <td>{{ result.navigation }}</td>
+                <td>{{ result.observation }}</td>
+                <td>{{ result.landing }}</td>
+                <td><strong>{{ result.score }}</strong></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">Aucun résultat dans cette catégorie.</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

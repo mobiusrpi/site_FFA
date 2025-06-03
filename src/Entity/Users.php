@@ -6,7 +6,6 @@ use App\Entity\Enum\Gender;
 use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\Collection;

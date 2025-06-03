@@ -1,91 +1,194 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Résultats des compétitions{% endblock %}
+{% block title %} 
+  Accueil
+{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-  <h3 class="mb-4">Résultats des compétitions</h3>
+  <style>
+    /* Mobile first (default) */
+    .responsive-title {
+      font-size: 1rem;
+      font-weight: bold;
+    }
 
-  {# 🎚️ Filtres par année #}
-  <div class="mb-4">
-    <strong>Filtrer par année :</strong>
-    {% for year in years %}
-      <a href="{{ path('home', { year: year }) }}" class="btn btn-sm {{ year == selectedYear ? 'btn-primary' : 'btn-outline-primary' }} me-2 mb-2">
-        {{ year }}
-      </a>
-    {% endfor %}
-    {% if selectedYear %}
-      <a href="{{ path('home') }}" class="btn btn-sm btn-outline-secondary">Réinitialiser</a>
-    {% endif %}
-  </div>
-  {% set medals = ['🥇', '🥈', '🥉'] %} 
-  <div class="row">
-    <div class="col-md-6">
-      <h5>Elites</h5>
-          
-      {% if elites is not empty %}
-        {% for item in elites %}
-          {% set competition = item.competition %}
-          {% set results = item.results %}
-          <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">{{ competition.name }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ competition.startDate|date('d M Y') }}</h6>
+    .responsive-lead {
+      font-size: 0.75rem;
+    }
+    
+    .banner-overlay {
+      padding: 0.25rem;
+    }
 
-              <p class="fw-bold mb-1">🏆 Podium :</p>
-              <ol class="ps-3 mb-0">
+    /* Small screens (≥600px) */
+    @media (min-width: 800px) {
+      .responsive-title {
+        font-size: 1.25rem;
+      }
 
-                {% for result in results|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
-                  <li>
-                    {{ medals[loop.index0] ?? '' }} {{ result.crew }} – {{ result.score }} pts
-                  </li>
-                {% else %}
-                  <li class="text-muted">Aucun résultat</li>
-                {% endfor %}
-              </ol>
+      .responsive-lead {
+        font-size: 1rem;
+      }
+         
+    .banner-overlay {
+      padding: 0.5rem;
+    }
 
-              <a href="{{ path('competition_results', { id: competition.id }) }}" class="btn btn-sm btn-primary mt-3">
-                Voir résultats complets
-              </a>
-            </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <p>Aucune résultats Elites.</p>
-      {% endif %}
+    }
+    /* Medium screens (≥900px) */
+    @media (min-width: 900px) {
+      .responsive-title {
+        font-size: 1.75rem;
+      }
+
+      .responsive-lead {
+        font-size: 1.2rem;
+      }
+         
+      .banner-overlay {
+        padding: 0.5rem;
+      }
+
+    }
+
+    /* Large screens (≥1200px) */
+    @media (min-width: 1200px) {
+      .responsive-title {
+        font-size: 2.0rem;
+      }
+
+      .responsive-lead {
+        font-size: 1.5rem;
+      }
+         
+      .banner-overlay {
+        padding: 0.5rem;
+      }
+
+      .scroll-banner {
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        height: 3rem; /* Control banner height */
+        line-height: 3rem;
+      }
+
+      .scroll-track {
+        display: inline-block;
+        white-space: nowrap;
+        padding-left: 100%;
+        animation: scroll-left 20s linear infinite;
+      }
+
+      .scroll-item {
+        display: inline-block;
+        white-space: nowrap;
+        padding-right: 2rem;
+      }
+      
+      @keyframes scroll-left {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+    }
+  </style>
+  <div class="position-relative">
+    <img src="{{ asset('images/banner_top.jpg') }}" alt="FFA" class="img-fluid w-100" style="height: auto;">
+
+    <div class="position-absolute top-0 start-0 w-100 text-center text-white banner-overlay">
+      <h1 class="responsive-title">Sports aériens : Rallye - Pilotage de précision - ANR</h1>
     </div>
+  </div>
 
-
-    <div class="col-md-6">
-      <h5>Honneurs</h5>
-      {% if honneurs is not empty %}
-       {% for item in honneurs %}
-          {% set competition = item.competition %}
-          {% set results = item.results %}
-          <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">{{ competition.name }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ competition.startDate|date('d M Y') }}</h6>
-
-              <p class="fw-bold mb-1">🏆 Podium :</p>
-              <ol class="ps-3 mb-0">
-                {% for result in results|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
-                  <li>
-                  {{ medals[loop.index0] ?? '' }} {{ result.crew }} – {{ result.score }} pts</li>
-                {% else %}
-                  <li class="text-muted">Aucun résultat</li>
-                {% endfor %}
-              </ol>
-
-              <a href="{{ path('competition_results', { id: competition.id }) }}" class="btn btn-sm btn-primary mt-3">
-                Voir résultats complets
+  <div class='container mt-4'>
+    {% if nextCompetitions is not empty %}
+      <div class="scroll-banner bg-primary text-white py-2">
+        <div class="scroll-track">
+          {% for comp in nextCompetitions %}
+            <div class="scroll-item me-5">
+              📅 <strong>{{ comp.name }}</strong>
+              ({{ comp.startDate|format_datetime(locale='fr', pattern='dd MMMM') }})
+              à {{ comp.location ?? 'Lieu inconnu' }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    <div class="row">
+      {# Left column: Filter by year #}
+      <div class="col-md-2 mb-4">
+        <div class="bg-light p-3 rounded shadow-sm">
+          <h5 class="mb-4">Résultats</h5>
+          <strong>Année</strong>
+          <div class="mt-2">
+            {% for year in years %}
+              <a href="{{ path('home', { year: year }) }}"
+                class="btn btn-sm {{ year == selectedYear ? 'btn-primary' : 'btn-outline-primary' }}  mb-2 w-100 text-centered">
+                {{ year }}
               </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% set medals = ['🥇', '🥈', '🥉'] %} 
+
+      {# Right column: Competition cards #}
+      <div class="col-md-10 ">
+        {% for item in groupedCompetitions %}
+          {% set competition = item.competition %}
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">{{ competition.name }}</h5>
+                <div class="text-centered">
+                  <strong>{{ competition.typecompetition.typecomp }}</strong>
+                </div>
+                <div class="text-end">
+                  <small class="text-muted">{{ competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</small><br>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Elite</h6>
+                  <ol class="ps-3">
+                    {% for result in item.elites|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
+                      <li>
+                        {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
+                        {{ result.crew }} – {{ result.score }} pts
+                      </li>
+                    {% else %}
+                      <li class="text-muted">Aucun résultat</li>
+                    {% endfor %}
+                  </ol>
+                </div>
+                <div class="col-md-6">
+                  <h6>Honneur</h6>
+                  <ol class="ps-3">
+                    {% for result in item.honneurs|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
+                      <li>
+                        {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
+                        {{ result.crew }} – {{ result.score }} pts
+                      </li>
+                    {% else %}
+                      <li class="text-muted">Aucun résultat</li>
+                    {% endfor %}
+                  </ol>
+                </div>
+              </div>
+
+              <a href="{{ path('competition_results', { id: competition.id }) }}"
+                class="btn btn-sm btn-outline-primary px-2 py-1 small">
+                Résultats complets
+              </a>          
+
             </div>
           </div>
         {% endfor %}
-      {% else %}
-        <p>Aucune résultats Honneurs.</p>
-      {% endif %}    </div>
+      </div>
     </div>
   </div>
 {% endblock %}

@@ -3,8 +3,6 @@
 namespace App\Service;
 
 use DateTimeImmutable;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\Mailer\MailerInterface;
 
 class JWTService
 {

@@ -3,9 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Crews;
-use Doctrine\ORM\Query;
 use App\Entity\Competitions;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 

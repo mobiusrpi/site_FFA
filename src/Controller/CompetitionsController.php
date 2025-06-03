@@ -4,16 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Competitions;
 use App\Form\CompetitionsType;
-use App\Repository\CrewsRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\CompetitorsRepository;
 use App\Repository\CompetitionsRepository;
-use Knp\Component\Pager\PaginatorInterface;
-use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class CompetitionsController extends AbstractController
@@ -60,8 +55,15 @@ dump('test');
     #[Route('/competitions/{id}/results', name: 'competition_results')]
     public function results(Competitions $competition): Response
     {
+        $allResults = $competition->getResults();
+
+        $eliteResults = $allResults->filter(fn($result) => $result->getCategory() === 'Elite');
+        $honneurResults = $allResults->filter(fn($result) => $result->getCategory() === 'Honneur');
+
         return $this->render('pages/competitions/results.html.twig', [
             'competition' => $competition,
+            'elites' => $eliteResults,
+            'honneurs' => $honneurResults,
         ]);
     }
 }

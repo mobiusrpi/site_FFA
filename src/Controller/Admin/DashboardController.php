@@ -32,7 +32,6 @@ class DashboardController extends AbstractDashboardController
     private function createResultRallyFromRow(array $row, Competitions $competition): Results
     {          
         $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
-
         $result = new Results();
 
         $result->setCompetition($competition);
@@ -101,8 +100,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
             ->setDefaultSort(['email' => 'ASC']);
         yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
-        yield MenuItem::subMenu('Administration', 'fa fa-cog')->setSubItems([
-            MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector'),        
+        yield MenuItem::subMenu('Administration', 'fa fa-cog')->setSubItems([     
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
             MenuItem::linkToCrud('Supprimer un service', 'fas fa-id-card', CompetitionAccommodation::class),
         ]);   
@@ -124,7 +122,7 @@ class DashboardController extends AbstractDashboardController
             throw $this->createAccessDeniedException('Vous n\'êtes pas connecté.');
         }
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            $competitions = $competitionRepo->findAll();
+            $competitions = $competitionRepo->getQueryCompetitionSorted();
         } else {
             $competitions = $competitionRepo->getQueryAllowedUsers($user->getId());
         }
@@ -173,8 +171,8 @@ class DashboardController extends AbstractDashboardController
                             foreach ($resultsToRemove as $oldResult) {
                                     $em->remove($oldResult);
                             }
-                            $em->flush();    
 
+                            $em->flush();    
                             $result = $this->createResultRallyFromRow($firstRow, $competition);
                             $em->persist($result);
 
@@ -187,6 +185,7 @@ class DashboardController extends AbstractDashboardController
                             foreach ($resultsToRemove as $oldResult) {
                                     $em->remove($oldResult);
                             }
+dd('test PP');                            
                             $em->flush();
 
                             $result = $this->createResultPPFromRow($firstRow, $competition);

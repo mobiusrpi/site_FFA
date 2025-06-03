@@ -8,6 +8,7 @@ namespace App\Entity\Enum;
 enum CompetitionRole: string {
     case DIRECTOR = 'Directeur de compétition';
     case ROUTER = 'Routeur';
+    case IT = 'Informatique';
     case ADMINISTRATOR = 'Gestionnaire';
     case OTHER = 'Autre';
 
@@ -16,6 +17,7 @@ enum CompetitionRole: string {
         return match($this) {
             self::DIRECTOR => 'Directeur de compétition',
             self::ROUTER => 'Routeur',
+            self::IT => 'Informatique',
             self::ADMINISTRATOR => 'Gestionnaire',
             self::OTHER => 'Autre',
         };

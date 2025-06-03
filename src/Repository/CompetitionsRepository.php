@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Users;
 use App\Entity\Competitions;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -116,5 +115,31 @@ class CompetitionsRepository extends ServiceEntityRepository
 
         rsort($years); // Tri décroissant
         return $years;
+    }
+
+    public function resultCompetitions($start,$end): array
+    {
+    return $this->createQueryBuilder('c')
+            ->leftJoin('c.results', 'r')
+            ->addSelect('r')
+            ->where('c.startDate BETWEEN :start AND :end')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->orderBy('c.startDate', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function nextCompetition(): array
+    {
+        $now =  new \DateTimeImmutable();
+
+        return $this->createQueryBuilder('compet')
+            ->where('compet.startDate > :now')
+            ->setParameter('now', $now)
+            ->orderBy('compet.startDate', 'ASC')
+            ->setMaxResults(2) // Limit as needed
+            ->getQuery()
+            ->getResult();
     }
 }

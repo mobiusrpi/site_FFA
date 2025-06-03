@@ -32,7 +32,6 @@ class CheckIsCompetitorListener implements EventSubscriberInterface
             return;
         }
         $data = $event->getData();
-dd('checkIsCompetitor',$data);
         if ($data instanceof Users) {
             $isCompetitor = $data->isCompetitor();
             $form = $event->getForm();

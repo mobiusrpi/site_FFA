@@ -35,7 +35,6 @@ use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
@@ -141,7 +140,7 @@ class CompetitionsCrudController extends AbstractCrudController
 
             $competitionIds = $this->entityManager
                 ->getRepository(CompetitionsUsers::class)
-                ->findCompetitionIdsForUserWithRoles($user, ['ADMINISTRATOR', 'DIRECTOR','ROUTER']);
+                ->findCompetitionIdsForUserWithRoles($user, ['ADMINISTRATOR','DIRECTOR','IT','ROUTER']);
                         
             if (count($competitionIds) > 0) {
                         $qb->andWhere($qb->expr()->in('entity.id', ':allowedCompetitions'))
@@ -291,7 +290,7 @@ class CompetitionsCrudController extends AbstractCrudController
             !$entity->getCompetitionAccommodation()->isEmpty() or 
             !$entity->getCompetitionsUsers()->isEmpty()) 
         {
-            $this->addFlash('danger', 'Impossible de supprimer cette compétition qui utilisée.');
+            $this->addFlash('danger', 'Impossible de supprimer cette compétition qui est utilisée.');
 
             $url = $context->getReferrer() ?? $this->adminUrlGenerator
                 ->setController(self::class)
