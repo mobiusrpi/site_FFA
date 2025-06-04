@@ -72,7 +72,6 @@ class UsersCrudController extends AbstractCrudController
             ->setPageTitle('detail', 'Utilisateur')
             ->setPageTitle('edit', 'Modification d\'un utilisateur')       
             ->setPageTitle('new', 'Nouvel utilisateur');
-
     }
    
     public function configureFields(string $pageName): iterable
@@ -153,7 +152,6 @@ class UsersCrudController extends AbstractCrudController
 
             TextField::new('flyingclub','Aéroclub')->hideOnIndex(),  
             BooleanField::new('isVerified','Vérifié')->hideOnIndex(),            
-      
         ];
     }
 
@@ -184,7 +182,8 @@ class UsersCrudController extends AbstractCrudController
             ->setHtmlAttributes([
                 'onclick' => "return confirm('⚠️ Cela rendra anomyme the façon permanente l'utilisateur. Êtes-vous certain ?');",
                 'class' => 'btn btn-warning'
-            ]);
+            ])
+            ->addCssClass('js-confirm-anonymize btn btn-warning');
 
         return $actions 
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
@@ -204,9 +203,8 @@ class UsersCrudController extends AbstractCrudController
     //The route admin_anomynize_user is redirected to this function in the file
     //config/routes/easyadmin.yaml
     public function anonymizeUserAction(  
-         $userId,
+        $userId,
         UsersRepository $repositoryUser,
-        AdminContext $context
     ): RedirectResponse
     {
         /** @var Competition $competition */
@@ -218,18 +216,54 @@ class UsersCrudController extends AbstractCrudController
         $user->setEmail('anonyme_'.$user->getId().'@mail.fr');
         $user->setPhone(null);
         $user->setFlyingclub(null);
-        $user->setRoles(null);
-        $user->setPassword(null);
+        $user->setRoles([]);
+        $user->setPassword('');
         $user->isCompetitor('false');        
         $user->isVerified('false');
         $user->setLicenseFfa('00000'.$user->getId());
         $user->setDateBirth(new \DateTimeImmutable());
         $user->setArchivedAt(new \DateTimeImmutable());
-    
-
         $this->entityManager->flush();
 
-        $this->addFlash('success', 'Utilisateur a été anonimizé.');
+        $this->addFlash('success', 'L\'utilisateur a été anonymisé.');
+        $url = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction('index')
+            ->generateUrl();
+
+        return $this->redirect($url);
+    }
+
+    //The route admin_archiving_users is redirected to this function in the file
+    //config/routes/easyadmin.yaml
+    public function archivingUsersAction(  
+        UsersRepository $repositoryUser,
+        AdminContext $context
+    ): RedirectResponse
+    {
+        $dateArchive = (new \DateTimeImmutable('first day of January this year'))->modify('-5 years');        
+        $users = $repositoryUser->getQueryUsersToArchive($dateArchive);
+        $n = 0;
+        foreach ($users as $user) {
+            $results = $user->getPilot();
+            $user->setFirstName('');
+            $user->setLastName('Anonyme');
+            $user->setEmail('anonyme_'.$user->getId().'@mail.fr');
+            $user->setPhone(null);
+            $user->setFlyingclub(null);
+            $user->setRoles([]);
+            $user->setPassword('');
+            $user->setIsCompetitor('false');        
+            $user->setIsVerified('false');
+            $user->setLicenseFfa('00000'.$user->getId());
+            $user->setDateBirth(new \DateTimeImmutable());
+            $user->setArchivedAt(new \DateTimeImmutable());
+            $n = $n + 1;
+        }
+
+//        $this->entityManager->flush();
+
+        $this->addFlash('success', $n . ' utilisateus ont été archivés.');
         $url = $this->adminUrlGenerator
             ->setController(self::class)
             ->setAction('index')
@@ -272,8 +306,8 @@ class UsersCrudController extends AbstractCrudController
         EntityDto $entityDto,
         FieldCollection $fields,
         FilterCollection $filters,
-    ): QueryBuilder {
-       
+    ): QueryBuilder 
+    {   
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
         // Get the current authenticated user
         $user = $this->security->getUser();

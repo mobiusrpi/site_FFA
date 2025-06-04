@@ -377,6 +377,8 @@ class CompetitionsCrudController extends AbstractCrudController
         EntityManagerInterface $entityManager)
     {             
         $competition = $repositoryCompetition->find($competId); 
+
+    dd('test');
         $accommodations = $repositoryAccommodation->findAll(); 
         $existing = $repositoryCompetAccom->findBy(['competition' => $competition]);
 

@@ -59,4 +59,42 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         return $qb;
         ;
     }
+
+    public function getQueryUsersToArchive(\DateTimeInterface $cutoff): array
+    {
+        $em = $this->getEntityManager();
+
+        $dql = <<<DQL
+            SELECT u
+            FROM App\Entity\Users u
+            WHERE NOT EXISTS (
+                SELECT cu
+                FROM App\Entity\CompetitionsUsers cu
+                JOIN cu.competition comp
+                WHERE cu.user = u AND comp.endDate >= :cutoff
+            )
+            AND NOT EXISTS (
+                SELECT c1
+                FROM App\Entity\Crews c1
+                JOIN c1.competition comp1
+                WHERE c1.pilot = u AND comp1.endDate >= :cutoff
+            )
+            AND NOT EXISTS (
+                SELECT c2
+                FROM App\Entity\Crews c2
+                JOIN c2.competition comp2
+                WHERE c2.navigator = u AND comp2.endDate >= :cutoff
+            )
+            AND NOT EXISTS (
+                SELECT c3
+                FROM App\Entity\Crews c3
+                JOIN c3.competition comp3
+                WHERE c3.registeredby = u AND comp3.endDate >= :cutoff
+            )
+        DQL;
+
+        return $em->createQuery($dql)
+                ->setParameter('cutoff', $cutoff)
+                ->getResult();
+    }
 }

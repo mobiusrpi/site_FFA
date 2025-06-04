@@ -16,7 +16,7 @@ class ResultsRepository extends ServiceEntityRepository
         parent::__construct($registry, Results::class);
     }
 
-       public function getQueryImportCompetCategory($id,$category)
+    public function getQueryImportCompetCategory($id,$category)
     {
         return $this->createQueryBuilder('result')  
             ->leftJoin('App\Entity\Competitions', 'compet','WITH',' result.competition = compet.id')        

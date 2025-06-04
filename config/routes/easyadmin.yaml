@@ -42,3 +42,6 @@ admin_anonymize_user:
     path: /admin/anonymize_user/{userId}
     controller: App\Controller\Admin\UsersCrudController::anonymizeUserAction
 
+admin_archiving_users:
+    path: /admin/archiving_users/
+    controller: App\Controller\Admin\UsersCrudController::archivingUsersAction

@@ -22,5 +22,15 @@
                 });
             });
         });
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.js-confirm-anonymize').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    const message = "⚠️ Cette action rendra l’utilisateur définitivement anonyme.\nToutes ses informations personnelles seront supprimées et cette opération est irréversible.\n\nÊtes-vous sûr de vouloir continuer ?";
+                    if (!confirm(message)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
     </script>
 {% endblock %}

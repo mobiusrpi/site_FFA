@@ -16,9 +16,6 @@ class Results
     #[ORM\Column]
     private ?int $ranking = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $crew = null;
-
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $gender = null;
 
@@ -49,6 +46,12 @@ class Results
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $literalCrew = null;
+
+    #[ORM\ManyToOne]
+    private ?Crews $crew = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -62,18 +65,6 @@ class Results
     public function setRanking(int $ranking): static
     {
         $this->ranking = $ranking;
-
-        return $this;
-    }
-
-    public function getCrew(): ?string
-    {
-        return $this->crew;
-    }
-
-    public function setCrew(string $crew): static
-    {
-        $this->crew = $crew;
 
         return $this;
     }
@@ -199,6 +190,30 @@ class Results
     public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
     {
         $this->archivedAt = $archivedAt;
+
+        return $this;
+    }
+
+    public function getLiteralCrew(): ?string
+    {
+        return $this->literalCrew;
+    }
+
+    public function setLiteralCrew(string $literalCrew): static
+    {
+        $this->literalCrew = $literalCrew;
+
+        return $this;
+    }
+
+    public function getCrew(): ?Crews
+    {
+        return $this->crew;
+    }
+
+    public function setCrew(?Crews $crew): static
+    {
+        $this->crew = $crew;
 
         return $this;
     }

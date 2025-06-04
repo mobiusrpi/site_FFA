@@ -7,6 +7,7 @@ use App\Entity\Results;
 use App\Entity\Competitions;
 use App\Entity\Accommodations;
 use App\Entity\TypeCompetition;
+use App\Repository\CrewsRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
@@ -41,54 +42,6 @@ class DashboardController extends AbstractDashboardController
         $this->urlGenerator = $urlGenerator;
     }
  
-
-    private function createResultRallyFromRow(array $row, Competitions $competition): Results
-    {          
-        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
-        $result = new Results();
-
-        $result->setCompetition($competition);
-        $result->setCategory($row[4]);
-        $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
-        $result->setCrew($row[16]);
-        if (!in_array($row[17], ['M', 'F'])) {
-            $result->setGender("");
-        } else {
-            $result->setGender($row[17]);
-        }
-        $result->setFlyingclub($row[18]);
-        $result->setCommittee($row[19]);
-        $result->setFlightPlanning(0);    
-        $result->setObservation(is_numeric($row[20]) ? (int)$row[20] : 0);
-        $result->setNavigation(is_numeric($row[21]) ? (int)$row[21] : 0);
-        $result->setLanding(is_numeric($row[22]) ? (int)$row[22] : 0);
-
-        return $result;
-    }
-        private function createResultPPFromRow(array $row, Competitions $competition): Results
-    {          
-        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
-
-        $result = new Results();
-        $result->setCompetition($competition);
-        $result->setCategory($row[4]);
-        $result->setRanking(is_numeric($row[16]) ? (int)$row[16] : 0);
-        $result->setCrew($row[17]);
-        if (!in_array($row[18], ['M', 'F'])) {
-            $result->setGender("");
-        } else {
-            $result->setGender($row[18]);
-        }
-        $result->setFlyingclub($row[19]);
-        $result->setCommittee($row[20]);
-        $result->setFlightPlanning(is_numeric($row[21]) ? (int)$row[21] : 0);
-        $result->setObservation(is_numeric($row[22]) ? (int)$row[22] : 0);
-        $result->setNavigation(is_numeric($row[23]) ? (int)$row[23] : 0); 
-        $result->setLanding(is_numeric($row[24]) ? (int)$row[24] : 0);
-
-        return $result;
-    }
-
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
@@ -235,4 +188,83 @@ class DashboardController extends AbstractDashboardController
         ]);
     }
     
+    private function createResultRallyFromRow(array $row, Competitions $competition): Results
+    {          
+        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
+        $result = new Results();
+
+        $result->setCompetition($competition);
+        $result->setCategory($row[4]);
+        $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
+        $result->setLiteralCrew($row[16]);
+        if (!in_array($row[17], ['M', 'F'])) {
+            $result->setGender("");
+        } else {
+            $result->setGender($row[17]);
+        }
+        $result->setFlyingclub($row[18]);
+        $result->setCommittee($row[19]);
+        $result->setFlightPlanning(0);    
+        $result->setObservation(is_numeric($row[20]) ? (int)$row[20] : 0);
+        $result->setNavigation(is_numeric($row[21]) ? (int)$row[21] : 0);
+        $result->setLanding(is_numeric($row[22]) ? (int)$row[22] : 0);
+
+        return $result;
+    }
+    
+    private function createResultPPFromRow(array $row, Competitions $competition): Results
+    {          
+        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
+
+        $result = new Results();
+        $result->setCompetition($competition);
+        $result->setCategory($row[4]);
+        $result->setRanking(is_numeric($row[16]) ? (int)$row[16] : 0);
+        $result->setLiteralCrew($row[17]);
+        if (!in_array($row[18], ['M', 'F'])) {
+            $result->setGender("");
+        } else {
+            $result->setGender($row[18]);
+        }
+        $result->setFlyingclub($row[19]);
+        $result->setCommittee($row[20]);
+        $result->setFlightPlanning(is_numeric($row[21]) ? (int)$row[21] : 0);
+        $result->setObservation(is_numeric($row[22]) ? (int)$row[22] : 0);
+        $result->setNavigation(is_numeric($row[23]) ? (int)$row[23] : 0); 
+        $result->setLanding(is_numeric($row[24]) ? (int)$row[24] : 0);
+
+        return $result;
+    }
+
+    private function createResultFromPipper(
+        array $row, 
+        Competitions $competition,
+        CrewsRepository $repositoryCrew,
+    ): Results
+    {          
+        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
+        $result = new Results();
+
+        $result->setCompetition($competition);
+        $result->setCategory($row[4]);
+        $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
+        $crew = $repositoryCrew->find($row[0]);
+        if ($crew ){
+            $result->setCrew($crew);
+        }
+        $result->setLiteralCrew($row[16]);
+        if (!in_array($row[17], ['M', 'F'])) {
+            $result->setGender("");
+        } else {
+            $result->setGender($row[17]);
+        }
+        $result->setFlyingclub($row[18]);
+        $result->setCommittee($row[19]);
+        $result->setFlightPlanning(0);    
+        $result->setObservation(is_numeric($row[20]) ? (int)$row[20] : 0);
+        $result->setNavigation(is_numeric($row[21]) ? (int)$row[21] : 0);
+        $result->setLanding(is_numeric($row[22]) ? (int)$row[22] : 0);
+
+        return $result;
+    }
 }
