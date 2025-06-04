@@ -38,3 +38,7 @@ admin_results_selected_email:
     path: /admin/results_selection_rally
     controller: App\Controller\Admin\ResultsCrudController::selectedEmail
 
+admin_anonymize_user:
+    path: /admin/anonymize_user/{userId}
+    controller: App\Controller\Admin\UsersCrudController::anonymizeUserAction
+

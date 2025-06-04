@@ -196,7 +196,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Exporter .csv')
+        $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Export data .csv')
             ->setIcon('fa fa-file-export')
             ->linkToRoute('admin_crews_by_competition_export',                
                 function (Competitions $competition) {
@@ -205,7 +205,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $exportPipperByCompetitionAction = Action::new('exportPipperByCompetitionAction', 'Exporter Pipper .csv')
+        $exportPipperByCompetitionAction = Action::new('exportPipperByCompetitionAction', 'Export Pipper .csv')
             ->setIcon('fa fa-file-export')
             ->linkToRoute('admin_pipper_by_competition_export',                
                 function (Competitions $competition) {
@@ -385,7 +385,7 @@ class CompetitionsCrudController extends AbstractCrudController
             $existingByRoomId[$record->getAccommodation()->getId()] = $record;
         }
         $finalList = [];
-       
+
         foreach ($accommodations as $room) {
             if (isset($existingByRoomId[$room->getId()])) {
                 $finalList[] = $existingByRoomId[$room->getId()];
@@ -396,8 +396,21 @@ class CompetitionsCrudController extends AbstractCrudController
                 $finalList[] = $new;
             }
         }
+
+        // ✅ Confirm it's an array before sorting
+        if (is_array($finalList)) {
+            usort($finalList, function (CompetitionAccommodation $a, CompetitionAccommodation $b) {
+                return strcmp(
+                    $a->getAccommodation()?->getRoom() ?? '',
+                    $b->getAccommodation()?->getRoom() ?? ''
+                );
+            });
+        } else {
+            throw new \RuntimeException('Expected $finalList to be an array, got ' . gettype($finalList));
+        }
+
         $formModel = new AccommodationCollection($finalList);
-    
+            
         $form = $this->createForm(ManageCompetitionType::class, $formModel);
 
         $form->handleRequest($request);

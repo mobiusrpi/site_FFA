@@ -39,23 +39,14 @@
         }
     </style>               
 
-    <h2 style="margin-bottom: 2rem;">Création ou modification d'un équipage</h2>
+    <h2 style="margin-bottom: 2rem;">Modification d'un équipage</h2>
 
- 
     <div> 
         {% for item in competitionData %}
             <div class="competition-row">
                 <div class="competition-name">
                     {{ item.competition.name }}
-                </div>
-                <a class="btn btn-sm btn-success"
-                href="{{ path('admin', {
-                    crudControllerFqcn: 'App\\Controller\\Admin\\CrewsCrudController',
-                    crudAction: 'new',
-                    competition: item.competition.id
-                }) }}">
-                ➕ Nouvel équipage
-                </a>                               
+                </div>                             
                 {% if item.competition.crew|length > 0 %}
                     <button type="button"
                             class="btn btn-sm btn-warning"

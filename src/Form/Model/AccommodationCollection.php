@@ -3,8 +3,9 @@
 // src/Form/Model/AccommodationCollection.php
 namespace App\Form\Model;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\CompetitionAccommodation;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class AccommodationCollection
 {

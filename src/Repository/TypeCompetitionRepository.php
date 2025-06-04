@@ -15,4 +15,16 @@ class TypeCompetitionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, TypeCompetition::class);
     }
+
+     public function getQueryCompetition($competId)
+    {    
+        return $this->createQueryBuilder('comp_accom') 
+             ->innerJoin('comp_accom.competition', 'compet')        
+            ->innerJoin('comp_accom.accommodation', 'accom')        
+             ->where('compet.id = :competId') 
+            ->setParameter('competId',$competId)                    
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

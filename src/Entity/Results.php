@@ -46,6 +46,9 @@ class Results
     #[ORM\ManyToOne(inversedBy: 'result')]
     private ?Competitions $competition = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -184,6 +187,18 @@ class Results
     public function setCompetition(?Competitions $competition): static
     {
         $this->competition = $competition;
+
+        return $this;
+    }
+
+    public function getArchivedAt(): ?\DateTimeImmutable
+    {
+        return $this->archivedAt;
+    }
+
+    public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
+    {
+        $this->archivedAt = $archivedAt;
 
         return $this;
     }

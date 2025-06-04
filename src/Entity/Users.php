@@ -126,6 +126,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     private ?string $plainPassword = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     /**
      * @return string|null
      */
@@ -517,5 +520,17 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function __toString(): string
     {
         return $this->getLastname() . ' ' . $this->getFirstname();
+    }
+
+    public function getArchivedAt(): ?\DateTimeImmutable
+    {
+        return $this->archivedAt;
+    }
+
+    public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
+    {
+        $this->archivedAt = $archivedAt;
+
+        return $this;
     }
 }

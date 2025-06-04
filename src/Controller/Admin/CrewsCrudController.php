@@ -206,15 +206,17 @@ class CrewsCrudController extends AbstractCrudController
             })
             ->setFormTypeOption('choices', $competitionAccommodations);    
  
+        $fields[] = BooleanField::new('validationPayment', 'Paiement validé')                
+            ->renderAsSwitch();
+
         $fields[] = TextareaField::new('paymentInfo', 'Montant de l\'inscription')
             ->setFormTypeOption('disabled', true) // not editable
             ->setFormTypeOption('mapped', false)  // not tied to any entity property
             ->setFormTypeOption('data', $competition?->getPaymentInfo() ?? 'Aucune information disponible.')
             ->setFormTypeOption('attr', [
                 'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
-            ]);
-        $fields[] = BooleanField::new('validationPayment', 'Paiement validé')                
-            ->renderAsSwitch();
+            ])
+            ->hideOnForm();
 
         $fields[] = TextareaField::new('competitionInfo', 'Information utiles')
             ->setFormTypeOption('disabled', true) // not editable
@@ -222,7 +224,8 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('data', $competition?->getInformation() ?? 'Aucune information disponible.')
             ->setFormTypeOption('attr', [
                 'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
-            ]);
+            ])
+            ->hideOnForm();
 
         return $fields;
     }
@@ -231,7 +234,8 @@ class CrewsCrudController extends AbstractCrudController
     {
         return $actions        
             ->remove(Crud::PAGE_INDEX, Action::EDIT)  
-            ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)  
+            ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)              
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)  
             ->update(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER,
                 fn (Action $action) => $action
                     ->setLabel('Créer et ajouter un équipage')

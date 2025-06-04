@@ -8,20 +8,27 @@ use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
 use Doctrine\ORM\QueryBuilder;
 use App\Entity\CompetitionsUsers;
+use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -30,10 +37,10 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UsersCrudController extends AbstractCrudController
 {   
     use Trait\BlockDeleteTrait;   
-    private $security;
+
     private $createdAt;    
     private $updatedAt;
-    private EntityManagerInterface $entityManager;
+
 
     public static function getEntityFqcn(): string
     {
@@ -43,14 +50,16 @@ class UsersCrudController extends AbstractCrudController
     public function __construct(
         public UserPasswordHasherInterface $userPasswordHasher,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        Security $security,
-        ManagerRegistry $registry
+        private AdminUrlGenerator $adminUrlGenerator,          
+        private EntityManagerInterface $entityManager,
+        private Security $security,
+        private ManagerRegistry $registry,
     ) {
         $this->security = $security;
         $this->entityManager = $registry->getManager();
         $this->createdAt = new \DateTimeImmutable();        
         $this->updatedAt = new \DateTimeImmutable();
-    } 
+    }
 
     public function configureCrud(Crud $crud): Crud
     {
@@ -162,6 +171,72 @@ class UsersCrudController extends AbstractCrudController
         $user->setPassword($hashedPassword);
     }
 
+    public function configureActions(Actions $actions): Actions
+    {
+        $anonymizeUserAction = Action::new('AnonymizeUser', 'Anonyme')
+            ->setIcon('fa fa-edit')            
+            ->linkToRoute('admin_anonymize_user',            
+                function (Users $user) {
+                    return [
+                        'userId' =>$user->getId(),
+                    ];
+                })
+            ->setHtmlAttributes([
+                'onclick' => "return confirm('⚠️ Cela rendra anomyme the façon permanente l'utilisateur. Êtes-vous certain ?');",
+                'class' => 'btn btn-warning'
+            ]);
+
+        return $actions 
+            ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
+            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-pen') // or 'fas fa-edit'
+                    ->setLabel('Modifier');
+            })                                 
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-trash') // or 'fas fa-edit'
+                    ->setLabel('Supprimer');
+            }) 
+            ->add(Crud::PAGE_INDEX, $anonymizeUserAction);
+    }
+
+    //The route admin_anomynize_user is redirected to this function in the file
+    //config/routes/easyadmin.yaml
+    public function anonymizeUserAction(  
+         $userId,
+        UsersRepository $repositoryUser,
+        AdminContext $context
+    ): RedirectResponse
+    {
+        /** @var Competition $competition */
+        $user = $repositoryUser->find($userId);
+
+        $user->getArchivedAt() === null;
+        $user->setFirstName('');
+        $user->setLastName('Anonyme');
+        $user->setEmail('anonyme_'.$user->getId().'@mail.fr');
+        $user->setPhone(null);
+        $user->setFlyingclub(null);
+        $user->setRoles(null);
+        $user->setPassword(null);
+        $user->isCompetitor('false');        
+        $user->isVerified('false');
+        $user->setLicenseFfa('00000'.$user->getId());
+        $user->setDateBirth(new \DateTimeImmutable());
+        $user->setArchivedAt(new \DateTimeImmutable());
+    
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Utilisateur a été anonimizé.');
+        $url = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction('index')
+            ->generateUrl();
+
+        return $this->redirect($url);
+    }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
@@ -205,8 +280,8 @@ class UsersCrudController extends AbstractCrudController
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             // If the user is an admin, show all users
-            $qb->orderBy('entity.lastname', 'ASC'); // <-- manually set order 
-
+            $qb ->andWhere('entity.archivedAt IS NULL')
+                ->orderBy('entity.lastname', 'ASC'); 
             return $qb;
         }
 
@@ -221,6 +296,7 @@ class UsersCrudController extends AbstractCrudController
                 ->leftJoin('pilotCrew.competition', 'comp1')
                 ->leftJoin('navigatorCrew.competition', 'comp2')
                 ->where('cu.competition = comp1 OR cu.competition = comp2')
+                ->andWhere('u.achivedAt IS NULL')
                 ->setParameter('manager', $user);
 
             $userIds = array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult());
