@@ -7,8 +7,8 @@ namespace App\Entity\Enum;
 
 enum Category: string 
 {
-    case Elite = 'Elites'; 
-    case Honneur = 'Honneurs'; 
+    case Elite = 'Elite'; 
+    case Honneur = 'Honneur'; 
     case Discovery = 'Découverte'; 
 
     public function getLabel(): string {

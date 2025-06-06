@@ -15,7 +15,7 @@
   <div class="row gx-4">
     <div class="col-md-6">
       <div class='text-center'>
-        <h6><strong>Catégorie Elites</strong></h6>
+        <h6><strong>Catégorie Elite</strong></h6>
       </div>
       {% if elites is not empty %}
         <table class="table table-sm table-bordered">
@@ -36,7 +36,7 @@
             {% for result in elites|sort((a, b) => a.ranking <=> b.ranking) %}
               <tr>
                 <td>{{ result.ranking }}</td>
-                <td>{{ result.crew }}</td>
+                <td>{{ result.literalCrew }}</td>
                 {% if competition.typecompetition.id == 2 %}
                   <td>{{ result.flightPlanning }}</td>
                 {% endif %}
@@ -55,7 +55,7 @@
 
     <div class="col-md-6">
       <div class='text-center'>
-        <h6><strong>Catégorie Honneurs</strong></h6>
+        <h6><strong>Catégorie Honneur</strong></h6>
       </div>
       {% if honneurs is not empty %}
         <table class="table table-sm table-bordered">
@@ -76,7 +76,7 @@
             {% for result in honneurs|sort((a, b) => a.ranking <=> b.ranking) %}
               <tr>
                 <td>{{ result.ranking }}</td>
-                <td>{{ result.crew }}</td>
+                <td>{{ result.literalCrew }}</td>
                 {% if competition.typecompetition.id == 2 %}
                   <td>{{ result.flightPlanning }}</td>
                 {% endif %}
