@@ -374,7 +374,6 @@ class CompetitionsCrudController extends AbstractCrudController
     {             
         $competition = $repositoryCompetition->find($competId); 
 
-    dd('test');
         $accommodations = $repositoryAccommodation->findAll(); 
         $existing = $repositoryCompetAccom->findBy(['competition' => $competition]);
 

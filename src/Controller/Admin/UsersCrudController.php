@@ -185,6 +185,7 @@ class UsersCrudController extends AbstractCrudController
 
         return $actions 
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
                 return $action
                     ->setIcon('fa fa-pen') // or 'fas fa-edit'
