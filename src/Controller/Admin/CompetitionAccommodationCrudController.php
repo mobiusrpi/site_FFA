@@ -117,6 +117,7 @@ public function configureFields(string $pageName): iterable
             ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)                       
             ->remove(Crud::PAGE_INDEX, Action::NEW) 
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
             ->update(Crud::PAGE_NEW, Action::SAVE_AND_RETURN,
                 fn (Action $action) => $action
                     ->setLabel('Enregistrer')

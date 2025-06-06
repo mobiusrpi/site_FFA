@@ -13,10 +13,8 @@ final class HomeController extends AbstractController
     #[Route(path: '/', name:'home', methods:['GET'])]
     public function index(Request $request, CompetitionsRepository $competitionRepository): Response
     {
-        $selectedYear = $request->query->get('year');
-
         $selectedYear = $request->query->get('year') ?? (new \DateTime())->format('Y');
-
+        
         $start = new \DateTime("$selectedYear-01-01");
         $end = new \DateTime("$selectedYear-12-31 23:59:59");
 

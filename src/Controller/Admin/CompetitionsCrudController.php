@@ -89,6 +89,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->setPageTitle(Crud::PAGE_DETAIL, 'Compétition')
             ->setPageTitle(Crud::PAGE_EDIT, 'Modification d\'une compétition') 
             ->setPageTitle(Crud::PAGE_NEW, 'Nouvelle compétition');
+
     }
 
     public function configureFields(string $pageName): iterable
@@ -266,6 +267,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction)            
             ->add(Crud::PAGE_INDEX, $exportPipperByCompetitionAction)
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
             ->reorder(Crud::PAGE_INDEX, [
                 'registeredListAction',
                 'newRegistrationAction',
@@ -619,19 +621,25 @@ class CompetitionsCrudController extends AbstractCrudController
         
     public function showByType(
         int $typeCompetId,
+        Request $request,
         CompetitionsRepository $competitionsRepository,
         TypeCompetitionRepository $typeCompetitionRepository): Response
     {
 
         $typeCompetition = $typeCompetitionRepository->find($typeCompetId);
         $competitions = $competitionsRepository->selectCompetitionByType($typeCompetId);
+        
         if (!$competitions) {
             throw $this->createNotFoundException('Compétition non trouvée.');
         }
  //dd($competitions);
+
+        $maxRanking = $request->query->get('maxRanking');
+
         return $this->render('admin/results_by_type.html.twig', [
             'typeCompetition' => $typeCompetition,
-            'competitions' => $competitions,
+            'competitions' => $competitions,        
+            'maxRanking' => $maxRanking, 
         ]);
     }
 }

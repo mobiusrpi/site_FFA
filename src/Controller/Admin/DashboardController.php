@@ -67,7 +67,7 @@ class DashboardController extends AbstractDashboardController
             ->setDefaultSort(['email' => 'ASC']);
         yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
          yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page');  
-        yield MenuItem::subMenu('Résultats CDF', 'fa fa-list')->setSubItems([
+        yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')->setSubItems([
             MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
             MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
             MenuItem::linkToRoute('ANR','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'3'])

@@ -26,10 +26,12 @@ class ResultsCrudController extends AbstractCrudController
         ResultsRepository $resultsRepository,
         MailerInterface $mailer
     ): RedirectResponse {
-      return $this->redirectToRoute('admin_results_selection', [
-        'typeCompetId' => $request->request->get('typeCompetId'),
-        'wip' => 1,  // flag to show message
-    ]);
+        $typeCompetId = $request->request->get('typeCompetId') ?? $request->query->get('typeCompetId');
+
+        return $this->redirectToRoute('admin_results_selection', [
+            'typeCompetId' => $typeCompetId,
+            'wip' => 1,
+        ]);
     
     // todo link with Pipper
     
@@ -41,7 +43,10 @@ class ResultsCrudController extends AbstractCrudController
     dd($selectedResultIds);  
         if (empty($selectedResultIds)) {
             $this->addFlash('warning', 'Aucun équipage sélectionné.');
-            return $this->redirectToRoute('admin_results_selection'); // or wherever you want to redirect
+            return $this->redirectToRoute('admin_results_selection',[
+                'typeCompetId' => $request->request->get('typeCompetId'),
+                'wip' => 1,  // flag to show message
+            ]);
         }
 
         // Fetch results with crews
@@ -65,7 +70,10 @@ class ResultsCrudController extends AbstractCrudController
         $this->addFlash('success', count($results) . ' emails envoyés.');
 
         // Redirect back to results page or dashboard
-        return $this->redirectToRoute('admin_results_selection');
+        return $this->redirectToRoute('admin_results_selection',[
+            'typeCompetId' => $request->request->get('typeCompetId'),
+            'wip' => 1,  // flag to show message
+        ]);
     }
 
 }

@@ -3,89 +3,114 @@
 {% block title %}Résultats pour {{ typeCompetition.typecomp }}{% endblock %}
 
 {% block body %}
-<h1>Résultats pour {{ typeCompetition.typecomp }}</h1>
 
-{% if app.request.get('wip') %}
-    <div style="background-color: yellow; padding: 10px; margin-bottom: 10px;">
-        ⚠️ Fonction d’envoi d’e-mails en cours de développement.
-    </div>
-{% endif %}
+    <div class='container mt-4'>
+        <h4>Résultats pour {{ typeCompetition.typecomp }}</h4>
 
-{# Compute max ranking #}
-{% set computedMaxRanking = 0 %}
-{% for competition in competitions %}
-    {% for result in competition.results %}
-        {% if result.ranking > computedMaxRanking %}
-            {% set computedMaxRanking = result.ranking %}
+        {% if app.request.get('wip') %}
+            <div style="background-color: yellow; padding: 10px; margin-bottom: 10px;">
+                ⚠️ Fonction d’envoi d’e-mails en cours de développement.
+            </div>
         {% endif %}
-    {% endfor %}
-{% endfor %}
 
-{# Get selected maxRanking from URL or default #}
-{% set selectedMaxRanking = app.request.get('maxRanking') is not empty ? app.request.get('maxRanking') + 0 : computedMaxRanking %}
-
-<form method="post" action="{{ path('admin_results_selected_email') }}">
-    <label for="maxRanking">Afficher jusqu’au rang :</label>
-    <select name="maxRanking" id="maxRanking" onchange="this.form.submit()">
-        {% for i in 1..computedMaxRanking %}
-            <option value="{{ i }}" {% if i == selectedMaxRanking %}selected{% endif %}>Top {{ i }}</option>
+        {# Compute max ranking #}
+        {% set computedMaxRanking = 0 %}
+        {% for competition in competitions %}
+            {% for result in competition.results %}
+                {% if result.ranking > computedMaxRanking %}
+                    {% set computedMaxRanking = result.ranking %}
+                {% endif %}
+            {% endfor %}
         {% endfor %}
-    </select>
 
-    {# Group results by category, filter by ranking #}
-    {% set categorizedResults = {} %}
-    {% for competition in competitions %}
-        {% for result in competition.results %}
-            {% if result.ranking <= selectedMaxRanking %}
-                {% set cat = result.category ?: 'Non catégorisé' %}
-                {% set entries = categorizedResults[cat]|default([]) %}
-                {% set entries = entries|merge([{
-                    competition: competition,
-                    result: result
-                }]) %}
-                {% set categorizedResults = categorizedResults|merge({ (cat): entries }) %}
-            {% endif %}
-        {% endfor %}
-    {% endfor %}
-
-    {# Display one table per category with checkboxes #}
-    {% if categorizedResults is empty %}
-        <p>Aucun résultat trouvé pour ce classement.</p>
-    {% else %}
-        {% for category, entries in categorizedResults %}
-            <h2>Catégorie : {{ category }}</h2>
-            <table border="1" cellpadding="5" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>Compétition</th>
-                        <th>Classement</th>
-                        <th>Équipage</th>
-                        <th>Score</th>
-                        <th>Sélectionner</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for entry in entries|sort((a, b) => a.result.ranking <=> b.result.ranking) %}
-                        <tr>
-                            <td>{{ entry.competition.name }}</td>
-                            <td>{{ entry.result.ranking }}</td>
-                            <td>{{ entry.result.crew }}</td>
-                            <td>{{ entry.result.score }}</td>
-                            <td>
-                                <input type="checkbox" name="selectedResults[]" value="{{ entry.result.id }}">
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endfor %}
-        <form method="post" action="{{ path('admin_results_selected_email') }}">
-        {# your table and checkboxes #}
-            <input type="hidden" name="typeCompetId" value="{{ typeCompetition.id }}">
-
-            <button class='btn btn-primary' type="submit">Envoyer email aux équipages sélectionnés</button>
+        {# Get selected maxRanking from URL or default #}
+        {% set selectedMaxRanking = maxRanking is defined and maxRanking is not empty
+            ? maxRanking + 0
+            : (computedMaxRanking > 3 ? 3 : computedMaxRanking)
+        %}       
+        <form method="get" action="{{ path('admin_results_selection', { typeCompetId: typeCompetition.id }) }}">
+            <label for="maxRanking">Afficher jusqu’au rang :</label>
+            <select name="maxRanking" id="maxRanking" onchange="this.form.submit()">
+                {% for i in 1..computedMaxRanking %}
+                    <option value="{{ i }}" {% if i == selectedMaxRanking %}selected{% endif %}>Top {{ i }}</option>
+                {% endfor %}
+            </select>
         </form>
-    {% endif %}
-</form>
+        {# Group results by category, filter by ranking #}
+        {% set categorizedResults = {} %}
+        {% for competition in competitions %}
+            {% for result in competition.results %}
+                {% if result.ranking <= selectedMaxRanking %}
+                    {% set cat = result.category ?: 'Non catégorisé' %}
+                    {% set entries = categorizedResults[cat]|default([]) %}
+                    {% set entries = entries|merge([{
+                        competition: competition,
+                        result: result
+                    }]) %}
+                    {% set categorizedResults = categorizedResults|merge({ (cat): entries }) %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
 
+        {# Display one table per category with checkboxes #}
+        {% if categorizedResults is empty %}
+            <p>Aucun résultat trouvé pour ce classement.</p>
+        {% else %}
+            {% for category, entries in categorizedResults %}
+                <div class='mt-4'>
+                    <h5>Catégorie : {{ category }}</h5>
+                    <table border="1" cellpadding="5" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Compétition</th>
+                                <th>Class.</th>
+                                <th>Équipage</th>
+                                <th>Score</th>
+                                <th>Sélectionner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries|sort((a, b) => a.result.ranking <=> b.result.ranking) %}
+                                <tr>
+                                    <td>{{ entry.competition.name }}</td>
+                                    <td class='text-center'>{{ entry.result.ranking }}</td>
+                                    <td>{{ entry.result.literalCrew }}</td>
+                                    <td class='text-start'>{{ entry.result.score }}</td>
+                                    <td class='text-center'>
+                                        <input type="checkbox" name="selectedResults[]" value="{{ entry.result.id }}">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+            <div id="devNotice" style="display: none; background-color: yellow; padding: 10px; margin-top: 10px;">
+                ⚠️ Fonction d’envoi d’e-mails en cours de développement.
+            </div>             
+            <div class="mt-4">
+                <form id="emailForm">
+                    <input type="hidden" name="typeCompetId" value="{{ typeCompetition.id }}">
+                    <button class="btn btn-primary" type="submit">
+                        Envoyer email aux équipages sélectionnés
+                    </button>
+                </form>
+            </div>
+
+            </br>
+        {% endif %}    
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('emailForm');
+            const notice = document.getElementById('devNotice');
+
+            if (form && notice) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); // Stop form submission
+                    notice.style.display = 'block'; // Show the message
+                });
+            }
+        });
+    </script>
 {% endblock %}

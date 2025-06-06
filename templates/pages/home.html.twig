@@ -155,7 +155,7 @@
                     {% for result in item.elites|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {{ result.crew }} – {{ result.score }} pts
+                        {{ result.literalCrew }} – {{ result.score }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>
@@ -168,7 +168,7 @@
                     {% for result in item.honneurs|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {{ result.crew }} – {{ result.score }} pts
+                        {{ result.literalCrew }} – {{ result.score }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>
