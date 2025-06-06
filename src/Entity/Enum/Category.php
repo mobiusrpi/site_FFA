@@ -16,6 +16,6 @@ enum Category: string
             self::Elite  => 'Elite',
             self::Honneur  => 'Honneur',
             self::Discovery  => 'Découverte',
-      };
+        };
     }
 };

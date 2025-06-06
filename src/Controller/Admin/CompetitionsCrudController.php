@@ -216,23 +216,17 @@ class CompetitionsCrudController extends AbstractCrudController
                 });
 
         $user = $this->security->getUser();
-
+        
         // Fetch all CompetitionUser entries for this user
         $cuEntries = $this->entityManager
             ->getRepository(CompetitionsUsers::class)
             ->findBy(['user' => $user]);
-
-        $hasAdminRole = false;
-
-        foreach ($cuEntries as $cu) {
-            foreach ($cu->getRole() as $role) {
-                if ($role === CompetitionRole::ROUTER) {
-                    $hasAdminRole = true;
-                    break 2;
-                }
-            }
+//dd($cuEntries,$user->getRoles());
+        if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
+            $hasAdminRole = true;
+        } else {
+            $hasAdminRole = false;
         }
-
         if (!$hasAdminRole) {
             // Disable the "New" action if user is not administrator
             $actions = $actions->disable(Action::NEW);

@@ -27,8 +27,6 @@ error_log("CrewsCrudController loaded from: " . __FILE__);
 
 class CrewsCrudController extends AbstractCrudController
 {   
-    use Trait\BlockDeleteTrait;    
-    
     private RequestStack $requestStack;    
     private EntityManagerInterface $entityManager;
     private Security $security;  

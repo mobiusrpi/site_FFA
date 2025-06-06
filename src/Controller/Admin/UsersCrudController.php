@@ -36,8 +36,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UsersCrudController extends AbstractCrudController
 {   
-    use Trait\BlockDeleteTrait;   
-
     private $createdAt;    
     private $updatedAt;
 
