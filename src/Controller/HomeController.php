@@ -40,8 +40,8 @@ final class HomeController extends AbstractController
 
             $groupedCompetitions[] = [
                 'competition' => $competition,
-                'elites' => $eliteResults->toArray(),
-                'honneurs' => $honneurResults->toArray(),
+                'elite' => $eliteResults->toArray(),
+                'honneur' => $honneurResults->toArray(),
             ];
         }
 //    dd($groupedCompetitions);

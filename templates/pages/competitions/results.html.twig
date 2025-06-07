@@ -57,7 +57,7 @@
       <div class='text-center'>
         <h6><strong>Catégorie Honneur</strong></h6>
       </div>
-      {% if honneurs is not empty %}
+      {% if honneur is not empty %}
         <table class="table table-sm table-bordered">
           <thead class="table-light">
             <tr>
@@ -73,7 +73,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for result in honneurs|sort((a, b) => a.ranking <=> b.ranking) %}
+            {% for result in honneur|sort((a, b) => a.ranking <=> b.ranking) %}
               <tr>
                 <td>{{ result.ranking }}</td>
                 <td>{{ result.literalCrew }}</td>

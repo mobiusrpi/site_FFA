@@ -62,8 +62,8 @@ dump('test');
 
         return $this->render('pages/competitions/results.html.twig', [
             'competition' => $competition,
-            'elites' => $eliteResults,
-            'honneurs' => $honneurResults,
+            'elite' => $eliteResults,
+            'honneur' => $honneurResults,
         ]);
     }
 }

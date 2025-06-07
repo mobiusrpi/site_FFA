@@ -82,6 +82,10 @@ class CrewsCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
+            ->setDefaultSort([
+                'competition.name' => 'ASC',
+                'pilot.lastname' => 'ASC',   
+            ])
             ->setEntityLabelInSingular('Équipage') // singular label
             ->setEntityLabelInPlural('Équipages')  // plural label
             ->setPageTitle(Crud::PAGE_INDEX, 'Liste des équipages')
@@ -143,7 +147,9 @@ class CrewsCrudController extends AbstractCrudController
             
         if ($pageName !== Crud::PAGE_NEW) {
             // Show normal editable competition field for edit or index (if needed)
-            $fields[] = AssociationField::new('competition', 'Epreuve');
+            $fields[] = TextField::new('competition', 'Epreuve')
+                ->setSortable(true);
+            $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type');
         }
         if ($competition) {
             $competitionAccommodations = $this->entityManager
@@ -157,12 +163,13 @@ class CrewsCrudController extends AbstractCrudController
             $competitionAccommodations = [];
         }
 
-        $fields[] = AssociationField::new('pilot','Pilote')
+        $fields[] = TextField::new('pilot','Pilote')
             ->setFormTypeOption('choices', $users)
-            ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
+            ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname())
+            ->setSortable(true);
 
         if (!$competition || $competition->getTypecompetition()?->getId() !== 2) {
-            $fields[] = AssociationField::new('navigator','Navigateur')
+            $fields[] = TextField::new('navigator','Navigateur')
                 ->setFormTypeOption('choices', $users)
                 ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
         }
@@ -176,9 +183,9 @@ class CrewsCrudController extends AbstractCrudController
             ->autocomplete(false)
             ->allowMultipleChoices(false);
 
-        $fields[] = TextField::new('callsign','Immatriculation');
-        $fields[] = TextField::new('aircraftType','Type d\'avion');
-        $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion');
+        $fields[] = TextField::new('callsign','Immatriculation')->hideOnIndex();
+        $fields[] = TextField::new('aircraftType','Type d\'avion')->hideOnIndex();
+        $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion')->hideOnIndex();
         $fields[] = ChoiceField::new('aircraftSpeed','Vitesse')
             ->setChoices(array_combine(
                 array_map(fn($case) => $case->value, SpeedList::cases()),
@@ -186,10 +193,11 @@ class CrewsCrudController extends AbstractCrudController
             ))
             ->renderExpanded(false) // dropdown
             ->autocomplete(false)
-            ->allowMultipleChoices(false);
-        $fields[] = TextField::new('aircraftOaci','Code OACI');
-        $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?');
-        $fields[] = TextField::new('pilotShared','Pilote de partage');
+            ->allowMultipleChoices(false)
+            ->hideOnIndex();
+        $fields[] = TextField::new('aircraftOaci','Code OACI')->hideOnIndex();
+        $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?')->hideOnIndex();
+        $fields[] = TextField::new('pilotShared','Pilote de partage')->hideOnIndex();
 
         $fields[] = AssociationField::new('competitionAccommodation', 'Accommodations')
             ->setFormTypeOption('multiple', true)
@@ -202,10 +210,12 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('choice_attr', function ($ca) {
                 return ['data-price' => $ca?->getPrice() / 100 ?? 0];
             })
-            ->setFormTypeOption('choices', $competitionAccommodations);    
+            ->setFormTypeOption('choices', $competitionAccommodations)
+            ->hideOnIndex();    
  
         $fields[] = BooleanField::new('validationPayment', 'Paiement validé')                
-            ->renderAsSwitch();
+            ->renderAsSwitch()
+            ->hideOnIndex();
 
         $fields[] = TextareaField::new('paymentInfo', 'Montant de l\'inscription')
             ->setFormTypeOption('disabled', true) // not editable
@@ -214,7 +224,8 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('attr', [
                 'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
             ])
-            ->hideOnForm();
+            ->hideOnForm()
+            ->hideOnIndex();
 
         $fields[] = TextareaField::new('competitionInfo', 'Information utiles')
             ->setFormTypeOption('disabled', true) // not editable
@@ -223,7 +234,8 @@ class CrewsCrudController extends AbstractCrudController
             ->setFormTypeOption('attr', [
                 'style' => 'width: 100%; height: 150px; resize: none; background-color: #f8f9fa; color: #212529; font-family: sans-serif;',
             ])
-            ->hideOnForm();
+            ->hideOnForm()
+            ->hideOnIndex();
 
         return $fields;
     }
