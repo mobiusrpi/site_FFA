@@ -12,8 +12,9 @@
           </div> 
         {% endfor %}
         
-        <table class="table table-light table-striped w-auto">
-            <thead class='table-light'>
+        <!-- Table for medium+ screens -->
+        <table class="table table-striped d-none d-md-table">
+            <thead>
               <tr>
                 <th class="text-center" scope="col"></th>
                 <th class="text-center" scope="col"></th>                 
@@ -75,8 +76,40 @@
                 </tr>
               {% endfor %} 
             </tbody>
-        </table>
-    </div>       
+        </table>      
+        <!-- Cards for small screens -->
+        <div class="d-md-none">
+            {% for compet in competition_list %}
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ compet.name }}</h5>
+                        <p class="card-text mb-1"><strong>Type:</strong> {{ compet.typecompetition.typeComp }}</p>
+                        <p class="card-text mb-1"><strong>Lieu:</strong> {{ compet.location }}</p>
+                        <p class="card-text mb-1"><strong>Inscription:</strong> 
+                            {{ compet.startRegistration|date('d-m') }} – 
+                            <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
+                                {{ compet.endRegistration|date('d-m') }}
+                            </span>
+                        </p>
+                        <p class="card-text mb-2"><strong>Compétition:</strong> 
+                            {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} – 
+                            {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM') }}
+                        </p>
+
+                        {% if is_granted('ROLE_USER') %}
+                            {% if compet.startRegistration <= date('now') and date('now') <= compet.endRegistration %}
+                                <a href="{{ path('crews_registration', {'competId': compet.id}) }}" 
+                                  class="btn btn-outline-success w-100">Inscription</a>
+                            {% elseif compet.endRegistration <= date('now') %}
+                                <button class="btn btn-outline-info w-100" disabled>Hors délai</button>
+                            {% else %}
+                                <button class="btn btn-outline-danger w-100" disabled>En attente</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     <div>          
     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
       {% else %}
