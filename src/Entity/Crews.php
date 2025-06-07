@@ -76,10 +76,16 @@ class Crews
     #[ORM\Column(length: 8, nullable: true)]
     private ?string $aircraftOaci = null;
 
+    /**
+     * @var Collection<int, Results>
+     */
+    #[ORM\OneToMany(targetEntity: Results::class, mappedBy: 'crew')]
+    private Collection $results;
+
     public function __construct()
     {
         $this->competitionAccommodation = new ArrayCollection();
-
+        $this->results = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -304,6 +310,36 @@ class Crews
     public function setAircraftOaci(?string $aircraftOaci): static
     {
         $this->aircraftOaci = $aircraftOaci;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Results>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(Results $result): static
+    {
+        if (!$this->results->contains($result)) {
+            $this->results->add($result);
+            $result->setCrew($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResult(Results $result): static
+    {
+        if ($this->results->removeElement($result)) {
+            // set the owning side to null (unless already changed)
+            if ($result->getCrew() === $this) {
+                $result->setCrew(null);
+            }
+        }
 
         return $this;
     }

@@ -32,7 +32,7 @@ class CrewsRepository extends ServiceEntityRepository
     } 
 
     public function getQueryCrewCompetition($userId,$competId)
-    {  ;
+    {  
         return $this->createQueryBuilder('crew') 
             ->leftJoin('App\Entity\Competitions', 'compet','WITH',' crew.competition = compet.id')        
             ->leftJoin('App\Entity\Users', 'user','WITH',' crew.pilot = user.id OR crew.navigator = user.id')        
@@ -40,7 +40,7 @@ class CrewsRepository extends ServiceEntityRepository
             ->setParameter('userId',$userId)                
             ->setParameter('competId',$competId)                         
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
         ;
     }     
     
@@ -56,7 +56,8 @@ class CrewsRepository extends ServiceEntityRepository
             ->orderBy('crew.category', 'ASC')
             ->addOrderBy('pilot.lastname', 'ASC')  
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     public function getQueryCrewsAccommodation($competId)
@@ -71,17 +72,30 @@ class CrewsRepository extends ServiceEntityRepository
             ->setParameter('competId', $competId)
             ->addOrderBy('pilot.lastname', 'ASC')  
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     public function findByCompetitionOrderedByPilotLastname(Competitions $competition): array
-{
-    return $this->createQueryBuilder('c')
-        ->innerJoin('c.pilot', 'p')
-        ->where('c.competition = :competition')
-        ->setParameter('competition', $competition)
-        ->orderBy('p.lastname', 'ASC')
-        ->getQuery()
-        ->getResult();
-}
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.pilot', 'p')
+            ->where('c.competition = :competition')
+            ->setParameter('competition', $competition)
+            ->orderBy('p.lastname', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+    
+    public function findOrderedByCategoryAndPilotLastname()
+    {
+        return  $this->createQueryBuilder('c')
+            ->leftJoin('c.pilot', 'p')
+            ->orderBy('c.category', 'ASC')
+            ->addOrderBy('p.lastname', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

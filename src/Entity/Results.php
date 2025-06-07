@@ -49,7 +49,7 @@ class Results
     #[ORM\Column(length: 255)]
     private ?string $literalCrew = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'results')]
     private ?Crews $crew = null;
 
     public function getId(): ?int

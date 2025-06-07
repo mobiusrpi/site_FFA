@@ -66,8 +66,8 @@ class DashboardController extends AbstractDashboardController
             ->setDefaultSort(['startDate' => 'ASC',]);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
             ->setDefaultSort(['email' => 'ASC']);
-        yield MenuItem::linkToRoute('Equipages', 'fas fa-users', 'admin_crew_selector');        
-         yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page');  
+        yield  MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
+        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page');  
         yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')->setSubItems([
             MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
             MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
@@ -75,7 +75,6 @@ class DashboardController extends AbstractDashboardController
         ]);
         yield MenuItem::subMenu('Administration', 'fa fa-cog')->setSubItems([     
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
-            MenuItem::linkToCrud('Supprimer un équipage', 'fas fa-id-card', Crews::class),
             MenuItem::linkToCrud('Supprimer un service', 'fas fa-id-card', CompetitionAccommodation::class),
             MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
             MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
@@ -109,7 +108,6 @@ class DashboardController extends AbstractDashboardController
 
             if ($competitionId && ($csvFile || $confirmOverwrite)) {
                 $competition = $competitionRepo->find($competitionId);
- //       dd($competitionId,$csvFile);
 
                 if ($csvFile) {
                     $rawContent = file_get_contents($csvFile->getPathname());
@@ -173,7 +171,7 @@ class DashboardController extends AbstractDashboardController
                         }
                         fclose($handle);
                         unlink($tempFilePath);
-//    
+    
                     $em->flush();
                     }
                     $this->addFlash('success', 'Résultats importés avec succès.');

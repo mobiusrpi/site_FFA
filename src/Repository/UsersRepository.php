@@ -42,7 +42,8 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         $qb = $this->createQueryBuilder('user');
         $qb->leftJoin('App\Entity\Crews', 't', 'WITH', '(t.pilot = user.id OR t.navigator = user.id) AND t.competition = :competId')
             ->setParameter('competId', $compet)
-            ->where('user.isVerified = 1');
+            ->where('user.isVerified = 1')
+            ->andWhere('user.archivedAt IS NULL');
             
         if (!empty($includeUserIds)) {
             $qb->andWhere($qb->expr()->orX(

@@ -169,6 +169,7 @@ class UsersCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+            
         $anonymizeUserAction = Action::new('AnonymizeUser', 'Anonyme')
             ->setIcon('fa fa-edit')            
             ->linkToRoute('admin_anonymize_user',            

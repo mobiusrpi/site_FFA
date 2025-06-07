@@ -511,7 +511,7 @@ class CompetitionsCrudController extends AbstractCrudController
 
         foreach ($crews as $crew) {
             $data[] = [
-                'Equipage' => $crew->getId(),
+                'Concurrent' => $crew->getId(),
                 'Categorie' => $crew->getCategory()?->value ?? '',   
                 'Pilote' => $crew->getPilot()->getLastname() . ' ' . $crew->getPilot()->getFirstname(),
                 'Pilote_Licence_FFA' => $crew->getPilot()->getLicenseFfa() ,

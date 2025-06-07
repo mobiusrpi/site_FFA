@@ -3,24 +3,37 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Crews;
+use App\Entity\Users;
+use App\Entity\Results;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
+use Doctrine\ORM\QueryBuilder;
 use App\Repository\UsersRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityPaginator;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 error_log("CrewsCrudController loaded from: " . __FILE__);
@@ -32,6 +45,20 @@ class CrewsCrudController extends AbstractCrudController
     private Security $security;  
     private UsersRepository $usersRepository;
     private AdminUrlGenerator $adminUrlGenerator;
+
+    private function hasLinkedResults(Crews $crew): bool
+    {
+        // Assuming you have a ResultRepository injected or accessible
+        $resultsCount = $this->entityManager->getRepository(Results::class)
+            ->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.crew = :crew')
+            ->setParameter('crew', $crew)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $resultsCount > 0;
+    }
 
     public function __construct(
         RequestStack $requestStack,
@@ -82,16 +109,20 @@ class CrewsCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
+            ->setEntityLabelInSingular('Concurrent') // singular label
+            ->setEntityLabelInPlural('Concurrents')  // plural label
+            ->setPageTitle(Crud::PAGE_INDEX, 'Liste des concurrents')
+            ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un concurrent'))
+            ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
+            ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un concurrent'))
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Concurrent'))
+            ->overrideTemplate('crud/index', 'admin/crews/crew_index_grouped.html.twig');
+/*        return $crud
             ->setDefaultSort([
                 'competition.name' => 'ASC',
                 'pilot.lastname' => 'ASC',   
             ])
-            ->setEntityLabelInSingular('Équipage') // singular label
-            ->setEntityLabelInPlural('Équipages')  // plural label
-            ->setPageTitle(Crud::PAGE_INDEX, 'Liste des équipages')
-            ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
-            ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un équipage'))
-            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Equipage'));
+          */        
         }
 
     public function configureFields(string $pageName): iterable
@@ -163,15 +194,50 @@ class CrewsCrudController extends AbstractCrudController
             $competitionAccommodations = [];
         }
 
-        $fields[] = TextField::new('pilot','Pilote')
-            ->setFormTypeOption('choices', $users)
-            ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname())
-            ->setSortable(true);
-
-        if (!$competition || $competition->getTypecompetition()?->getId() !== 2) {
-            $fields[] = TextField::new('navigator','Navigateur')
+        if (Crud::PAGE_INDEX === $pageName) {
+            $fields[] = AssociationField::new('pilot','Pilote')
+                ->setFormType(EntityType::class)
+                ->setFormTypeOption('class', Users::class)
                 ->setFormTypeOption('choices', $users)
-                ->setFormTypeOption('choice_label', fn($user) => $user->getLastname() . ' ' . $user->getFirstname());
+                ->setFormTypeOption('choice_label', fn(Users $user) => $user->getLastname() . ' ' . $user->getFirstname())
+                ->setSortable(true);
+        
+            if (!$competition || $competition->getTypecompetition()?->getId() !== 2) {
+                $fields[] = AssociationField::new('navigator', 'Navigateur')        ->setFormType(EntityType::class)
+                    ->setFormTypeOption('class', Users::class)
+                    ->setFormTypeOption('choices', $users)
+                    ->setFormTypeOption('choice_label', fn(Users $user) => $user->getLastname() . ' ' . $user->getFirstname());
+            }
+        } else {
+            $crew = $this->getContext()?->getEntity()?->getInstance();
+            $competition = $crew?->getCompetition(); // null on create
+            $includeUserIds = [];
+            if ($crew?->getPilot()) {
+                $includeUserIds[] = $crew->getPilot()->getId();
+            }
+            if ($crew?->getNavigator()) {
+                $includeUserIds[] = $crew->getNavigator()->getId();
+            }
+
+            $availableUsers = [];
+            if ($competition) {
+                $availableUsers = $this->entityManager->getRepository(Users::class)
+                    ->getUsersListNotYetRegistered($competition->getId(), $includeUserIds)
+                    ->getQuery()
+                    ->getResult();
+            }
+
+            $fields[] = AssociationField::new('pilot', 'Pilote')
+                ->setFormTypeOption('choices', $availableUsers)
+                ->setFormTypeOption('choice_label', fn(Users $user) => $user->getLastname() . ' ' . $user->getFirstname())
+                ->setSortable(true);
+
+            if (!$competition || $competition->getTypecompetition()?->getId() !== 2) {
+                $fields[] = AssociationField::new('navigator', 'Navigateur')        ->setFormType(EntityType::class)
+                    ->setFormTypeOption('choices', $availableUsers)
+                    ->setFormTypeOption('choice_label', fn(Users $user) => $user->getLastname() . ' ' . $user->getFirstname());
+            }
+
         }
 
         $fields[] = ChoiceField::new('category','Catégorie')
@@ -250,47 +316,61 @@ class CrewsCrudController extends AbstractCrudController
                 fn (Action $action) => $action
                     ->setLabel('Créer et ajouter un équipage')
                     ->setIcon('fa fa-plus')
-            )                      
+            )                   
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+                $action->displayIf(function ($entity) {
+                    return $entity->getResults()->isEmpty();
+                });
+
+                return $action;
+            })
         ;
     }
-
-    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    
+    public function index(AdminContext $context): Response
     {
-        if (!$entityInstance instanceof Crews) {
-            return;
+        $crews = $this->entityManager->getRepository(Crews::class)->findOrderedByCategoryAndPilotLastname();
+
+        $grouped = [];
+
+        foreach ($crews as $crew) {
+            $compName = $crew->getCompetition()?->getName() ?? 'No Competition';
+            $grouped[$compName][] = $crew;
         }
 
-        $entityInstance->setRegisteredAt(new \DateTimeImmutable());
-        $entityInstance->setRegisteredBy($this->security->getUser());
-
-        parent::persistEntity($entityManager, $entityInstance);
-
-        $this->redirectToSelector();
+        return $this->render('admin/crews/crew_index_grouped.html.twig', [
+            'grouped' => $grouped,
+            'ea' => $context,
+        ]);
     }
 
-    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    public function delete(AdminContext $context)
     {
-        if (!$entityInstance instanceof Crews) {
-            return;
-        }
-
-        $entityInstance->setRegisteredAt(new \DateTimeImmutable());
-        $entityInstance->setRegisteredBy($this->security->getUser());
-
-        parent::updateEntity($entityManager, $entityInstance);
-
-        $this->redirectToSelector();
-    }
-
-    private function redirectToSelector(): void
-    {
+        /** @var \App\Entity\Crews $crew */
+        $crew = $context->getEntity()->getInstance();
         $url = $this->adminUrlGenerator
-            ->unsetAll() // ✅ correct method name
-            ->setRoute('admin_crew_selector')
+            ->setController(self::class)
+            ->setAction('index')
             ->generateUrl();
 
-        header("Location: $url");
-        exit; // Prevent further processing
-    }
+        // Check if the entity can be deleted (e.g. no results linked)
+        if ($this->hasLinkedResults($crew)) {
+            $this->addFlash('warning', 'Cet équipage ne peut pas être supprimer car il est listé dans les résultats');       
 
+            return $this->redirect($url);
+        }
+        // Try manual removal and flush
+        try {
+            $this->entityManager->remove($crew);
+            $this->entityManager->flush();
+            if ($crew->getCompetition()->getTypeCompetition()->getId() !== 2){
+                $this->addFlash('success', 'Équipage supprimé avec succès.');               
+            } else {
+                $this->addFlash('success', 'Concurrent supprimé avec succès.');
+            }
+        } catch (\Exception $e) {
+            dd('Exception on delete:', $e->getMessage());
+        }
+        return $this->redirect($this->adminUrlGenerator->setController(self::class)->setAction('index')->generateUrl());
+    }
 }

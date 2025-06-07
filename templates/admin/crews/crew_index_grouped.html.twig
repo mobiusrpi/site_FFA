@@ -1,0 +1,57 @@
+{# templates/admin/crew_index_grouped.html.twig #}
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block flash_messages %}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+
+{% block content_title %}
+    Concurrents par compétition
+{% endblock %}
+
+{% block main %}
+
+    {% for competitionName, crews in grouped %}
+        <h5>{{ competitionName }}</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Categorie</th>                    
+                    <th class='text-center'>Pilote</th>
+                    {% if crews[0].competition.typecompetition.id != 2 %} 
+                        <th class='text-center'>Navigateur</th>
+                    {% endif %} 
+                    <th class='text-center'>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for crew in crews %}
+                    <tr>
+                        <td>{{ crew.category.value }}</td>                        
+                        <td>{{ crew.pilot.getLastname() }} {{ crew.pilot.firstname }}</td>
+                        {% if crew.competition.typecompetition.id != 2 %}   
+                            <td>{{ crew.navigator.getLastname() }} {{ crew.navigator.firstname }}</td>
+                        {% endif %}                        
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ ea_url().setAction('edit').setEntityId(crew.id) }}" class="btn btn-sm btn-primary">Modifier</a>
+
+                                <form method="post" action="{{ ea_url().setAction('delete').setEntityId(crew.id) }}"
+                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet équipage ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ crew.id) }}">
+                                    <button class="btn btn-sm btn-warning">Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+{% endblock %}
