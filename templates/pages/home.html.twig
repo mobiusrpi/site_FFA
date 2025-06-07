@@ -152,7 +152,7 @@
                 <div class="col-md-6">
                   <h6>Elite</h6>
                   <ol class="ps-3">
-                    {% for result in item.elites|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
+                    {% for result in item.elite|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
                         {{ result.literalCrew }} – {{ result.score }} pts
