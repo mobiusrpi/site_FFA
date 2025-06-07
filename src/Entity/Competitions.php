@@ -74,12 +74,19 @@ class Competitions
     #[ORM\OneToMany(mappedBy: 'competition', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
     private Collection $competitionsUsers;
 
+    /**
+     * @var Collection<int, Results>
+     */
+    #[ORM\OneToMany(targetEntity: Results::class, mappedBy: 'competition')]
+    private Collection $results;
+   
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->crew = new ArrayCollection();
         $this->competitionAccommodation = new ArrayCollection();
         $this->competitionsUsers = new ArrayCollection();
+        $this->results = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -335,4 +342,35 @@ class Competitions
     {
         return $this->name ?? 'N/A'; 
     }
+
+    /**
+     * @return Collection<int, Results>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(Results $results): static
+    {
+        if (!$this->results->contains($results)) {
+            $this->results->add($results);
+            $results->setCompetition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResult(Results $results): static
+    {
+        if ($this->results->removeElement($results)) {
+            // set the owning side to null (unless already changed)
+            if ($results->getCompetition() === $this) {
+                $results->setCompetition(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

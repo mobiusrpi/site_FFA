@@ -40,7 +40,7 @@ class Results
      #[ORM\Column(length: 15, nullable: true)]
     private ?string $category = null;   
     
-    #[ORM\ManyToOne(inversedBy: 'result')]
+    #[ORM\ManyToOne(inversedBy: 'results')]
     private ?Competitions $competition = null;
 
     #[ORM\Column(nullable: true)]
