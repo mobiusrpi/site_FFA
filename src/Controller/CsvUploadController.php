@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Results;
+use App\Form\CsvUploadFileType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,7 +31,7 @@ class CsvUploadController extends AbstractController
                         dd($data);
                         if ($data !== null) {
                             if ($data['Catégorie :'] = "Elite") {
-                                $result = new Result();
+                                $result = new Results();
                                 $result->setName('Sample result');
                                 $result->setPrice(19.99);
                                 $result->setDescription('This is a sample result.');            

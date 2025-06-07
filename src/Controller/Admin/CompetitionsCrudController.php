@@ -112,7 +112,7 @@ class CompetitionsCrudController extends AbstractCrudController
             TextareaField::new('paymentInfo','Informations de réglement')->onlyOnForms(),             
             TextareaField::new('information','Informations utiles')->onlyOnForms(), 
             
-            FormField::addPanel('Organisateurs'),
+            FormField::addFieldset('Organisateurs'),
             CollectionField::new('competitionsUsers')
                 ->setEntryType(CompetitionsUsersType::class)
                 ->onlyOnForms()
