@@ -8,7 +8,6 @@ use App\Entity\Results;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
-use Doctrine\ORM\QueryBuilder;
 use App\Repository\UsersRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,22 +17,15 @@ use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
-use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
-use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityPaginator;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
-use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 error_log("CrewsCrudController loaded from: " . __FILE__);
@@ -116,13 +108,7 @@ class CrewsCrudController extends AbstractCrudController
             ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
             ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un concurrent'))
             ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Concurrent'))
-            ->overrideTemplate('crud/index', 'admin/crews/crew_index_grouped.html.twig');
-/*        return $crud
-            ->setDefaultSort([
-                'competition.name' => 'ASC',
-                'pilot.lastname' => 'ASC',   
-            ])
-          */        
+            ->overrideTemplate('crud/index', 'admin/crews/crew_index_grouped.html.twig');        
         }
 
     public function configureFields(string $pageName): iterable
@@ -137,7 +123,7 @@ class CrewsCrudController extends AbstractCrudController
 
         if ($pageName === Crud::PAGE_EDIT && $context) {
             $crew = $context->getEntity()->getInstance();
-
+           
             if ($crew instanceof Crews) {
                 $competition = $crew->getCompetition();          
                 $includeUserIds = [];
@@ -176,10 +162,14 @@ class CrewsCrudController extends AbstractCrudController
             }
         }
             
-        if ($pageName !== Crud::PAGE_NEW) {
-            // Show normal editable competition field for edit or index (if needed)
-            $fields[] = TextField::new('competition', 'Epreuve')
-                ->setSortable(true);
+        if ($pageName === Crud::PAGE_INDEX) {
+            // Use TextField to *display* the name of the competition
+            $fields[] = TextField::new('competition', 'Epreuve');
+            $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type');
+        } elseif ($pageName === Crud::PAGE_EDIT) {
+            // Use AssociationField to ensure entity binding works correctly
+            $fields[] = AssociationField::new('competition', 'Epreuve')
+                ->setFormTypeOption('disabled', true); // Display only, not editable
             $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type');
         }
         if ($competition) {

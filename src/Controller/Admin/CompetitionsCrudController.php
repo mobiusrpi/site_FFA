@@ -541,7 +541,7 @@ class CompetitionsCrudController extends AbstractCrudController
                 'Enregistre_par' => $crew->getRegisteredBy()->getLastname() . ' ' . $crew->getRegisteredBy()->getFirstname(),
             ];
         }
-        return $csvExporter->export($data, $filename);
+        return $csvExporter->exportCsv($data, $filename);
     }
 
     //The route admin_pipper_by_competition_export is redirected to this function in the file
@@ -561,10 +561,11 @@ class CompetitionsCrudController extends AbstractCrudController
         $competName = $crews[0]->getCompetition()->getName();
         $filename = 'ExportPipper_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $competName) . '.csv';
             
-        $data = [];
+        $data = [];        
+        $row = [];
                 
         foreach ($crews as $crew) {
-            $data[] = [
+            $row = [
                 'registration_number' => (string) $crew->getId(),
                 'category' => $crew->getCategory()?->value ?? '',   
                 'pilot_lastname' => $crew->getPilot()->getLastname(),
@@ -584,8 +585,15 @@ class CompetitionsCrudController extends AbstractCrudController
                 'aircraft_oaci' => (string) $crew->getAircraftOaci() ? $crew->getAircraftOaci() : '', 
                 'aircraft_speed' => $crew->getAircraftSpeed() ?->value ?? '', 
             ];
-        }   
-        return $csvExporter->export($data, $filename);
+
+            // Encodage CP1252 pour chaque ligne
+            $encodedData[] = array_map(
+                fn($field) => mb_convert_encoding($field, 'Windows-1252', 'UTF-8'),
+                $row
+            );
+        }
+            
+        return $csvExporter->exportPipper($encodedData, $filename, ';', 'Windows-1252');
     }
 
     public function  printCrews(
