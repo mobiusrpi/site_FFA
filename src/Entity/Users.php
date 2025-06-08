@@ -100,6 +100,10 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true, enumType: Polosize::class)]
     private ?Polosize $poloSize = null;
 
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     /**
      * @var Collection<int, Crews>
      */
@@ -125,9 +129,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $competitionsUsers;
 
     private ?string $plainPassword = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $archivedAt = null;
 
     /**
      * @return string|null
@@ -396,7 +397,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    
     /**
      * @return Collection<int, Crews>
      */

@@ -182,7 +182,8 @@ class UsersCrudController extends AbstractCrudController
                 'onclick' => "return confirm('⚠️ Cela rendra anomyme the façon permanente l'utilisateur. Êtes-vous certain ?');",
                 'class' => 'btn btn-warning'
             ])
-            ->addCssClass('js-confirm-anonymize btn btn-warning');
+            ->addCssClass('js-confirm-anonymize btn btn-warning')
+            ->displayIf(fn () => $this->security->isGranted('ROLE_ADMIN'));
 
         return $actions 
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
@@ -197,7 +198,8 @@ class UsersCrudController extends AbstractCrudController
                     ->setIcon('fa fa-trash') // or 'fas fa-edit'
                     ->setLabel('Supprimer');
             }) 
-            ->add(Crud::PAGE_INDEX, $anonymizeUserAction);
+            ->add(Crud::PAGE_INDEX, $anonymizeUserAction) 
+        ;
     }
 
     //The route admin_anomynize_user is redirected to this function in the file
@@ -330,7 +332,7 @@ class UsersCrudController extends AbstractCrudController
                 ->leftJoin('pilotCrew.competition', 'comp1')
                 ->leftJoin('navigatorCrew.competition', 'comp2')
                 ->where('cu.competition = comp1 OR cu.competition = comp2')
-                ->andWhere('u.achivedAt IS NULL')
+                ->andWhere('u.archivedAt IS NULL')
                 ->setParameter('manager', $user);
 
             $userIds = array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult());

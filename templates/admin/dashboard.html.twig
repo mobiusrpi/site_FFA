@@ -27,7 +27,7 @@
                 el.addEventListener('click', function (e) {
                     const message = "⚠️ Cette action rendra l’utilisateur définitivement anonyme.\nToutes ses informations personnelles seront supprimées et cette opération est irréversible.\n\nÊtes-vous sûr de vouloir continuer ?";
                     if (!confirm(message)) {
-                        e.preventDefault();
+                        e.preventDefault(); 
                     }
                 });
             });
