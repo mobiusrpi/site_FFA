@@ -75,7 +75,7 @@ class DashboardController extends AbstractDashboardController
         ]);
         yield MenuItem::subMenu('Administration', 'fa fa-cog')->setSubItems([     
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
-            MenuItem::linkToCrud('Supprimer un service', 'fas fa-id-card', CompetitionAccommodation::class),
+            MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
             MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
             MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
         ]);   
