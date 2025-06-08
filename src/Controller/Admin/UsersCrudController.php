@@ -168,7 +168,7 @@ class UsersCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
             
-        $anonymizeUserAction = Action::new('AnonymizeUser', 'Anonyme')
+        $anonymizeUserAction = Action::new('anonymizeUserAction', 'Anonyme')
             ->setIcon('fa fa-edit')            
             ->linkToRoute('admin_anonymize_user',            
                 function (Users $user) {
@@ -178,9 +178,8 @@ class UsersCrudController extends AbstractCrudController
                 })
             ->setHtmlAttributes([
                 'onclick' => "return confirm('⚠️ Cela rendra anomyme the façon permanente l'utilisateur. Êtes-vous certain ?');",
-                'class' => 'btn btn-warning'
             ])
-            ->addCssClass('js-confirm-anonymize btn btn-warning')
+            ->addCssClass('js-confirm-anonymize btn btn-secondary text-warning')
             ->displayIf(fn () => $this->security->isGranted('ROLE_ADMIN'));
 
         return $actions 
@@ -198,6 +197,11 @@ class UsersCrudController extends AbstractCrudController
                     ->setLabel('Supprimer');
             }) 
             ->add(Crud::PAGE_INDEX, $anonymizeUserAction) 
+            ->reorder(Crud::PAGE_INDEX, [
+                Action::EDIT,                 
+                'anonymizeUserAction',
+                Action::DELETE             
+            ]);
         ;
     }
 

@@ -117,8 +117,15 @@ class Crews
 
     public function setCallsign(string $callsign): static
     {
-        $this->callsign = $callsign;
-
+        // Supprimer les espaces
+        $callsign = str_replace(' ', '', $callsign);
+        $callsign = strtoupper($callsign);
+        // Ajouter un tiret après le premier caractère si c'est un "F"
+        if (strlen($callsign) > 0 && $callsign[0] === 'F') {
+            $this->callsign = substr_replace($callsign, '-', 1, 0);
+        } else {
+            $this->callsign = $callsign;
+        }
         return $this;
     }
 
