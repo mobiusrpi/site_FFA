@@ -9,8 +9,8 @@
 
         {{ form_start(profilForm) }}
         <div class="row justify-items-center">
-            <div class="col-5 border border-dark border-1 rounded-3 p-4 me-2">
-            <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4>
+            <div class="col-md-5 border border-dark border-1 rounded-3 order-1 order-md-1 mb-3 p-4 me-2">
+                <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4>
                 {{ form_label(profilForm.lastname) }}
                 {% if profilForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
@@ -50,10 +50,11 @@
                 <div class="col border border-dark text-center rounded-3 p-2 bg-secondary text-white form-check mt-4">
                     {{ form_row(profilForm.isCompetitor) }}
                 </div>
-            </div>                   
-             <div class="col-6 border border-dark border-1 rounded-3 p-4 ms-2" 
-             id="competitorFieldsContainer" 
-             style="display: none;">
+            </div>     
+          
+            <div class="col-md-6 border border-dark border-1 rounded-3 order-2 order-md-2  p-4 ms-2" 
+                id="competitorFieldsContainer" 
+                style="display: none;">
                 <h4 class="text-center font-weight-normal mb-3">Informations additionnelles pour les compétiteurs</h4>              
 
                 {{ form_label(profilForm.dateBirth) }}

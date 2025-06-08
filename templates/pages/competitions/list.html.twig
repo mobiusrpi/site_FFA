@@ -2,9 +2,14 @@
 
 {% block title %}Liste des compétitions{% endblock %}
 
-{% block body %}
+{% block body %} 
+    <style>
+        .min-width-70 {
+            min-width: 70px;
+        }
+    </style>
     <div class="container mt-4">
-        <h3 class='mx-auto text-center fw-bold'>Liste des compétitions</h3>
+        <h3 class='mx-auto text-center fw-bold'>Liste des compétitions en {{ date('now')|date ('Y') }}</h3>
 
         {% for message in app.flashes('success') %}
           <div class="alert alert-success mt-4">
@@ -29,8 +34,8 @@
                 <th class="text-center" scope="col">Désignation</th>
                 <th class="text-center" scope="col">Type</th>
                 <th class="text-center" scope="col">Lieu</th>
-                <th class="text-center" scope="col">Début</th> 
-                <th class="text-center" scope="col">Fin</th>                
+                <th class="text-center min-width-70" scope="col">Début</th> 
+                <th class="text-center min-width-70" scope="col">Fin</th>                
                 <th class="text-center" scope="col">Début</th>
                 <th class="text-center" scope="col">Fin</th>
                 {% if is_granted('ROLE_USER') %}
@@ -44,11 +49,11 @@
                   <th scope="row">{{ compet.name }}</td>
 	                <td>{{ compet.typecompetition.typeComp }}</td> 
                   <td>{{ compet.location }}</td>
-                  <td> {{ compet.startRegistration|date('d-m') }}</td>  
+                  <td class='text-center min-width-70'> {{ compet.startRegistration|date('d-m') }}</td>  
                   {% if compet.endRegistration <= date('now') %}
-                    <td class='text-danger'>{{ compet.endRegistration|date('d-m') }}</td>
+                    <td class='text-danger text-center min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
                   {% else %}
-                    <td class='text-dark'>{{ compet.endRegistration|date('d-m') }}</td>
+                    <td class='text-dark text-center min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
                   {% endif %}                         
                   <td>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM') }}</td>
                   <td>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM') }}</td>
@@ -86,14 +91,14 @@
                         <p class="card-text mb-1"><strong>Type:</strong> {{ compet.typecompetition.typeComp }}</p>
                         <p class="card-text mb-1"><strong>Lieu:</strong> {{ compet.location }}</p>
                         <p class="card-text mb-1"><strong>Inscription:</strong> 
-                            {{ compet.startRegistration|date('d-m') }} – 
+                            {{ compet.startRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
                             <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
-                                {{ compet.endRegistration|date('d-m') }}
+                                {{ compet.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                             </span>
                         </p>
                         <p class="card-text mb-2"><strong>Compétition:</strong> 
-                            {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} – 
-                            {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM') }}
+                            {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
+                            {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                         </p>
 
                         {% if is_granted('ROLE_USER') %}

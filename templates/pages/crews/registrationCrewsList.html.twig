@@ -3,15 +3,20 @@
 {% block title %}Inscriptions{% endblock %}
 
 {% block body %}
+    <style>
+        .min-width-70 {
+            min-width: 70px;
+        }
+    </style>
     <section class='container mt-4' >
         <h3 class="h3 text-center font-weight-normal mb-3">Liste de mes inscriptions</h3> 
         {% for message in app.flashes('success') %}
             <div class="alert alert-success mt-4">
                 {{message}}
             </div> 
-            {% endfor %}
-        
-        <table class="table table-light table-striped w-auto">
+        {% endfor %}
+        <!-- Table for medium+ screens -->
+        <table class="table table-striped d-none d-md-table">
             <thead class='table-light'>
                 <tr>
                     <th class="text-center" scope="col"></th>
@@ -27,8 +32,8 @@
                     <th class="text-center" scope="col">Désignation</th>
                     <th class="text-center" scope="col">Type</th>
                     <th class="text-center" scope="col">Lieu</th>
-                    <th class="text-center" scope="col">Début</th> 
-                    <th class="text-center" scope="col">Fin</th>                
+                    <th class="text-center min-width-70" scope="col">Début</th> 
+                    <th class="text-center min-width-70" scope="col">Fin</th>                
                     <th class="text-center" scope="col">Début</th>
                     <th class="text-center" scope="col">Fin</th>
                     {% if is_granted('ROLE_USER') %}
@@ -40,13 +45,13 @@
                 {% for compet in competByUser_list %} 
                     <tr>
                         <th scope="row">{{ compet.name }}</td>
-                            <td>{{ compet.typecompetition.typeComp }}</td> 
+                        <td>{{ compet.typecompetition.typeComp }}</td> 
                         <td>{{ compet.location }}</td>
-                        <td> {{ compet.startRegistration|date('d-m') }}</td>  
+                        <td class='text-center min-width-70'> {{ compet.startRegistration|date('d-m') }}</td>  
                         {% if compet.endRegistration <= date('now') %}
-                            <td class='text-danger'>{{ compet.endRegistration|date('d-m') }}</td>
+                            <td class='text-center text-danger min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
                         {% else %}
-                            <td class='text-dark'>{{ compet.endRegistration|date('d-m') }}</td>
+                            <td class='text-center text-dark min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
                         {% endif %}                         
                         <td>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
                         <td>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
@@ -58,8 +63,8 @@
                             </td>                     
                             {% else %}
                                 <td>       
-                                <a href='#' 
-                                    class= 'btn btn-outline-danger btn-sm disabled'>Hors délais</a>   
+                                    <a href='#' 
+                                        class= 'btn btn-outline-danger btn-sm disabled'>Hors délais</a>   
                                 </td>  
                             {% endif %}
                         {% endif %}       
@@ -67,5 +72,36 @@
                 {% endfor %} 
             </tbody>
         </table>
+        <!-- Cards for small screens -->
+        <div class="d-md-none">
+            {% for compet in competByUser_list %}
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ compet.name }}</h5>
+                        <p class="card-text mb-1"><strong>Type:</strong> {{ compet.typecompetition.typeComp }}</p>
+                        <p class="card-text mb-1"><strong>Lieu:</strong> {{ compet.location }}</p>
+                        <p class="card-text mb-1"><strong>Inscription:</strong> 
+                            {{ compet.startRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
+                            <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
+                                {{ compet.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                            </span>
+                        </p>
+                        <p class="card-text mb-2"><strong>Compétition:</strong> 
+                            {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
+                            {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                        </p>
+
+                        {% if is_granted('ROLE_USER') %}
+                            {% if compet.endRegistration >= date('now') %}
+                                <a href="{{ path('crews_registration', {'competId': compet.id}) }}" 
+                                  class="btn btn-outline-success w-100">Inscription</a>
+                            {% else %}
+                                <button class="btn btn-outline-info w-100" disabled>Hors délai</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </section>                   
 {% endblock %}
