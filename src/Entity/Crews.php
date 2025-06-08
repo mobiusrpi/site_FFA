@@ -117,12 +117,16 @@ class Crews
 
     public function setCallsign(string $callsign): static
     {
+        $country1 = ['F','G','D','I','C','N'];
+        $country2 = ['OO','HB','EC','PH','OE','OK','S5','OM','SE','OH','OY','LN','LX'];
         // Supprimer les espaces
         $callsign = str_replace(' ', '', $callsign);
         $callsign = strtoupper($callsign);
         // Ajouter un tiret après le premier caractère si c'est un "F"
-        if (strlen($callsign) > 0 && $callsign[0] === 'F') {
+        if (strlen($callsign) > 0 && in_array($callsign[0],$country1)) {
             $this->callsign = substr_replace($callsign, '-', 1, 0);
+        } elseif (strlen($callsign) >= 2 && in_array(substr($callsign, 0, 2), $country2)){
+            $this->callsign = substr_replace($callsign, '-', 2, 0);
         } else {
             $this->callsign = $callsign;
         }
