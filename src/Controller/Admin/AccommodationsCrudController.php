@@ -41,7 +41,8 @@ class AccommodationsCrudController extends AbstractCrudController
     {
         return $actions   
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
-            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)            
+            ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
                 return $action
                     ->setIcon('fa fa-pen') // or 'fas fa-edit'

@@ -94,32 +94,53 @@ class CompetitionsCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        return [        
-            FormField::addColumn(8),
-            TextField::new('name','Désignation'),
-            TextField::new('location','Lieu'),            
-            AssociationField::new('typecompetition','Type')
-                ->setFormTypeOption('choice_label', function($choice) { 
-                    return $choice->getTypecomp();
-                }),          
-            DateField::new('startRegistration', 'Date de début d\'enrégistrement')->setFormat('dd/MM/yy')->onlyOnForms(), 
-            DateField::new('endRegistration', 'Date de fin d\'enrégistrement ')->setFormat('dd/MM/yy')->onlyOnForms(),          
-            DateField::new('startDate', 'Date de début')->setFormat('dd/MM/yy'),
-            DateField::new('endDate', 'Date de fin')->setFormat('dd/MM/yy'),
-            BooleanField::new('selectable','Sélection')
-                ->renderAsSwitch()->onlyOnForms(),             
-            DateField::new('createdAt')->onlyOnDetail() ,
-            TextareaField::new('paymentInfo','Informations de réglement')->onlyOnForms(),             
-            TextareaField::new('information','Informations utiles')->onlyOnForms(), 
+        $fields = [];
+
+        $competition = $this->getContext()?->getEntity()?->getInstance();
+        $fields[] = FormField::addColumn(8);
+        $hasCrews = false;
+
+        if ($pageName === Crud::PAGE_EDIT && $competition) {
+            // Check if any crew is registered for this competition
+            $crewCount = $this->entityManager
+                ->getRepository(Crews::class)
+                ->count(['competition' => $competition]);
+
+            $hasCrews = $crewCount > 0;
+        }
+
+        // Basic fields
+        $fields[] = TextField::new('name', 'Nom');
+
+        // Conditionally disable typecompetition if crews exist
+        $typeField = AssociationField::new('typecompetition', 'Type de compétition');
+
+        if ($hasCrews) {
+            $typeField = $typeField->setFormTypeOption('disabled', true);
+        }
+
+        $fields[] = $typeField;
+        $fields[] = FormField::addColumn(8);
+        $fields[] = TextField::new('name','Désignation');
+        $fields[] = DateField::new('startRegistration', 'Date de début d\'enrégistrement')->setFormat('dd/MM/yy')->onlyOnForms();
+        $fields[] = DateField::new('endRegistration', 'Date de fin d\'enrégistrement ')->setFormat('dd/MM/yy')->onlyOnForms();       
+        $fields[] = DateField::new('startDate', 'Date de début')->setFormat('dd/MM/yy');
+        $fields[] = DateField::new('endDate', 'Date de fin')->setFormat('dd/MM/yy');
+        $fields[] = BooleanField::new('selectable','Sélection')
+                ->renderAsSwitch()->onlyOnForms();
+        $fields[] = DateField::new('createdAt')->onlyOnDetail();
+        $fields[] = TextareaField::new('paymentInfo','Informations de réglement')->onlyOnForms();
+        $fields[] = TextareaField::new('information','Informations utiles')->onlyOnForms();
             
-            FormField::addFieldset('Organisateurs'),
-            CollectionField::new('competitionsUsers')
+        $fields[] = FormField::addFieldset('Organisateurs');
+        $fields[] = CollectionField::new('competitionsUsers')
                 ->setEntryType(CompetitionsUsersType::class)
                 ->onlyOnForms()
                 ->allowAdd()
                 ->allowDelete()
-                ->setLabel('Organisateurs de la compétition')
-        ];
+                ->setLabel('Organisateurs de la compétition');
+
+        return $fields;
     }
     
     public function createIndexQueryBuilder(
@@ -261,7 +282,8 @@ class CompetitionsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $crewsByCompetitionExportAction)            
             ->add(Crud::PAGE_INDEX, $exportPipperByCompetitionAction)
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
-            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)            
+            ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
             ->reorder(Crud::PAGE_INDEX, [
                 'registeredListAction',
                 'newRegistrationAction',

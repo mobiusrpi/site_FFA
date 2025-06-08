@@ -12,7 +12,6 @@ use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
@@ -38,7 +37,6 @@ class UsersCrudController extends AbstractCrudController
 {   
     private $createdAt;    
     private $updatedAt;
-
 
     public static function getEntityFqcn(): string
     {
@@ -187,7 +185,8 @@ class UsersCrudController extends AbstractCrudController
 
         return $actions 
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
-            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)            
+            ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
                 return $action
                     ->setIcon('fa fa-pen') // or 'fas fa-edit'
@@ -315,7 +314,7 @@ class UsersCrudController extends AbstractCrudController
         $user = $this->security->getUser();
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            // If the user is an admin, show all users
+            // If the user is an admin, show all users exept archived
             $qb ->andWhere('entity.archivedAt IS NULL')
                 ->orderBy('entity.lastname', 'ASC'); 
             return $qb;

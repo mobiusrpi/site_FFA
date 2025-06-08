@@ -7,6 +7,9 @@ use Symfony\Component\Mime\Email;
 use App\Repository\ResultsRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
@@ -16,6 +19,16 @@ class ResultsCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Results::class;
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        return $actions        
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)  
+            ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)              
+            ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)            
+            ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)  
+        ;
     }
 
     //The route admin_result_selected_email is redirected to this function in the file

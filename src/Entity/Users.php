@@ -181,7 +181,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setLastname(string $lastname): static
     {
-        $this->lastname = $lastname;
+        $this->lastname = strtoupper($lastname);
 
         return $this;
     }
@@ -194,7 +194,15 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
  
     public function setFirstname(string $firstname): static
     {
-        $this->firstname = $firstname;
+        // Diviser le prénom en parties
+        $firstname = str_replace(' ', '-', $firstname);
+        $parts = explode('-', $firstname);
+        $formattedParts = array_map(function ($part) {
+            return ucfirst(strtolower(trim($part)));
+        }, $parts);
+
+        // Rejoindre les parties avec un tiret
+        $this->firstname = implode('-', $formattedParts);
 
         return $this;
     }
