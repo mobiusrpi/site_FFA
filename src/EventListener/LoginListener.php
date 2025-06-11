@@ -41,7 +41,6 @@ class LoginListener
         if (!$user->getLicenseFfa()) {
             return;
         }
-    dd('test2');
 //dd($user->getLicenseFfa());
         $result = $this->smileService->verifyLicense(
             $user->getLicenseFfa(),

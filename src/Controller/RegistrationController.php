@@ -36,7 +36,7 @@ class RegistrationController extends AbstractController
         \DateTimeInterface $birthdate,
         SmileService $smileService
     ): JsonResponse {
-dd('test1');
+
         return $this->json($smileService->verifyLicense($license, $birthdate));
     }
 
