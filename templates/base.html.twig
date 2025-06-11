@@ -41,6 +41,14 @@
                 </div>
               </div>
             {% endif %}
+            {% if app.user and app.user.licenseFfa and app.user.endValidity < date() %}
+              <div class='alert alert-warning alert-dismissible' role='alert'>
+                <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
+                <div class='alert-message'>
+                  <strong>Votre licence fédérale est invalide ou périmée. Accès restreint</strong>
+                </div>
+              </div>
+            {% endif %}
           {% endblock %}
             {% include '_partials/_flash.html.twig' %}
           {% block body %}

@@ -74,8 +74,6 @@ final class CrewsController extends AbstractController
        };
         $compet = $repositoryCompetition->find($competId);     
 
-    //    $this->addNavigatorFieldListener->setCompetTypeId($compet->getTypeCompetition()->getId());
-    //    $this->addNavigatorFieldListener->setCompetId($compet->getId());
         $crew = new Crews();      
         $crew->setRegisteredAt(new \DateTimeImmutable());        
         $crew->setRegisteredby($user);
@@ -175,6 +173,5 @@ final class CrewsController extends AbstractController
             'compet' => $compet,
             'form' => $form,
             ]);
-
     }
 }

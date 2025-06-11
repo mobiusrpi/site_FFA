@@ -11,8 +11,9 @@
     </button>
 
     <!-- Desktop full navbar -->
-    <div class="d-none d-md-flex justify-content-between w-100" id="navbarMain">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    <div class="d-none d-md-flex justify-content-between  align-items-cente w-100 px-3" id="navbarMain">
+      <div class="flex-grow-1"></div>   <!-- empty div -->   
+      <ul class="navbar-nav mb-2 mb-lg-0 mx-auto">
         <li class="nav-item">
           <a class="nav-link {% if app.request.attributes.get('_route') == 'home' %}active{% endif %}"
              href="{{ path('home') }}">Accueil</a>
@@ -30,14 +31,16 @@
       </ul>
 
       <!-- Desktop user block -->
-      <div class="d-flex">
+      <div class="flex-grow-1 d-flex justify-content-end">
         {% if is_granted('IS_AUTHENTICATED_FULLY') %}
           <div class="dropdown">
             <a class="btn btn-outline-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Mon compte
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="{{ path('crews_registration_list') }}">Mes inscriptions</a></li>
+              {% if app.user.licenseFfa %}
+                <li><a class="dropdown-item" href="{{ path('crews_registration_list') }}">Mes inscriptions</a></li>
+              {% endif %}            
               <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profil</a></li>
               <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
             </ul>

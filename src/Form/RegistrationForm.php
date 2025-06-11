@@ -79,46 +79,6 @@ class RegistrationForm extends AbstractType
                     ])
                 ],
             ])
-            ->add('licenseFfa',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '15'
-                ],
-                'label' => 'Licence fédérale',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-                'constraints' =>  [
-                    new NotBlank([
-                        'message' => 'La licence ne peut pas être vide.'
-                    ]),
-                    new Regex([
-                        'pattern' => '/^[0-9]/',
-                        'message' => 'Format numerique seulement',
-                    ])
-                ],
-            ])
-            ->add('agreeTerms', CheckboxType::class, [
-                'mapped' => false,
-                'label'    => 'En m\'inscrivant j\'accepte les 
-                <a href="files/GCU_sports.ff-aero.fr.pdf">condition générales d\'utilisation</a>',
-                'label_html' => true,
-                'label_attr' => [
-                    'class' => 'form-check-label me-2'
-                ],
-                'constraints' => [
-                    new IsTrue([
-                        'message' => 'Vous devez accepter les conditions.',
-                    ]),
-                ],
-            ])
-            ->add('isCompetitor', CheckboxType::class, [
-                'required' => false,
-                'label'    => 'Complément pour competiteur',
-                'label_attr' => [
-                    'class' => 'form-check-label me-2'
-                ],
-            ])
             ->add('plainPassword', PasswordType::class, [
                 // instead of being set onto the object directly,
                 // this is read and encoded in the controller
@@ -143,11 +103,50 @@ class RegistrationForm extends AbstractType
                     ]), 
                 ],
             ])
+            ->add('isCompetitor', CheckboxType::class, [
+                'required' => false,
+                'label'    => 'Complément pour competiteur',
+                'label_attr' => [
+                    'class' => 'form-check-label me-2'
+                ],
+            ])
+            ->add('agreeTerms', CheckboxType::class, [
+                'mapped' => false,
+                'label'    => 'En m\'inscrivant j\'accepte les 
+                <a href="files/GCU_sports.ff-aero.fr.pdf">condition générales d\'utilisation</a>',
+                'label_html' => true,
+                'label_attr' => [
+                    'class' => 'form-check-label me-2'
+                ],
+                'constraints' => [
+                    new IsTrue([
+                        'message' => 'Vous devez accepter les conditions.',
+                    ]),
+                ],
+            ])            
+            ->add('licenseFfa',TextType::class,[
+                'attr' => [
+                    'class' => 'form-control',                    
+                    'maxlength' => '15'
+                ],
+                'required' => false,                
+                'label' => 'Licence fédérale',
+                'label_attr' => [
+                    'class' => 'form-label fw-bold'
+                ],
+                'constraints' =>  [
+                    new Regex([
+                        'pattern' => '/^[0-9]/',
+                        'message' => 'Format numerique seulement',
+                    ])
+                ],
+            ])
             ->add('dateBirth', DateType::class, [
                 'widget' => 'single_text',
                 'attr' => [
                     'class' => 'form-control',                    
                 ],
+                'required' => false,                
                 'label' => 'Date de naissance',
                 'required' => false,
                 'label_attr' => [

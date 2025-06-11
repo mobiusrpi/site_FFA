@@ -30,9 +30,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 //    #[Assert\Regex('/^(\+33|0)[1-9][0-9 ]{8,12}$/', message: 'Numéro de téléphone invalide')]
     private ?string $email = null;
 
-    #[ORM\Column(type: "json")]
-    private array $roles = [];
-
     /**
      * @var string The hashed password
      */
@@ -40,22 +37,44 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(groups: ['create'])]
     private ?string $password = null;
 
+    /**
+     * @var Collection<int, CompetitionsUsers>
+     */
+   #[ORM\OneToMany(mappedBy: 'user', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
+    private Collection $competitionsUsers;
+
+    private ?string $plainPassword = null;
+
+    /**
+     * @return string|null
+     */
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    /***
+     * @param string|null $plainPassword
+     */
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        return $this;
+    }
+
     #[ORM\Column]
     private bool $isVerified = false;
 
-    #[ORM\Column]
-    private bool $isCompetitor = false;
-
-    #[ORM\Column(length: 10, unique: true)]
-    private ?string $licenseFfa = null;
-
-    #[ORM\Column(length: 30)]
+     #[ORM\Column(length: 30)]
     #[Assert\NotBlank()]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 30)]
     #[Assert\NotBlank()]
     private ?string $firstname = null;
+
+   #[ORM\Column]
+    private bool $isCompetitor = false;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -85,6 +104,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)] 
     private ?\DateTimeImmutable $dateBirth = null;
 
+    #[ORM\Column(length: 9,nullable: true)]
+    private ?string $licenseFfa = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $endValidity = null;
+
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $flyingclub = null;
 
@@ -100,8 +125,10 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true, enumType: Polosize::class)]
     private ?Polosize $poloSize = null;
 
+    #[ORM\Column(type: "json")]
+    private array $roles = [];
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
     /**
@@ -122,31 +149,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'registeredby')]
     private Collection $registeredBy;
     
-    /**
-     * @var Collection<int, CompetitionsUsers>
-     */
-   #[ORM\OneToMany(mappedBy: 'user', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
-    private Collection $competitionsUsers;
-
-    private ?string $plainPassword = null;
-
-    /**
-     * @return string|null
-     */
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    /***
-     * @param string|null $plainPassword
-     */
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
-        return $this;
-    }
-
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();       
@@ -180,8 +182,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function setLastname(string $lastname): static
-    {
-        $this->lastname = strtoupper($lastname);
+    {   
+        $trimLastname = rtrim($lastname);
+        $this->lastname = strtoupper($trimLastname);
 
         return $this;
     }
@@ -207,18 +210,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
     
-    public function getLicenseFfa(): ?string
-    {
-        return $this->licenseFfa;
-    }
-
-    public function setLicenseFfa(string $licenseFfa): static
-    {
-        $this->licenseFfa = $licenseFfa;
-
-        return $this;
-    }
-
    /**
      * A visual identifier that represents this user.
      *
@@ -341,6 +332,30 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDateBirth(\DateTimeImmutable $dateBirth): static
     {
         $this->dateBirth = $dateBirth;
+
+        return $this;
+    }
+
+    public function getLicenseFfa(): ?string
+    {
+        return $this->licenseFfa;
+    }
+
+    public function setLicenseFfa(string $licenseFfa): static
+    {
+        $this->licenseFfa = $licenseFfa;
+
+        return $this;
+    }
+    
+    public function getEndValidity(): ?\DateTimeImmutable
+    {
+        return $this->endValidity;
+    }
+
+    public function setEndValidity(\DateTimeImmutable $endValidity): static
+    {
+        $this->endValidity = $endValidity;
 
         return $this;
     }

@@ -3,19 +3,26 @@
 namespace App\Repository;
 
 use App\Entity\Users;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Entity\Competitions;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
  * @extends ServiceEntityRepository<Users>
  */
 class UsersRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
-    public function __construct(ManagerRegistry $registry)
+    private $entityManager;
+
+    public function __construct(
+        ManagerRegistry $registry,
+        EntityManagerInterface $entityManager,)
     {
+        $this->entityManager = $registry->getManager();
         parent::__construct($registry, Users::class);
     }
 
@@ -37,13 +44,17 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
  /**
   * Query users not yet registered
   */
-    public function getUsersListNotYetRegistered($compet, array $includeUserIds = []) 
-    {    
+    public function getUsersListNotYetRegistered(
+        $competId,
+        array $includeUserIds = [])
+    {   
+        $competition = $this->entityManager->getRepository(Competitions::class)->find($competId) ;
         $qb = $this->createQueryBuilder('user');
         $qb->leftJoin('App\Entity\Crews', 't', 'WITH', '(t.pilot = user.id OR t.navigator = user.id) AND t.competition = :competId')
-            ->setParameter('competId', $compet)
-            ->where('user.isVerified = 1')
-            ->andWhere('user.archivedAt IS NULL');
+            ->setParameter('competId', $competId)
+            ->where('user.isVerified = 1');
+//            ->andWhere('user.endValidity >= :dateCompet')              
+//            ->setParameter('dateCompet', $competition->getEndDate());
             
         if (!empty($includeUserIds)) {
             $qb->andWhere($qb->expr()->orX(

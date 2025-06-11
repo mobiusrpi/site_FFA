@@ -34,19 +34,29 @@ class CsvExporter
     public function exportPipper(array $data, string $filename, string $delimiter = ';', string $encoding = 'UTF-8'): StreamedResponse
     {
         $response = new StreamedResponse(function () use ($data, $delimiter, $encoding) {
-            $handle = fopen('php://output', 'w');
+            $buffer = fopen('php://temp', 'r+');
+//            $handle = fopen('php://output', 'w');
 
             if (!empty($data)) {
                 // En-têtes
-                fputcsv($handle, array_keys($data[0]), $delimiter);
+//                fputcsv($handle, array_keys($data[0]), $delimiter);
+                fputcsv($buffer, array_keys($data[0]), $delimiter);;
 
                 // Lignes
                 foreach ($data as $row) {
-                    fputcsv($handle, $row, $delimiter);
+//                    fputcsv($handle, $row, $delimiter);
+                    fputcsv($buffer, $row, $delimiter);
                 }
             }
+            // Read the buffer content and replace LF with CRLF
+            rewind($buffer);
+            $content = stream_get_contents($buffer);
+            $content = str_replace("\n", "\r\n", $content);
 
-            fclose($handle);
+            // Output the modified content
+            echo $content;
+
+            fclose($buffer);
         });
 
         $response->headers->set('Content-Type', 'text/csv; charset=' . $encoding);

@@ -39,9 +39,15 @@ services:
         tags:
             - { name: doctrine.event_subscriber }
 
+    App\EventListener\LoginListener:
+        tags:
+            - { name: kernel.event_listener, event: Symfony\Component\Security\Http\Event\LoginSuccessEvent, method: onLoginSuccess }
+
+
     App\Service\SmileService:
         arguments:
-            $apiBaseUrl: 'https://www.ffa-aero.fr/api/ffa_api_j.php'
-            $apiKey: '%env(SMILE_API_KEY)%'
+            $apiUrl: 'https://wstools.ff-aero.fr/Licencies/IsValid'
+            $apiUsername: '%env(SMILE_API_USERNAME)%'            
+            $apiPassword: '%env(SMILE_API_PASSWORD)%'
 
           

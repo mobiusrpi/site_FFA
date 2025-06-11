@@ -28,7 +28,6 @@ class CsvUploadController extends AbstractController
                 if (($handle = fopen($filePath, "r")) !== FALSE) 
                 {
                     while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                        dd($data);
                         if ($data !== null) {
                             if ($data['Catégorie :'] = "Elite") {
                                 $result = new Results();

@@ -11,11 +11,13 @@ use App\Form\RegistrationForm;
 use App\Security\EmailVerifier;
 use App\Service\SendMailService;
 use App\Repository\UsersRepository;
+use Symfony\Component\Form\FormError;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -23,14 +25,19 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class RegistrationController extends AbstractController
 {
     public function __construct(
-        private EmailVerifier $emailVerifier){}
+        private EmailVerifier $emailVerifier,
+        private SmileService $smileService
+    ) {}
 
-    #[Route('/verify-smile/{license}', name: 'verify_identity')]
-    public function verifyLicense(string $license, SmileService $smileService): Response
-    {
-        $result = $smileService->verifyLicense($license);
-dd($result);
-        return $this->json($result);
+    #[Route('/verify_smile/{license}/{birthdate}', name: 'verify_identity_smile', methods: ['GET'])]
+    public function verifyUserSmile(
+        Request $request,
+        string $license,
+        \DateTimeInterface $birthdate,
+        SmileService $smileService
+    ): JsonResponse {
+dd('test1');
+        return $this->json($smileService->verifyLicense($license, $birthdate));
     }
 
     #[Route('/register', name: 'new_register')]
@@ -50,6 +57,25 @@ dd($result);
         $form = $this->createForm(RegistrationForm::class, $user);
         $form->handleRequest($request);
 
+        if ($form->isSubmitted()) {
+            $license = $form->get('licenseFfa')->getData(); // Ensure your form has this field
+            $birthdate = $form->get('dateBirth')->getData(); // Replace with actual field name
+// dd($license,$birthdate);
+            if (!$license === null || !$birthdate === null){
+            // Check if SmileService validates the user
+                $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+
+                if (isset($dataSmile['error'])) {
+                    $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
+                } elseif (!$dataSmile['isValid']) {
+                    $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
+                } else {
+                    $user = $form->getData();
+                    $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
+                    $user->setEndValidity($dateValidity);
+                }
+            }      
+        }
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
@@ -101,6 +127,25 @@ dd($result);
         $user->setUpdatedAt( new \DateTimeImmutable());  
         $form = $this->createForm(EditProfilType::class, $user);
         $form->handleRequest($request);
+        $license = $form->get('licenseFfa')->getData(); // Ensure your form has this field
+        $birthdate = $form->get('dateBirth')->getData(); // Replace with actual field name
+
+        // Check if SmileService validates the user
+        $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+
+        if (isset($dataSmile['error'])) {
+            $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
+        } elseif (!$dataSmile['isValid'] ) {
+            if ($dataSmile['isExist'] ) {
+                $form->addError(new FormError('Votre licence est expirée : ' . $dataSmile['endingDate']));
+            }else{
+                $form->addError(new FormError('La licence est invalide'));
+            }
+        } else {
+            $user = $form->getData();
+            $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
+            $user->setEndValidity($dateValidity);
+        }      
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var string $plainPassword */
@@ -118,6 +163,7 @@ dd($result);
 
         return $this->render('registration/edit.profil.html.twig', [
             'profilForm' => $form,
+            'user' => $user,
         ]);
     }
 

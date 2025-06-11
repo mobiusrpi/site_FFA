@@ -6,16 +6,16 @@
     <section class='container mt-4' >
         <h3 class="h3 text-center font-weight-normal mb-3">M'inscrire</h3> 
         {{ form_errors(registrationForm) }}
-
+{{ dump(registrationForm.vars) }}
         {{ form_start(registrationForm) }}
-        <div class="row justify-items-center">
-            <div class="col-5 border border-dark border-1 rounded-3 p-4 me-2">
-            <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4> 
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-8 col-md-5 col-lg-4 me-md-3 border border-dark border-1 rounded-4 mb-3 p-3">
+                <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4> 
                 {{ form_label(registrationForm.email) }}                
                 {% if registrationForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>
                 {% endif %}                
-                <div class='text-danger'> 
+                <div class='text-danger'>  
                     {{ form_errors(registrationForm.email) }}   
                 </div> 
                 {{ form_widget(registrationForm.email) }}
@@ -47,22 +47,11 @@
                 </div>
                 {{ form_widget(registrationForm.plainPassword) }}
  
-                {{ form_label(registrationForm.licenseFfa) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
-                <div class='text-danger'>            
-                    {{ form_errors(registrationForm.licenseFfa) }}
-                </div>
-                {{ form_widget(registrationForm.licenseFfa) }}
-
                 <div class="col border border-dark text-center rounded-3 p-2 bg-secondary text-white form-check mt-4">
                     {{ form_row(registrationForm.isCompetitor) }}
                 </div>
             </div>                   
-             <div class="col-6 border border-dark border-1 rounded-3 p-4 ms-2" 
-             id="competitorFieldsContainer" 
-             style="display: none;">
+            <div class="col-12 col-sm-8 col-md-5 col-lg-4 border border-dark border-1 rounded-4 p-3">
                 <h4 class="text-center font-weight-normal mb-3">Informations additionnelles pour les compétiteurs</h4>              
 
                 {{ form_label(registrationForm.dateBirth) }}
@@ -74,6 +63,15 @@
                 </div>             
                 {{ form_widget(registrationForm.dateBirth) }}
                       
+                {{ form_label(registrationForm.licenseFfa) }}
+                {% if registrationForm.vars.required %}
+                    <span class="required-asterisk text-danger">*</span>
+                {% endif %}                
+                <div class='text-danger'>            
+                    {{ form_errors(registrationForm.licenseFfa) }}
+                </div>
+                {{ form_widget(registrationForm.licenseFfa) }}
+
                 {{ form_label(registrationForm.flyingclub) }}
                 {% if registrationForm.vars.required %}
                     <span class="required-asterisk text-danger">*</span>

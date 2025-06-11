@@ -316,10 +316,12 @@ class UsersCrudController extends AbstractCrudController
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
         // Get the current authenticated user
         $user = $this->security->getUser();
+
+    //dd($user);
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             // If the user is an admin, show all users exept archived
-            $qb ->andWhere('entity.archivedAt IS NULL')
+            $qb 
                 ->orderBy('entity.lastname', 'ASC'); 
             return $qb;
         }
