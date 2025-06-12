@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.jwtsecret: "%env(JWT_SECRET)%"
+    apiUrl: 'https://wstools.ff-aero.fr/Licencies/IsValid'
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -40,13 +42,14 @@ services:
             - { name: doctrine.event_subscriber }
 
     App\EventListener\LoginListener:
+        arguments:
+            $apiUrl: '%apiUrl%'
         tags:
             - { name: kernel.event_listener, event: Symfony\Component\Security\Http\Event\LoginSuccessEvent, method: onLoginSuccess }
 
-
     App\Service\SmileService:
         arguments:
-            $apiUrl: 'https://wstools.ff-aero.fr/Licencies/IsValid'
+            $apiUrl: '%apiUrl%'
             $apiUsername: '%env(SMILE_API_USERNAME)%'            
             $apiPassword: '%env(SMILE_API_PASSWORD)%'
 

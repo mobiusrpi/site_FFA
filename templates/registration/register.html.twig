@@ -3,45 +3,42 @@
 {% block title %}Inscription{% endblock %}
 
 {% block body %}
+   <style>
+        .smaller-text {
+            font-size: 0.8em; /* Adjust the size as needed */
+        }
+        .required-field {
+            border: 1px solid red; /* Example style to indicate required fields */
+        }
+    </style>
+
     <section class='container mt-4' >
         <h3 class="h3 text-center font-weight-normal mb-3">M'inscrire</h3> 
         {{ form_errors(registrationForm) }}
-{{ dump(registrationForm.vars) }}
+        
         {{ form_start(registrationForm) }}
         <div class="row justify-content-center">
-            <div class="col-12 col-sm-8 col-md-5 col-lg-4 me-md-3 border border-dark border-1 rounded-4 mb-3 p-3">
+            <div class="col-md-5 border border-dark border-1 rounded-3 order-1 order-md-1 mb-3 p-4 me-2">
                 <h4 class="text-center font-weight-normal mb-3">Enregistrement</h4> 
-                {{ form_label(registrationForm.email) }}                
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
+                {{ form_label(registrationForm.email) }}                               
                 <div class='text-danger'>  
                     {{ form_errors(registrationForm.email) }}   
                 </div> 
                 {{ form_widget(registrationForm.email) }}
 
-                {{ form_label(registrationForm.lastname) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
+                {{ form_label(registrationForm.lastname) }}               
                 <div class='text-danger'>                
                     {{ form_errors(registrationForm.lastname) }}
                 </div>
                 {{ form_widget(registrationForm.lastname) }}
  
-                {{ form_label(registrationForm.firstname) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
+                {{ form_label(registrationForm.firstname) }}            
                 <div class='text-danger'>                    
                     {{ form_errors(registrationForm.firstname) }}
                 </div>
                 {{ form_widget(registrationForm.firstname) }}
 
-                {{ form_label(registrationForm.plainPassword) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
+                {{ form_label(registrationForm.plainPassword) }}              
                 <div class='text-danger'>                
                     {{ form_errors(registrationForm.plainPassword) }}
                 </div>
@@ -51,40 +48,28 @@
                     {{ form_row(registrationForm.isCompetitor) }}
                 </div>
             </div>                   
-            <div class="col-12 col-sm-8 col-md-5 col-lg-4 border border-dark border-1 rounded-4 p-3">
+            <div class="col-md-6 border border-dark border-1 rounded-3 order-2 order-md-2  p-4 ms-2" id='competitorFieldsContainer'>
                 <h4 class="text-center font-weight-normal mb-3">Informations additionnelles pour les compétiteurs</h4>              
 
                 {{ form_label(registrationForm.dateBirth) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %} 
                 <div class='text-danger'> 
                     {{ form_errors(registrationForm.dateBirth) }}   
                 </div>             
                 {{ form_widget(registrationForm.dateBirth) }}
                       
-                {{ form_label(registrationForm.licenseFfa) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %}                
+                {{ form_label(registrationForm.licenseFfa) }}                
                 <div class='text-danger'>            
                     {{ form_errors(registrationForm.licenseFfa) }}
                 </div>
                 {{ form_widget(registrationForm.licenseFfa) }}
 
                 {{ form_label(registrationForm.flyingclub) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %} 
                 <div class='text-danger'> 
                     {{ form_errors(registrationForm.flyingclub) }}
                 </div>                
                 {{ form_widget(registrationForm.flyingclub) }}
                       
                 {{ form_label(registrationForm.phone) }}
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %} 
                 <div class='text-danger'> 
                     {{ form_errors(registrationForm.phone) }}
                 </div>                
@@ -96,19 +81,13 @@
                 </div> 
                 {{ form_widget(registrationForm.gender) }}
 
-                {{ form_label(registrationForm.committee) }}              
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %} 
+                {{ form_label(registrationForm.committee) }}               
                 <div class='text-danger'>                
                     {{ form_errors(registrationForm.committee) }}
                 </div>                
                 {{ form_widget(registrationForm.committee) }}
 
                 {{ form_label(registrationForm.poloSize) }}            
-                {% if registrationForm.vars.required %}
-                    <span class="required-asterisk text-danger">*</span>
-                {% endif %} 
                 <div class='text-danger'>                 
                     {{ form_errors(registrationForm.poloSize) }}                    
                 </div>                 
@@ -129,9 +108,15 @@
     </section>    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            var emailField = document.getElementById('registration_form_email');
+            var lastnameField = document.getElementById('registration_form_lastname');
+            var firstnameField = document.getElementById('registration_form_firstname');
+            var plainPasswordField = document.getElementById('registration_form_plainPassword');
             var checkbox = document.getElementById('registration_form_isCompetitor');
             var competitorFieldsContainer = document.getElementById('competitorFieldsContainer');
+            var licenseFfaField = document.getElementById('registration_form_licenseFfa');
             var dateBirthField = document.getElementById('registration_form_dateBirth');
+            var flyingclubField = document.getElementById('registration_form_flyingclub');
             var phoneField = document.getElementById('registration_form_phone');
             var genderField = document.getElementById('registration_form_gender');
             var committeeField = document.getElementById('registration_form_committee');
@@ -140,10 +125,17 @@
             console.log('Checkbox:', checkbox);
             console.log('Additional Field:', competitorFieldsContainer);
 
+
             if (checkbox && competitorFieldsContainer) {
                 checkbox.addEventListener('change', function() {
+                    var isChecked = checkbox.checked;
+                    updateFieldAppearance(emailField, true);                    
+                    updateFieldAppearance(lastnameField, true);
+                    updateFieldAppearance(firstnameField, true);
+                    updateFieldAppearance(plainPasswordField, true);                   
                     if (this.checked) {
                         competitorFieldsContainer.style.display = 'block';
+                        licenseFfaField.required = true;
                         dateBirthField.required = true;
                         flyingclubField.required = true;
                         phoneField.required = true;
@@ -151,13 +143,27 @@
                         poloSizeField.required = true;
                     } else {
                         competitorFieldsContainer.style.display = 'none';
+                        licenseFfaField.required = false;
                         dateBirthField.required = false; 
                         flyingclubField.required = false;                        
                         phoneField.required = false; 
                         committeeField.required = false; 
                         poloSizeField.required = false;                     
-                    }
+                    }           
+                    updateFieldAppearance(licenseFfaField, isChecked);
+                    updateFieldAppearance(dateBirthField, isChecked);
+                    updateFieldAppearance(flyingclubField, isChecked);
+                    updateFieldAppearance(phoneField, isChecked);
+                    updateFieldAppearance(committeeField, isChecked);
+                    updateFieldAppearance(poloSizeField, isChecked);
                 });
+                function updateFieldAppearance(field, isRequired) {
+                    if (isRequired) {
+                        field.classList.add('required-field');
+                    } else {
+                        field.classList.remove('required-field');
+                    }
+                }
 
                 // Trigger the change event on page load to set the initial state
                 checkbox.dispatchEvent(new Event('change'));

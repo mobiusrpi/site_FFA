@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 class LoginListener
 {
     public function __construct( 
+        private string $apiUrl,
         private RequestStack $requestStack,        
         private EntityManagerInterface $entityManager,        
         private Security $security,
@@ -37,17 +38,14 @@ class LoginListener
         
             return;
         }
-    
+        // Don't check license if empty
         if (!$user->getLicenseFfa()) {
             return;
         }
-//dd($user->getLicenseFfa());
         $result = $this->smileService->verifyLicense(
             $user->getLicenseFfa(),
             $user->getDateBirth()
         );
-
-        $newEndDate = \DateTimeImmutable::createFromFormat('Y-m-d', $result['endingDate'] ?? '');
         
         $session = $this->requestStack->getSession();
         if ($session instanceof \Symfony\Component\HttpFoundation\Session\Session) {
@@ -56,32 +54,60 @@ class LoginListener
         $session = $this->requestStack->getSession();
         if ($session instanceof SessionInterface && !$session->isStarted()) {
             $session->start();
-        }
-       
-        if ($newEndDate !== false) {
-            $currentEndDate = $user->getEndValidity();
-
-            // Update only if missing or newer
-            if (!$currentEndDate || $newEndDate > $currentEndDate) {
-                $user->setEndValidity($newEndDate);
-                $user->setIsCompetitor(false);
-                $user->setRoles([""]);
-                $this->entityManager->persist($user);                
-                $this->entityManager->flush();
-                if ($session instanceof SessionInterface) {
-                    if (!$session->isStarted()) {
-                        $session->start();
-                    }
-                }        
+        }        
+        if ($session instanceof SessionInterface) {
+            if (!$session->isStarted()) {
+                $session->start();
+            }
+        }      
+        if (isset($result['error']) && $result['error']){  
+              
+            $hostFromUrl = parse_url($this->apiUrl, PHP_URL_HOST); 
+            preg_match('/host\s+"([^"]+)"/', $result['error'], $matches);
+            $hostFromError = $matches[1] ?? null;
+            if ($hostFromUrl === $hostFromError) {     
                 if ($session instanceof Session) {
-                    $session->getFlashBag()->add('success', 'Date de validité de votre licence mise à jour.');
+                    $session->getFlashBag()->add('Danger', 'Vérifier votre connexion internet');
                 }
             } else {
                 if ($session instanceof Session) {
-                    $session->getFlashBag()->add('danger', 'Date de validité de votre licence périmée.');
+                    $session->getFlashBag()->add('Danger', $result(['error']));
                 }
             }
             return;
+        }
+ 
+        if ($result['isValid'])
+        {
+            $endingDateStr = $result['endingDate'] ?? '';
+            $newEndDate = \DateTimeImmutable::createFromFormat('Y-m-d', $endingDateStr);                
+           
+            if ($newEndDate instanceof \DateTimeImmutable){
+                $currentEndDate = $user->getEndValidity();
+                if (!$currentEndDate || $newEndDate->format('Y-m-d') > $currentEndDate->format('Y-m-d')) {
+                    $user->setEndValidity($newEndDate);
+                    $this->entityManager->persist($user);
+                    $this->entityManager->flush();
+                    if (!$currentEndDate ){
+                        $message = 'Licence fédérale vérifiée.';
+                    } else {
+                        $message = 'Date de validité de votre licence mise à jour.';
+                    }                 
+                    if ($session instanceof Session) {
+                        $session->getFlashBag()->add('success',$message);                   
+                    }   
+                }                            
+            }
+        }else{
+            $user->setIsCompetitor(false);
+            $user->setRoles([]);
+
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+
+            if ($session instanceof Session) {
+                $session->getFlashBag()->add('danger', 'Date de validité de votre licence périmée.');
+            }
         }
     }
 }

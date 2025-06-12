@@ -55,25 +55,7 @@ class EditProfilType extends AbstractType
                     ])
                 ],
             ])
-            ->add('licenseFfa',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '15'
-                ],
-                'label' => 'Licence fédérale',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-                'constraints' =>  [
-                    new NotBlank([
-                        'message' => 'La licence ne peut pas être vide.'
-                    ]),
-                    new Regex([
-                        'pattern' => '/^[0-9]/',
-                        'message' => 'Format numerique seulement',
-                    ])                ],            
-            ])
-            ->add('isCompetitor', CheckboxType::class, [
+             ->add('isCompetitor', CheckboxType::class, [
                 'required' => false,
                 'label'    => 'Complément pour competiteur',
                 'label_attr' => [
@@ -81,8 +63,6 @@ class EditProfilType extends AbstractType
                 ],
             ])
             ->add('plainPassword', PasswordType::class, [
-                // instead of being set onto the object directly,
-                // this is read and encoded in the controller
                 'mapped' => false,
                 'attr' => [
                     'autocomplete' => 'new-password',
@@ -103,6 +83,23 @@ class EditProfilType extends AbstractType
                         'max' => 4096,
                     ]), 
                 ],
+            ])
+           ->add('licenseFfa',TextType::class,[
+                'attr' => [
+                    'class' => 'form-control',                    
+                    'maxlength' => '15'
+                ],
+                'required' => false,                      
+                'label' => '<strong>Licence fédérale, </strong><span class="smaller-text">elle sera vérifier avec Smile</span>',
+                'label_html' => true,
+                'label_attr' => [
+                    'class' => 'form-label'
+                ],
+                'constraints' =>  [
+                    new Regex([
+                        'pattern' => '/^[0-9]/',
+                        'message' => 'Format numerique seulement',
+                    ])                ],            
             ])
             ->add('dateBirth', DateType::class, [
                 'widget' => 'single_text',

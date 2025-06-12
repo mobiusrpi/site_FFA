@@ -129,8 +129,9 @@ class RegistrationForm extends AbstractType
                     'class' => 'form-control',                    
                     'maxlength' => '15'
                 ],
-                'required' => false,                
-                'label' => 'Licence fédérale',
+                'required' => false,
+                'label' => '<strong>Licence fédérale, </strong><span class="smaller-text">elle sera vérifier avec Smile</span>',
+                'label_html' => true,
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
