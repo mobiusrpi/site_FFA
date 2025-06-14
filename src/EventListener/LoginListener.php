@@ -40,6 +40,7 @@ class LoginListener
         }
         // Don't check license if empty
         if (!$user->getLicenseFfa()) {
+
             return;
         }
         $result = $this->smileService->verifyLicense(
@@ -76,27 +77,39 @@ class LoginListener
             }
             return;
         }
- 
-        if ($result['isValid'])
+ //dd($result);
+        if ($result['isExist']) //jtremblet@gmail.com
         {
-            $endingDateStr = $result['endingDate'] ?? '';
-            $newEndDate = \DateTimeImmutable::createFromFormat('Y-m-d', $endingDateStr);                
-           
-            if ($newEndDate instanceof \DateTimeImmutable){
-                $currentEndDate = $user->getEndValidity();
-                if (!$currentEndDate || $newEndDate->format('Y-m-d') > $currentEndDate->format('Y-m-d')) {
-                    $user->setEndValidity($newEndDate);
-                    $this->entityManager->persist($user);
-                    $this->entityManager->flush();
-                    if (!$currentEndDate ){
-                        $message = 'Licence fédérale vérifiée.';
-                    } else {
-                        $message = 'Date de validité de votre licence mise à jour.';
-                    }                 
+            if ($result['isValid']) {
+             
+                $endingDateStr = $result['endingDate'] ?? '';
+                $newEndDate = \DateTimeImmutable::createFromFormat('Y-m-d', $endingDateStr);
+                if ($newEndDate instanceof \DateTimeImmutable){
+                    $currentEndDate = $user->getEndValidity();
+                    if (!$currentEndDate || $newEndDate->format('Y-m-d') > $currentEndDate->format('Y-m-d')) {
+                        $user->setEndValidity($newEndDate);
+                        $this->entityManager->persist($user);
+                        $this->entityManager->flush();
+                        if (!$currentEndDate ){
+                            $message = 'Licence fédérale vérifiée.';
+                        } else {
+                            $message = 'Date de validité de votre licence mise à jour.';
+                        }                 
+                        if ($session instanceof Session) {
+                            $session->getFlashBag()->add('success',$message);                   
+                        }      
+                    }
+                }
+            } else {             
+                if (empty($result['endingDate'])) {
                     if ($session instanceof Session) {
-                        $session->getFlashBag()->add('success',$message);                   
-                    }   
-                }                            
+                        $session->getFlashBag()->add('danger', 'Problème de contôle de validité de votre licence avec Smile, vérifiez votre date de naissance.');
+                    }
+                } else {            
+                if ($session instanceof Session) {
+                        $session->getFlashBag()->add('danger', 'Validité de votre licence périmée : ' . $result['endingDate'] );
+                    }                   
+                } 
             }
         }else{
             $user->setIsCompetitor(false);
@@ -104,9 +117,8 @@ class LoginListener
 
             $this->entityManager->persist($user);
             $this->entityManager->flush();
-
             if ($session instanceof Session) {
-                $session->getFlashBag()->add('danger', 'Date de validité de votre licence périmée.');
+                $session->getFlashBag()->add('danger', 'Numéro de licence inconnue.');
             }
         }
     }

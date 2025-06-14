@@ -1,10 +1,10 @@
-        {% for label, messages in app.flashes() %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }} alert-dismisible" role "alert">
-                    <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
-                    <div class='alert-message'>
-                         {{ message|raw  }}
-                    </div>
-                </div>
-            {% endfor %}
-        {% endfor %}
+{% for label, messages in app.flashes() %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} alert-dismissible fade show d-flex justify-content-between align-items-center mt-3" role="alert">
+            <div class="flex-grow-1">
+                {{ message|raw }}
+            </div>                    
+            <button type='button' class='btn-close me' data-bs-dismiss='alert' aria-label='Close'></button>
+        </div>
+    {% endfor %}
+{% endfor %}
