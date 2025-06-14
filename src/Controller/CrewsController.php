@@ -169,7 +169,7 @@ final class CrewsController extends AbstractController
             $entityManager->flush();
             return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
        }
-        return $this->render('pages/crews/editCrew.html.twig', [
+        return $this->render('pages/crews/editTestCrew.html.twig', [
             'compet' => $compet,
             'form' => $form,
             ]);

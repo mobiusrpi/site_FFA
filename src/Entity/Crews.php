@@ -27,7 +27,7 @@ class Crews
     private ?Category $category = null;
 
     #[ORM\Column(length: 8, nullable: true)]    
-//    #[Assert\NotBlank()]
+    #[Assert\NotBlank()]
     private ?string $callsign = null;
 
     #[ORM\Column(enumType: SpeedList::class, nullable: true)]
@@ -36,6 +36,9 @@ class Crews
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $aircraftType = null;
+    
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $aircraftBrand = null;
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $aircraftFlyingclub = null;
@@ -119,7 +122,9 @@ class Crews
     {
         $country1 = ['F','G','D','I','C','N'];
         $country2 = ['OO','HB','EC','PH','OE','OK','S5','OM','SE','OH','OY','LN','LX'];
-        // Supprimer les espaces
+        // Delete dash
+        $callsign = str_replace('-', '', $callsign);        
+        // Delet space
         $callsign = str_replace(' ', '', $callsign);
         $callsign = strtoupper($callsign);
         // Ajouter un tiret après le premier caractère si c'est un "F"
@@ -153,6 +158,18 @@ class Crews
     public function setAircraftType(?string $aircraftType): static
     {
         $this->aircraftType = $aircraftType;
+
+        return $this;
+    }
+
+    public function getAircraftBrand(): ?string
+    {
+        return $this->aircraftBrand;
+    }
+
+    public function setAircraftBrand(?string $aircraftBrand): static
+    {
+        $this->aircraftBrand = $aircraftBrand;
 
         return $this;
     }

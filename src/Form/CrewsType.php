@@ -53,8 +53,6 @@ class CrewsType extends AbstractType
                     )->toArray();
                 }
 
-//            dd($accommodations);
-
                 $form->add('pilot', TextType::class, [
                     'mapped' => false,
                     'data' => $pilot ? $pilot->getLastName() . ' ' . $pilot->getFirstName() : '',

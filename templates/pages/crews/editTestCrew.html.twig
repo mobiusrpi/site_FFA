@@ -1,34 +1,32 @@
- {% extends 'base.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Inscription{% endblock %}
 
-
-{% block body %}  
-    <style>
+{% block body %}
+     <style>
         .required-field {
             border: 1px solid orange; /* style to indicate required fields */
         }
     </style>
 
-   <div class='container-fluid'>
+    <div class='container-fluid'>
         <div class="row justify-content-center">
             <div class="col-12 col-md-11 col-lg-8">
                 <section class="p-3 my-4">
-            
-                    <h4 class="mx-auto text-center fw-bold" style="width: 400px;">Nouvelle inscription</h4>
+                    <h4 class="mx-auto text-center fw-bold" style="width: 400px">Modification d'une inscription</h4>                        
 
-                    <div class="text-center">
+                    <div class= 'text-center'>
                         <p>Compétition se déroulant à <strong>{{ compet.location }}</strong> </br>
-                            du <strong>{{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM y') }}</strong>
-                            au <strong>{{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM y') }}</strong></p>
-                        <p>Épreuve de <strong>{{ compet.typecompetition.typecomp }}</strong></p>
+                            du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+                            au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+                        <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>     </div>
                     </div>
-
+                    
                     {% for message in app.flashes('success') %}
                         <div class="alert alert-success mt-4">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
+                        {{ message }}
+                        </div>   
+                    {% endfor %}  
 
                     {{ form_start(form) }}
                         {% if form_errors(form) is not empty %}
@@ -36,16 +34,15 @@
                                 {{ form_errors(form) }}
                             </div>
                         {% endif %}
-
-                        <div class="mb-3">
-                            <div class="text-center text-break">
+                        <div class="row justify-content-center mb-3">
+                            <div class='col-6 col-md-3'>
                                 {{ form_widget(form.competition) }}
-                            </div>
-                        </div>
-
+                            </div>        
+                        </div>                          
+                        
                         <hr class="bg-danger border-4 border-top border-danger" />
 
-                        <div class="row border rounded-4 border-primary my-3 p-3">
+                        <div class="border rounded-4 border-primary my-3 p-3">
                             <div class="row justify-content-center g-3">
                                 <!-- Left Column -->
                                 <div class="col-12 col-md-5">
@@ -80,17 +77,17 @@
                                     </div>                    
                                     {{ form_errors(form.category) }}
                                 </div>
-                            </div>                             
-                        </div>    
+                            </div>    
+                        </div>
                         <div class="row g-4">       
                             <!-- Aircraft -->                    
                             <div class="col-11 col-md-4 form-group border rounded-4 border-primary ms-3 p-3">     
                                 <div class="justify-content-center fw-bold p-3">
                                     <p class="fw-bold text-center">Avion</p>
-                                    <div class="mb-3">   
+                                    <div class="mb-3">  
                                         {{ form_label(form.callsign) }}
-                                        <div class='required-field'>
-                                            {{ form_widget(form.callsign) }}                           
+                                        <div class='required-field '>
+                                            {{ form_widget(form.callsign) }}
                                         </div>
                                         {{ form_errors(form.callsign) }}
                                     </div>
@@ -126,6 +123,7 @@
                                     </div>
                                 </div>
                             </div>                                         
+                            <!-- Right Column -->          
                             <div class="col-11 col-md-7 form-group border rounded-4 border-primary ms-3 p-3">     
                                 <!-- Accommodation -->                    
                                 <div class='mb-3'>
@@ -139,17 +137,23 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for checkbox in form.competitionAccommodation %}
-                                                    {% set accommodations = compet.competitionAccommodation %}
+                                                {% for checkbox in form.competitionAccommodation %}     
+                                                    {% set accommodations = compet.competitionAccommodation %}                                        
                                                     {% set id = checkbox.vars.value %}
-                                                    {% set competitionAccommodation = accommodations|filter(ca => ca.id == id)|first %}
+                                                    {% set competitionAccommodation = null %}
+                                                    {% for ca in accommodations %}
+                                                        {% if ca.id == id %}
+                                                            {% set competitionAccommodation = ca %}                                       
+                                                        {% endif %}
+                                                    {% endfor %}
                                                     <tr>
                                                         <td class="bg-light text-end align-middle">
                                                             {{ form_label(checkbox, null, {'label_attr': {'class': 'mb-0 fw-bold'}}) }}
                                                             {% if competitionAccommodation %}
-                                                                <small class="text-muted ms-2">( {{ (competitionAccommodation.price / 100)|number_format(2, '.', ',') }} € )</small>
+                                                                <small class="text-muted ms-2">( {{ (competitionAccommodation.price / 100) |number_format(2, '.', ',') }} € )</small>
                                                             {% endif %}
                                                         </td>
+
                                                         <td class="bg-secondary text-center align-middle">
                                                             <div class="d-flex justify-content-center align-items-center w-100 h-100">
                                                                 {{ form_widget(checkbox, {'attr': {'class': 'form-check-input m-0'}}) }}
@@ -163,9 +167,9 @@
                                             {{ compet.paymentInfo|raw }}                              
                                         </div>
                                     </div>   
-                                </div>                              
-                            </div>
-                            <div class="text-center mt-4">
+                                </div>                                                    
+                            </div> 
+                           <div class="text-center mt-4">
                                 <button type="button" id="infoBtn" class="btn btn-info">Informations complémentaires</button>
 
                                 <!-- Modal -->
@@ -179,7 +183,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div>            
                         </div>
                         {{ form_row(form._token) }}
 
@@ -198,20 +202,6 @@
         const infoBtn = document.getElementById('infoBtn');
         const infoModal = document.getElementById('infoModal');
         const okBtn = document.getElementById('okBtn');
-    
-        window.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('infoModal');
-            modal.style.display = 'flex'; 
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const okBtn = document.getElementById('okBtn');
-            const modal = document.getElementById('infoModal');
-
-            okBtn.addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
-        });
 
         document.addEventListener('DOMContentLoaded', function() {
             var checkbox1 = document.getElementById('registration_crew_aircraftSharing');
@@ -233,7 +223,7 @@
                 checkbox1.dispatchEvent(new Event('change'));
             } else {
                 console.error('Checkbox or pilotSharing not found');
-            }  
+            }
         });
 
         document.getElementById('infoBtn').addEventListener('click', () => {
@@ -244,5 +234,4 @@
             document.getElementById('infoModal').style.display = 'none';
         });
     </script>
-
 {% endblock %}

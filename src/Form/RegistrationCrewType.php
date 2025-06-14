@@ -114,7 +114,7 @@ class RegistrationCrewType extends AbstractType
                     'class' => 'form-control',                    
                     'maxlength' => '8'
                 ],                
-                'required' => false,
+                'required' => true,
                 'label' => 'Immatriculation',
                 'label_attr' => [
                     'class' => 'form-label'
@@ -137,6 +137,17 @@ class RegistrationCrewType extends AbstractType
                 ],               
                 'placeholder'=>'Choisir sa vitesse'
              ])
+            ->add('aircraftBrand',TextType::class,[
+                'attr' => [
+                    'class' => 'form-control',                    
+                    'maxlength' => '20'
+                ],
+                'required' => false,                
+                'label' => 'Marque de l\'avion',
+                'label_attr' => [
+                    'class' => 'form-label'
+                ],
+            ])
             ->add('aircraftType',TextType::class,[
                 'attr' => [
                     'class' => 'form-control',                    
@@ -165,7 +176,7 @@ class RegistrationCrewType extends AbstractType
                     'maxlength' => '8'
                 ],                
                 'required' => false,
-                'label' => 'Code OACI',
+                'label' => 'Code OACI de départ',
                 'label_attr' => [
                     'class' => 'form-label'
                 ],

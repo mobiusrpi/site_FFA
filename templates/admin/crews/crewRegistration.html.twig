@@ -5,7 +5,7 @@
 {% block main %}    
 
    <section class 'container mt-4'>
-        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Inscription</h2>  
+        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Administration inscription</h4>  
         {% for message in app.flashes('success') %}
             <div class="alert alert-success mt-4">
               {{ message }}
@@ -40,7 +40,7 @@
                     <div class="row"> 
                         <div>
                             {{ form_label(form.pilot) }}
-                            {% if form.vars.required %}
+                            {% if form.pilot.vars.required %}
                                 <span class="required-asterisk text-danger">*</span>
                             {% endif %}
                         </div>
@@ -60,8 +60,12 @@
                         {% endif %}              
                     </div>
                 </div>
-                <div class="col-4  mx-auto">   
-                    {{ form_label(form.category) }}
+                <div class="col-4 align-self-center mx-auto">   
+                    {{ form_label(form.category) }}                                
+                    {% if form.vars.required %}
+                        <span class="required-asterisk text-danger">*</span>
+                    {% endif %}
+
                     {{ form_widget(form.category) }}
                     {{ form_errors(form.category) }}
                 </div>
@@ -79,17 +83,20 @@
                     </div>                     
                     <div class="row my-2"> 
                         <div>
-                            {{ form_label(form.aircraftSpeed) }}
+                            {{ form_label(form.aircraftSpeed) }}                            
                         </div>
-                        <div class="" style="width: 300px;">
+                        <div class="w-100">
                             {{ form_widget(form.aircraftSpeed) }}
                         </div>
                         {{ form_errors(form.aircraftSpeed) }}
                     </div>
-                    <div class="row"> 
+                    <div class="row mt-2"> 
                         {{ form_row(form.aircraftFlyingclub) }}   
                     </div>                                         
                     <div class="row mt-2">            
+                        {{ form_row(form.aircraftBrand) }}
+                    </div>
+                   <div class="row mt-2">            
                         {{ form_row(form.aircraftType) }}
                     </div>
                     <div class="row mt-2">            

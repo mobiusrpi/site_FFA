@@ -1,126 +1,133 @@
- {% extends 'base.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% block title %}Inscription aux compétitions{% endblock %}
+{% block title %}Inscription{% endblock %}
 
 {% block body %}
-    <section class 'container mt-4'>
-        <h4 class= "mx-auto text-center fw-bold" style="width: 400px">Inscription</h2>  
+    <style>
+        .required-field {
+            border: 1px solid orange; /* style to indicate required fields */
+        }
+    </style>
+
+    <section class='container px-3 px-md-4 my-4'>
+        <h4 class="mx-auto text-center fw-bold" style="width: 400px">Modification d'une inscription</h4>  
+
         {% for message in app.flashes('success') %}
             <div class="alert alert-success mt-4">
-              {{ message }}
+                {{ message }}
             </div>   
         {% endfor %}  
-        <div>
-            <p class= 'text-center'>Inscription pour la compétition se déroulant à </br><strong>{{ compet.location }}</strong>
-            du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
-            au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
+
+        <div class= 'text-center'>
+            <p>Compétition se déroulant à <strong>{{ compet.location }}</strong> </br>
+                du <strong>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }} </strong>
+                au <strong>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</strong></p>
             <p class= 'text-center'>Epreuve de<strong> {{ compet.typecompetition.typecomp }}</strong></p>     </div>
         </div>
 
         {{ form_start(form) }}
-            <div class="mx-auto" style="width: 800px;">
-                {% if form_errors(form) is not empty %}
-                    <div class="alert alert-danger">
-                      {{ form_errors(form) }}
-                    </div>
-                {% endif %}
-                <div class="row justify-content-center">
-                    <div class='col-3'>
-                      {{ form_widget(form.competition) }}
-                    </div>        
-                </div>                          
-                <div class='col-12'>
-                    <hr class="bg-danger border-4 border-top border-danger" />
+            {% if form_errors(form) is not empty %}
+                <div class="alert alert-danger">
+                    {{ form_errors(form) }}
                 </div>
-            </div>  
+            {% endif %}
+            <div class="row justify-content-center mb-3">
+                <div class='col-6 col-md-3'>
+                    {{ form_widget(form.competition) }}
+                </div>        
+            </div>                          
+            
+            <hr class="bg-danger border-4 border-top border-danger" />
 
-            <div class="row mx-auto">
-                <div class="col-4 mx-auto">
-                    <div class="form-group border rounded-4 border-primary mt-4 p-3">                         
-                        <div class="row"> 
+            <div class="border rounded-4 border-primary  my-3 p-3"  >
+                <div class="row g-3">
+                    <!-- Left Column -->
+                    <div class="col-12 col-md-4">
+                        <!-- Pilot -->                   
+                        <div class="mb-3"> 
                             <div>
                                 {{ form_label(form.pilot) }}
-                                {% if form.vars.required %}
-                                    <span class="required-asterisk text-danger">*</span>
-                                {% endif %}
                             </div>
-                            {{ form_widget(form.pilot) }}
+                            <div class='required-field'>
+                                {{ form_widget(form.pilot) }}
+                            </div>
                             {{ form_errors(form.pilot) }}
-                        </div>
-                        <div class="row">                
+                        </div>                        
+                        <!-- Navigator -->                           
+                        <div class="mb-3">                
                             {% if form.navigator is defined %}
-                                <div>
+                                <div class="mb-3">
                                     {{ form_label(form.navigator) }}
-                                    {% if form.vars.required %}
-                                        <span class="required-asterisk text-danger">*</span>
-                                    {% endif %}
                                 </div>
-                                {{ form_widget(form.navigator) }}
+                                <div class='required-field'>
+                                    {{ form_widget(form.navigator) }}
+                                </div>
                                 {{ form_errors(form.navigator) }}
                             {% endif %}              
                         </div>                    
                     </div>
-                </div>
-            
-                <div class="col-4  mx-auto">
-                    <div class="form-group border rounded-4 border-primary mt-4 p-3">   
+                    <div class="col-12 col-md-4 align-self-center">                    
+                        <!-- Category -->
                         {{ form_label(form.category) }}
                         {% if form.vars.required %}
                             <span class="required-asterisk text-danger">*</span>
                         {% endif %}
-                        {{ form_widget(form.category) }}
+                        <div class='required-field'>
+                            {{ form_widget(form.category) }}
+                        </div>                    
                         {{ form_errors(form.category) }}
-                    </div> 
-                </div>
+                    </div>
+                </div>    
             </div>
-            
-            <div class="row m-4">                          
-                <div class="col-4 form-group border rounded-4 border-primary  mx-auto p-2">     
-                    <div class="justify-content-center fw-bold">
-                        <p class='text-center'>
-                            Avion
-                        </p>
-                    </div>  
-                    <div class="row">        
-                        {{ form_row(form.callsign) }}  
-                    </div> 
-                    <div class="row"> 
-                        {{ form_row(form.aircraftFlyingclub) }}   
-                    </div>                                         
-                    <div class="row">            
-                        {{ form_row(form.aircraftType) }}
-                    </div>
-                    <div class="row">            
-                        {{ form_row(form.aircraftOaci) }}
-                    </div>                    
-                    <div class="row"> 
-                        <div>
-                            {{ form_label(form.aircraftSpeed) }}
-                            {% if form.vars.required %}
-                                <span class="required-asterisk text-danger">*</span>
-                            {% endif %}
-                        </div>
-                        <div class="" style="width: 300px;">
-                            {{ form_widget(form.aircraftSpeed) }}
-                        </div>
-                        {{ form_errors(form.aircraftSpeed) }}
-                    </div>
 
-                    <div class="col border border-dark text-center rounded-3  bg-secondary text-white mt-4">
-                        {{ form_errors(form.aircraftSharing) }}
-                        <div>
+            <div class="row my-4 g-4">       
+                <!-- Aircraft -->                    
+                <div class="col-12 col-md-4 form-group border rounded-4 border-primary p-3">     
+                    <div class="justify-content-center fw-bold p-3">
+                        <p class="fw-bold text-center">Avion</p>
+                        <div class="mb-3">  
+                            {{ form_label(form.callsign) }}
+                            <div class='required-field '>
+                                {{ form_widget(form.callsign) }}
+                            </div>
+                            {{ form_errors(form.category) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.aircraftSpeed) }}
+                            <div class="required-field">
+                                {{ form_widget(form.aircraftSpeed) }}
+                            </div>
+                            {{ form_errors(form.aircraftSpeed) }}
+                        </div>
+                        <div class="mb-3"> 
+                            {{ form_row(form.aircraftFlyingclub) }}   
+                        </div>                                         
+                        <div class="mb-3">            
+                            {{ form_row(form.aircraftBrand) }}
+                        </div>
+                        <div class="mb-3">                       
+                            {{ form_row(form.aircraftType) }}
+                        </div>
+                        <div class="mb-3">            
+                            {{ form_row(form.aircraftOaci) }}
+                        </div>                    
+                        <div class="col border border-dark text-center rounded-3 bg-secondary text-white mt-2 p-2">
+                            {{ form_errors(form.aircraftSharing) }}
                             {{ form_label(form.aircraftSharing) }}
-                            <span class="me-2">
+                            <span class="ms-2">
                                 {{ form_widget(form.aircraftSharing) }}
                             </span>
                         </div>
-                    </div>
-                    <div class="row my-2" id="pilot_shared_container" style="display: none;"> 
-                        {{ form_row(form.pilotShared) }}              
+
+                        <div class="mb-3" id="pilot_shared_container" style="display: none;">
+                            {{ form_row(form.pilotShared) }}
+                        </div>
                     </div>
                 </div>                                         
-                <div class="col-7 form-group border rounded-4 border-primary mx-auto">     
-                    <div class='p-3'>
+                <!-- Right Column -->          
+                <div class="col-12 col-md-7 form-group border rounded-4 border-primary p-3">     
+                    <!-- Accommodation -->                    
+                    <div class='mb-3'>
                         {{ form_errors(form.competitionAccommodation) }}
                         <div>
                             <table class="table table-bordered">
@@ -148,7 +155,7 @@
                                                 {% endif %}
                                             </td>
 
-                                            <td class="bg-dark-subtle text-center align-middle">
+                                            <td class="bg-secondary text-center align-middle">
                                                 <div class="d-flex justify-content-center align-items-center w-100 h-100">
                                                     {{ form_widget(checkbox, {'attr': {'class': 'form-check-input m-0'}}) }}
                                                 </div>
@@ -157,44 +164,9 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
-
-                            {{ compet.paymentInfo|raw }}
-
-                            <div class="text-center mt-4">
-                                <button type="button" id="infoBtn" class='btn btn-info'>Informations complémentaires</button>
-                                <!-- Modal background -->
-                                <div id="infoModal" style="
-                                    display: none;
-                                    position: fixed;
-                                    top: 0; left: 0;
-                                    width: 100%; height: 100%;
-                                    background-color: rgba(0,0,0,0.5);
-                                    z-index: 1000;
-                                    display: flex;
-                                    justify-content: center;
-                                    align-items: center;
-                                    padding: 20px;
-                                    box-sizing: border-box;
-                                ">
-                                    <!-- Modal box -->
-                                    <div style="
-                                        background: white;
-                                        border-radius: 10px;
-                                        padding: 20px;
-                                        max-width: 600px;
-                                        width: 100%;
-                                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-                                        text-align: left;
-                                    ">
-                                        <div style="max-height: 70vh; overflow-y: auto;">
-                                            <p style="white-space: pre-line;">{{ compet.information |raw }}</p>
-                                        </div>
-                                        <div style="text-align: right; margin-top: 20px;">
-                                            <button type="button" id="okBtn" style="padding: 8px 16px;" class="btn btn-success">OK</button>
-                                        </div>
-                                    </div>     
-                                </div> 
-                            </div>                                                            
+                            <div class='mb-3'>
+                                {{ compet.paymentInfo|raw }}                              
+                            </div>
                         </div>   
                     </div>                    
                 </div>              
@@ -205,7 +177,7 @@
                 <div class="col-10 text-center">   
                     <button class='btn btn-primary me-4',type='submit'> Valider</button>              
                     <a href ="{{ path('crews_registration_list') }}" class="btn btn-info btn-sm ms-4">
-                      Annuler
+                        Annuler
                     </a>  
                     </br>  
                 </div>   

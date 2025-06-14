@@ -239,7 +239,8 @@ class CrewsCrudController extends AbstractCrudController
             ->autocomplete(false)
             ->allowMultipleChoices(false);
 
-        $fields[] = TextField::new('callsign','Immatriculation')->hideOnIndex();
+        $fields[] = TextField::new('callsign','Immatriculation');
+        $fields[] = TextField::new('aircraftBrand','Marque de l\'avion')->hideOnIndex();
         $fields[] = TextField::new('aircraftType','Type d\'avion')->hideOnIndex();
         $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion')->hideOnIndex();
         $fields[] = ChoiceField::new('aircraftSpeed','Vitesse')
@@ -251,7 +252,7 @@ class CrewsCrudController extends AbstractCrudController
             ->autocomplete(false)
             ->allowMultipleChoices(false)
             ->hideOnIndex();
-        $fields[] = TextField::new('aircraftOaci','Code OACI')->hideOnIndex();
+        $fields[] = TextField::new('aircraftOaci','Code OACI de départ')->hideOnIndex();
         $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?')->hideOnIndex();
         $fields[] = TextField::new('pilotShared','Pilote de partage')->hideOnIndex();
 

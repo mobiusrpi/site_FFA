@@ -27,6 +27,7 @@
                     {% if crews[0].competition.typecompetition.id != 2 %} 
                         <th class='text-center'>Navigateur</th>
                     {% endif %} 
+                    <th class='text-center'>Immatriculation</th>                    
                     <th class='text-center'>Actions</th>
                 </tr>
             </thead>
@@ -37,7 +38,14 @@
                         <td>{{ crew.pilot.getLastname() }} {{ crew.pilot.firstname }}</td>
                         {% if crew.competition.typecompetition.id != 2 %}   
                             <td>{{ crew.navigator.getLastname() }} {{ crew.navigator.firstname }}</td>
-                        {% endif %}                        
+                        {% endif %}   
+                       
+                        {% if crew.aircraftSharing == true %}
+                                <td class='text-warning'>{{ crew.callsign() }}</td>
+                        {% else %}
+                             <td>{{ crew.callsign() }}</td>                          
+                        {% endif %}
+                     
                         <td>
                             <div class="d-flex gap-2">
                                 <a href="{{ ea_url().setAction('edit').setEntityId(crew.id) }}" class="btn btn-sm btn-primary">Modifier</a>
