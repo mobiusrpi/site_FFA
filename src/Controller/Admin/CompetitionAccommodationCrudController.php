@@ -154,8 +154,14 @@ public function configureFields(string $pageName): iterable
         /** @var CompetitionAccommodation $entity */
         $entity = $context->getEntity()->getInstance();
 
-        if (!$entity instanceof CompetitionAccommodation) {
-            throw new \LogicException('Unexpected entity type.');
+        if (!$entity instanceof CompetitionAccommodation) {    
+            $this->addFlash('warning', 'Pas de d\'hébergement pour cette compétition.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionAccommodationCrudController::class,
+                'action' => 'index',
+            ]));
         }
 
         if (!$entity->getCrewAccommodation()->isEmpty()) {

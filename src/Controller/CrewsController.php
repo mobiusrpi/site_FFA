@@ -9,6 +9,7 @@ use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
+use App\Controller\Admin\CrewsCrudController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,10 +47,16 @@ final class CrewsController extends AbstractController
        /** @var Users|null $user */
         $user = $security->getUser();
 
-        if (!$user instanceof Users) {
-            throw $this->createAccessDeniedException('User not authenticated.');
-        }        
-        
+        if (!$user instanceof Users) {       
+            $this->addFlash('warning', 'a non authentifié.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CrewsCrudController::class,
+                'action' => 'index',
+            ]));
+        }
+
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
@@ -91,8 +98,14 @@ final class CrewsController extends AbstractController
         /** @var Users|null $user */
         $user = $security->getUser();
 
-        if (!$user instanceof Users) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+        if (!$user instanceof Users) {       
+            $this->addFlash('warning', 'a non authentifié.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CrewsCrudController::class,
+                'action' => 'index',
+            ]));
         }
 
         if (!$user->isVerified()){
@@ -158,8 +171,14 @@ final class CrewsController extends AbstractController
         /** @var Users|null $user */
         $user = $security->getUser();
 
-        if (!$user instanceof Users) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+        if (!$user instanceof Users) {       
+            $this->addFlash('warning', 'a non authentifié.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CrewsCrudController::class,
+                'action' => 'index',
+            ]));
         }
 
         $competByUser = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
@@ -181,10 +200,16 @@ final class CrewsController extends AbstractController
         /** @var Users|null $user */
         $user = $security->getUser();
 
-        if (!$user instanceof Users) {
-            throw $this->createAccessDeniedException('User not authenticated.');
-        }        
-        
+        if (!$user instanceof Users) {     
+            $this->addFlash('warning', 'Utilisateurs non authentifié.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CrewsCrudController::class,
+                'action' => 'index',
+            ]));
+        }
+
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 

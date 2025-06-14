@@ -21,14 +21,8 @@ class LoginListener
         private Security $security,
         private SmileService $smileService,
         private RouterInterface $router, 
+    ){}
 
-    )
-    {
-        $this->smileService = $smileService;
-        $this->router = $router;
-        $this->security = $security;    
-        $this->entityManager = $entityManager;
-    }
 
     public function onLoginSuccess(LoginSuccessEvent $event): void
     {

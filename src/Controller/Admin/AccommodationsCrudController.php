@@ -80,8 +80,14 @@ class AccommodationsCrudController extends AbstractCrudController
         /** @var Accommodations $entity */
         $entity = $context->getEntity()->getInstance();
 
-        if (!$entity instanceof Accommodations) {
-            throw new \LogicException('Unexpected entity type.');
+        if (!$entity instanceof Accommodations) {      
+            $this->addFlash('warning', 'Type d\'hébergement inattendu.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => AccommodationsCrudController::class,
+                'action' => 'index',
+            ]));
         }
 
         if (!$entity->getCompetitionAccommodation()->isEmpty()) {

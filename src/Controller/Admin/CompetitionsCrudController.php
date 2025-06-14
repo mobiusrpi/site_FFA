@@ -7,14 +7,13 @@ use App\Entity\Users;
 use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Service\CsvExporter;
+use Psr\Log\LoggerInterface;
 use Doctrine\ORM\QueryBuilder;
-use App\Entity\TypeCompetition;
 use App\Entity\CompetitionsUsers;
 use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
-use App\Entity\Enum\CompetitionRole;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -35,7 +34,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
@@ -51,12 +49,13 @@ class CompetitionsCrudController extends AbstractCrudController
 {          
     private $security;
     private EntityManagerInterface $entityManager;
-    private AdminUrlGenerator $adminUrlGenerator;
+
 
     public function __construct(     
-        AdminUrlGenerator $adminUrlGenerator,
         Security $security,
-        ManagerRegistry $registry    )
+        ManagerRegistry $registry,
+        private AdminUrlGenerator $adminUrlGenerator,        
+        private LoggerInterface $logger    )
     {       
         $this->adminUrlGenerator = $adminUrlGenerator;
         $this->security = $security;
@@ -301,8 +300,14 @@ class CompetitionsCrudController extends AbstractCrudController
         /** @var Competitions $entity */
         $entity = $context->getEntity()->getInstance();
 
-        if (!$entity instanceof Competitions) {
-            throw new \LogicException('Unexpected entity type.');
+        if (!$entity instanceof Competitions) {     
+            $this->addFlash('warning', 'Compétition inattendue.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));
         }
 
         if (!$entity->getCrew()->isEmpty() or 
@@ -352,8 +357,15 @@ class CompetitionsCrudController extends AbstractCrudController
         $user = $security->getUser();
 
         if (!$user instanceof Users) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+            $this->addFlash('warning', 'Utilisateur no authentifié.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));
         }
+        
         $crew = new Crews; 
         $competition = $repositoryCompetition->find($competId); 
         $crew->setCompetition($competition);
@@ -425,7 +437,12 @@ class CompetitionsCrudController extends AbstractCrudController
                 );
             });
         } else {
-            throw new \RuntimeException('Expected $finalList to be an array, got ' . gettype($finalList));
+            if (!is_array($finalList)) {
+                $this->logger->error('Cannot sort accommodations: $finalList is not an array.', [
+                    'type' => gettype($finalList)
+                ]);
+                $finalList = []; // or handle gracefully
+            }
         }
 
         $formModel = new AccommodationCollection($finalList);
@@ -475,8 +492,14 @@ class CompetitionsCrudController extends AbstractCrudController
         try {
             $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
 
-            if (empty($crews)) {
-                throw $this->createNotFoundException('Pas d\'équipage pour cette compétition.');
+            if (empty($crews)) { 
+                $this->addFlash('warning', 'Pas d\'équipage pour cette compétition.');
+
+                // ✅ Redirect to EasyAdmin Competitions index page
+                return $this->redirect($this->generateUrl('admin', [
+                    'crudControllerFqcn' => CompetitionsCrudController::class,
+                    'action' => 'index',
+                ]));
             }
 
             if ($request->isMethod('POST')) {
@@ -518,12 +541,18 @@ class CompetitionsCrudController extends AbstractCrudController
         int $competId,
         CrewsRepository $repositoryCrew,  
         CsvExporter $csvExporter,
-    ): StreamedResponse
+    ): Response
     {
         $crews = $repositoryCrew->getQueryCrews($competId);   
 
         if (empty($crews)) {
-            throw $this->createNotFoundException('Aucun équipage pour cette compétition.');
+            $this->addFlash('warning', 'Aucun équipage enregistré pour cette compétition.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));
         }
     
         $competName = $crews[0]->getCompetition()->getName();
@@ -573,12 +602,18 @@ class CompetitionsCrudController extends AbstractCrudController
         int $competId,
         CrewsRepository $repositoryCrew,  
         CsvExporter $csvExporter,
-    ): StreamedResponse
+    ): Response
     {
         $crews = $repositoryCrew->getQueryCrews($competId);   
 
         if (empty($crews)) {
-            throw $this->createNotFoundException('Aucun équipage pour cette compétition.');
+            $this->addFlash('warning', 'Aucun équipage enregistré pour cette compétition.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));
         }
     
         $competName = $crews[0]->getCompetition()->getName();
@@ -628,8 +663,14 @@ class CompetitionsCrudController extends AbstractCrudController
         $crews = $repositoryCrew->getQueryCrewsAccommodation($competId);
         $compet = $repositoryCompetition->find($competId);
 
-        if (empty($crews)) {
-            throw $this->createNotFoundException('Pas d\équipage trouvé pour cette compétition.');
+       if (empty($crews)) {
+            $this->addFlash('warning', 'Aucun équipage enregistré pour cette compétition.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));
         }
 
         $fileName = $crews[0]->getCompetition()->getName(); 
@@ -654,9 +695,15 @@ class CompetitionsCrudController extends AbstractCrudController
         $competitions = $competitionsRepository->selectCompetitionByType($typeCompetId);
         
         if (!$competitions) {
-            throw $this->createNotFoundException('Compétition non trouvée.');
+            $this->addFlash('warning', 'Compétition non trouvée.');
+
+            // ✅ Redirect to EasyAdmin Competitions index page
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));
         }
- //dd($competitions);
+
 
         $maxRanking = $request->query->get('maxRanking');
 

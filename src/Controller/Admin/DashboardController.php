@@ -93,8 +93,11 @@ class DashboardController extends AbstractDashboardController
         $user = $security->getUser();
 
         if (!$user instanceof Users) {
-            throw $this->createAccessDeniedException('Vous n\'êtes pas connecté.');
+            $this->addFlash('warning', 'Vous n\'êtes pas connecté.');
+
+           return $this->redirectToRoute('admin_dashboard');
         }
+
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             $competitions = $competitionRepo->getQueryCompetitionSorted();
         } else {
