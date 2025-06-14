@@ -33,22 +33,57 @@ final class CrewsController extends AbstractController
         ]);
     }
 
-    #[Route('/crews/{id}/delete', name: 'admin.crews.delete', methods: ['POST'])]
-    public function delete(int $id, Request $request, Crews $crew, EntityManagerInterface $entityManager): Response
+    #[Route('/crews/{competId}/delete', name: 'crews_delete', methods: ['POST'])]
+    public function delete(
+        int $competId, 
+        Request $request, 
+        EntityManagerInterface $entityManager,
+        CompetitionsRepository $repositoryCompetition,
+        CrewsRepository $repositoryCrew,
+        Security $security    
+    ): Response
     {   
-        if ($this->isCsrfTokenValid('delete'.$crew->getId(), $request->getPayload()->getString('_token'))) {
+       /** @var Users|null $user */
+        $user = $security->getUser();
+
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException('User not authenticated.');
+        }        
+        
+        if (!$user->isVerified()){
+            $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
+
+        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        
+        };
+
+        if (!$user->isCompetitor()){
+            $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
+
+        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        
+        };
+    
+        $compet = $repositoryCompetition->find($competId);  
+
+        $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
+
+        $submittedToken = $request->request->get('_token');
+
+        if ($this->isCsrfTokenValid('delete'.$competId, $submittedToken)) {
             $entityManager->remove($crew);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('_', ['competId'=>$id], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('crews_registration_list', ['competId'=>$competId], Response::HTTP_SEE_OTHER);
     }
 
     #[Route(path :'/registration/crews/{competId}', name: 'crews_registration', methods:['GET','POST'])]
     public function registration(
         $competId,
         Request $request,
-        CompetitionsRepository $repositoryCompetition,                 
+        CompetitionsRepository $repositoryCompetition,    
+        CrewsRepository $repositoryCrew,             
         EntityManagerInterface $entityManager,
         Security $security    
     ): Response
@@ -64,15 +99,27 @@ final class CrewsController extends AbstractController
             $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
 
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
-        
        };
+
         if (!$user->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
-        
-       };
+       };        
+       
         $compet = $repositoryCompetition->find($competId);     
+
+       //Checkif the user is alreadu registered
+ 
+ //   dd($competByUser);
+        $isAlreadyRegistered = $repositoryCrew->userIsRegistered($user->getId(),$compet->getId());
+
+        if ( $isAlreadyRegistered ) 
+        {
+            $this->addFlash('danger','Vous êtes déjà enregistré pour cette competition');     
+
+         return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
+        };
 
         $crew = new Crews();      
         $crew->setRegisteredAt(new \DateTimeImmutable());        
@@ -104,7 +151,7 @@ final class CrewsController extends AbstractController
     
     #[Route(path :'/crews/registration/list', name: 'crews_registration_list', methods:['GET','POST'])]
     public function registration_list(
-        CrewsRepository $repository,
+        CrewsRepository $repositoryCrew,
         Security $security,                 
     ): Response 
     {       
@@ -115,7 +162,7 @@ final class CrewsController extends AbstractController
             throw $this->createAccessDeniedException('User not authenticated.');
         }
 
-        $competByUser = $repository->getQueryRegistrationsCrews($user->getId());
+        $competByUser = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
 
         return $this->render('pages/crews/registrationCrewsList.html.twig', [
             'competByUser_list' => $competByUser            

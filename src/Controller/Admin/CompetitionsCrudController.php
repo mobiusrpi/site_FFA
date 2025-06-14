@@ -242,7 +242,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $cuEntries = $this->entityManager
             ->getRepository(CompetitionsUsers::class)
             ->findBy(['user' => $user]);
-//dd($cuEntries,$user->getRoles());
+
         if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
             $hasAdminRole = true;
         } else {

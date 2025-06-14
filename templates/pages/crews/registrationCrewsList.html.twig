@@ -55,19 +55,43 @@
                         {% endif %}                         
                         <td>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
                         <td>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
-                        {% if is_granted('ROLE_USER') %}   
-                            {% if compet.endRegistration >= date('now') %}
-                            <td>  
-                                <a href='{{ path('edit_crew',{'competId': compet.id}) }}' 
-                                class= 'btn btn-outline-success btn-sm d-inline-flex align-items-center justify-content-center"'>
-                                <i class="fa-solid fa-pen-to-square me-1"></i>Modifier</a>   
-                            </td>                     
-                            {% else %}
-                                <td>       
-                                    <a href='#' 
-                                        class= 'btn btn-outline-danger btn-sm disabled'>Hors délais</a>   
-                                </td>  
-                            {% endif %}
+                        {% if is_granted('ROLE_USER') %}                               
+                            <td>                             
+                                {% if compet.endRegistration >= date('now') %}
+
+                                    <div class="d-flex justify-content-center gap-2">
+                                        {# Edit button #}
+                                        <a href="{{ path('crews_registration',{'competId': compet.id} ) }}"
+                                            class="btn btn-outline-success btn-sm"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Modifier l'insciption">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        {# Delete button #}
+                                        {% if compet.startDate > date('now') %}
+                                            <form method="post" action="{{ path('crews_delete', {'competId': compet.id}) }}"
+                                                onsubmit="return confirm('Confirmer la suppression de votre inscription ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ compet.id) }}">
+                                                <button class="btn btn-outline-danger btn-sm"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top"
+                                                        title="Supprimer l'inscription">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}                           
+                                    </div>
+                                {% else %}                    
+                                    <div class="d-flex justify-content-center gap-2">  
+                                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Hors délai">
+                                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                                <i class="fa-solid fa-clock text-danger"></i>
+                                            </button>  
+                                        </span> 
+                                    </div>                           
+                                {% endif %}                                 
+                            </td>                              
                         {% endif %}       
                     </tr>
                 {% endfor %} 
@@ -93,12 +117,28 @@
                         </p>
 
                         {% if is_granted('ROLE_USER') %}
-                            {% if compet.endRegistration >= date('now') %}
-                                <a href="{{ path('crews_registration', {'competId': compet.id}) }}" 
-                                  class="btn btn-outline-success w-100"><i class="fa-solid fa-pen-to-square me-1"></i>Inscription</a>
-                            {% else %}
-                                <button class="btn btn-outline-info w-100" disabled>Hors délai</button>
-                            {% endif %}
+                            <div class="d-flex gap-2 justify-content-center gap-2 mt-3">
+                                {% if compet.endRegistration >= date('now') %}
+                                   <form action="{{ path('crews_registration', {'competId': compet.id}) }}" method="get" style="display: inline;">
+                                        <button type="submit"
+                                                class="btn btn-outline-success btn-sm text-center"
+                                                title="Modifier">
+                                            <i class="fa-solid fa-pen-to-square"></i>Modifier
+                                        </button>
+                                    </form>
+                                    {% if compet.startDate > date('now') %}
+                                        <form method="post" action="{{ path('crews_delete', {'competId': compet.id}) }}"
+                                            onsubmit="return confirm('Confirmer la suppression de votre inscription ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ compet.id) }}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fa-solid fa-trash me-1"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    {% endif %}                                
+                                {% else %}
+                                    <button class="btn btn-outline-info w-100" disabled>Hors délai</button>
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
                 </div>
