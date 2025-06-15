@@ -338,11 +338,6 @@ class Competitions
         return $this;
     }
     
-    public function __toString(): string
-    {
-        return $this->name ?? 'N/A'; 
-    }
-
     /**
      * @return Collection<int, Results>
      */
@@ -373,4 +368,8 @@ class Competitions
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->name ?? 'N/A'; 
+    }
 }

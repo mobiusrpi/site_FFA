@@ -53,24 +53,27 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
+        yield MenuItem::linkToRoute('Retour accueil', 'fa-solid fa-right-from-bracket', 'home');
+        yield MenuItem::linkToDashboard('Home admin', 'fa fa-home');
+        yield MenuItem::section('Management');
         yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class)
             ->setDefaultSort(['startDate' => 'ASC',]);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
             ->setDefaultSort(['email' => 'ASC']);
         yield  MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
+        yield MenuItem::section('Administration');
         yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page');  
         yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')->setSubItems([
             MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
             MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
             MenuItem::linkToRoute('ANR','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'3'])
         ]);
-        yield MenuItem::subMenu('Administration', 'fa fa-cog')->setSubItems([     
+        yield MenuItem::subMenu('Gestion', 'fa fa-cog')->setSubItems([     
             MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
             MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
             MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
             MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
         ]);   
-        yield MenuItem::linkToRoute('Retour accueil', 'fa-solid fa-right-from-bracket', 'home');
     }
 
     #[Route('/results-import', name: 'admin_results_import_page')]

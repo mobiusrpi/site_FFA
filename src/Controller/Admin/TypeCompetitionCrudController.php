@@ -11,6 +11,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
@@ -65,15 +66,23 @@ class TypeCompetitionCrudController extends AbstractCrudController
                     ->setLabel('Enregistrer')
                     ->setIcon('fa fa-plus')
             )                       
+            ->update(Crud::PAGE_EDIT, Action::SAVE_AND_RETURN,
+                fn (Action $action) => $action
+                    ->setLabel('Enregistrer')
+                    ->setIcon('fa fa-plus')
+            )  
         ;
     }
 
     public function configureFields(string $pageName): iterable
     {
+
         return [
             IdField::new('id')->hideOnForm(),
-            TextField::new('typecomp','Type de compétition'),
-        ];
+            TextField::new('typecomp', 'Type de compétition'),
+            AssociationField::new('championship', 'Championnat de France')
+                ->autocomplete(),      
+            ];
     }
 
     public function delete(AdminContext $context): RedirectResponse
