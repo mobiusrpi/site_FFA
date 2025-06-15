@@ -26,7 +26,8 @@ final class CompetitionsController extends AbstractController
         CompetitionsRepository $repository, 
     ): Response 
     {
-        $sortList = $repository->getQueryCompetitionSorted();
+        $today = (new \DateTime())->setTime(0, 0, 0);
+        $sortList = $repository->getQueryCompetitionSorted($today);
 
         return $this->render('pages/competitions/list.html.twig', [
             'competition_list' => $sortList,            

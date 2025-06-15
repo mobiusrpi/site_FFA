@@ -45,14 +45,12 @@ class CompetitionsRepository extends ServiceEntityRepository
     /**
      * @return CompetitionList[]
      */
-    public function getQueryCompetitionSorted()
+    public function getQueryCompetitionSorted($day)
     {    
-        $today = (new \DateTime())->setTime(0, 0, 0);
-
         return $this->createQueryBuilder('compet')
             ->where('compet.startDate > :displayDate')                    
             ->orderBy('compet.startDate','ASC')
-            ->setParameter('displayDate', $today)
+            ->setParameter('displayDate', $day)
             ->getQuery()
             ->getResult()
         ;

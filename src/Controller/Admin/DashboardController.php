@@ -89,8 +89,10 @@ class DashboardController extends AbstractDashboardController
            return $this->redirectToRoute('admin_dashboard');
         }
 
+        $firstDayYear = (new \DateTime())->setTime(0, 0, 0);
+
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            $competitions = $competitionRepo->getQueryCompetitionSorted();
+            $competitions = $competitionRepo->getQueryCompetitionSorted($firstDayYear);
         } else {
             $competitions = $competitionRepo->getQueryAllowedUsers($user->getId());
         }
