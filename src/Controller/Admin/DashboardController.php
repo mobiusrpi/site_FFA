@@ -89,8 +89,8 @@ class DashboardController extends AbstractDashboardController
            return $this->redirectToRoute('admin_dashboard');
         }
 
-        $firstDayYear = (new \DateTime())->setTime(0, 0, 0);
-
+        $firstDayYear = (new \DateTime('first day of January'))->setTime(0, 0, 0);
+dd($firstDayYear);
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             $competitions = $competitionRepo->getQueryCompetitionSorted($firstDayYear);
         } else {
