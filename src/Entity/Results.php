@@ -19,7 +19,7 @@ class Results
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $gender = null;
 
-    #[ORM\Column(length: 128, nullable: true)]
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $flyingclub = null;
 
     #[ORM\Column(length: 50, nullable: true)]
