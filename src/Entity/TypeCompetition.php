@@ -24,6 +24,10 @@ class TypeCompetition
     #[ORM\OneToMany(targetEntity: Competitions::class, mappedBy: 'typecompetition')]
     private Collection $type;
 
+    #[ORM\ManyToOne(targetEntity: Competitions::class)]
+    #[ORM\JoinColumn(nullable: true)] // or false if it must always be set
+    private ?Competitions $championship = null;
+
     public function __construct()
     {
         $this->type = new ArrayCollection();
@@ -74,8 +78,20 @@ class TypeCompetition
         return $this;
     }
 
+    public function getChampionship(): ?Competitions
+    {
+        return $this->championship;
+    }
+
+    public function setChampionship(?Competitions $championship): self
+    {
+        $this->championship = $championship;
+        return $this;
+    }   
+    
     public function __toString()
     {
         return $this->typecomp; 
     }
+
 }
