@@ -15,13 +15,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class AccommodationsCrudController extends AbstractCrudController
 {    
-    private AdminUrlGenerator $adminUrlGenerator;
 
     public function __construct(
-        AdminUrlGenerator $adminUrlGenerator)
-    {
-        $this->adminUrlGenerator = $adminUrlGenerator;
-    }
+        private AdminUrlGenerator $adminUrlGenerator
+    ) {}
 
     public static function getEntityFqcn(): string
     {

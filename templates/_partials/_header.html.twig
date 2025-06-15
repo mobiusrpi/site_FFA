@@ -39,7 +39,7 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               {% if app.user.licenseFfa %}
-                <li><a class="dropdown-item" href="{{ path('crews_registration_list') }}">Mes inscriptions</a></li>
+                <li><a class="dropdown-item" href="{{ path('user_registrations_list') }}">Mes inscriptions</a></li>
               {% endif %}            
               <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profil</a></li>
               <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
@@ -73,7 +73,7 @@
         <li><hr class="dropdown-divider text-white"></li>
         {% if is_granted('IS_AUTHENTICATED_FULLY') %}
           <li class="nav-item">
-            <a class="nav-link text-white" href="{{ path('crews_registration_list') }}">Mes inscriptions</a>
+            <a class="nav-link text-white" href="{{ path('user_registrations_list') }}">Mes inscriptions</a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="{{ path('edit_profil') }}">Profil</a>

@@ -27,21 +27,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {   
-    private EntityManagerInterface $entityManager;
-    private TypeCompetitionRepository $typeCompetitionRepository;
-    private UrlGeneratorInterface $urlGenerator;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        TypeCompetitionRepository $typeCompetitionRepository,
-        UrlGeneratorInterface $urlGenerator
+        private EntityManagerInterface $entityManager,
+        private TypeCompetitionRepository $typeCompetitionRepository,
+        private UrlGeneratorInterface $urlGenerator
 
-)
-    {
-        $this->entityManager = $entityManager;
-        $this->typeCompetitionRepository = $typeCompetitionRepository;
-        $this->urlGenerator = $urlGenerator;
-    }
+    ) {}
  
     #[Route('/admin', name: 'admin')]
     public function index(): Response
@@ -190,7 +181,14 @@ class DashboardController extends AbstractDashboardController
             'competitions' => $competitions,
         ]);
     }
-    
+
+    /**
+     * Store rally data from Pipper function
+     *
+     * @param array $row
+     * @param Competitions $competition
+     * @return Results
+     */
     private function createResultRallyFromRow(array $row, Competitions $competition): Results
     {          
         $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
@@ -214,7 +212,14 @@ class DashboardController extends AbstractDashboardController
 
         return $result;
     }
-    
+
+/**
+ * Store precision flying data from Pipper
+ *
+ * @param array $row
+ * @param Competitions $competition
+ * @return Results
+ */
     private function createResultPPFromRow(array $row, Competitions $competition): Results
     {          
         $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
@@ -235,38 +240,6 @@ class DashboardController extends AbstractDashboardController
         $result->setObservation(is_numeric($row[22]) ? (int)$row[22] : 0);
         $result->setNavigation(is_numeric($row[23]) ? (int)$row[23] : 0); 
         $result->setLanding(is_numeric($row[24]) ? (int)$row[24] : 0);
-
-        return $result;
-    }
-
-    private function createResultFromPipper(
-        array $row, 
-        Competitions $competition,
-        CrewsRepository $repositoryCrew,
-    ): Results
-    {          
-        $row = array_map(fn($value) => trim(str_replace(["\xC2\xA0", "\xA0", "\u{00A0}"], '', $value)), $row);
-        $result = new Results();
-
-        $result->setCompetition($competition);
-        $result->setCategory($row[4]);
-        $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
-        $crew = $repositoryCrew->find($row[0]);
-        if ($crew ){
-            $result->setCrew($crew);
-        }
-        $result->setLiteralCrew($row[16]);
-        if (!in_array($row[17], ['M', 'F'])) {
-            $result->setGender("");
-        } else {
-            $result->setGender($row[17]);
-        }
-        $result->setFlyingclub($row[18]);
-        $result->setCommittee($row[19]);
-        $result->setFlightPlanning(0);    
-        $result->setObservation(is_numeric($row[20]) ? (int)$row[20] : 0);
-        $result->setNavigation(is_numeric($row[21]) ? (int)$row[21] : 0);
-        $result->setLanding(is_numeric($row[22]) ? (int)$row[22] : 0);
 
         return $result;
     }

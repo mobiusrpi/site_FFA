@@ -9,7 +9,7 @@
         }
     </style>
     <div class="container mt-4">
-        <h3 class='mx-auto text-center fw-bold'>Gérer les inscriptions de {{ date('now')|date ('Y') }}</h3>
+        <h3 class='mx-auto text-center fw-bold'>Inscription aux compétitions de {{ date('now')|date ('Y') }}</h3>
 
         {% for message in app.flashes('success') %}
           <div class="alert alert-success mt-4">
@@ -17,131 +17,53 @@
           </div> 
         {% endfor %}
         
-        <!-- Table for medium+ screens -->
-        <table class="table table-striped d-none d-md-table">
-            <thead>
-              <tr>
-                <th class="text-center" scope="col"></th>
-                <th class="text-center" scope="col"></th>                 
-                <th class="text-center" scope="col"></th>              
-                <th class="text-center" scope="col" colspan="2">Inscription</th> 
-                <th class="text-center" scope="col" colspan="2">Compétition</th>              
-                {% if is_granted('ROLE_USER') %}
-                  <th class="text-center"></th>
-                {% endif %}
-              </tr>
-              <tr>
-                <th class="text-center" scope="col">Désignation</th>
-                <th class="text-center" scope="col">Type</th>
-                <th class="text-center" scope="col">Lieu</th>
-                <th class="text-center min-width-70" scope="col">Début</th> 
-                <th class="text-center min-width-70" scope="col">Fin</th>                
-                <th class="text-center" scope="col">Début</th>
-                <th class="text-center" scope="col">Fin</th>
-                {% if is_granted('ROLE_USER') %}
-                  <th class="text-center" scope="col">Actions</th>
-                {% endif %}
-              </tr>
-            </thead>
-            <tbody>      
-              {% for compet in competition_list %}
-                <tr>
-                  <th scope="row">{{ compet.name }}</td>
-	                <td>{{ compet.typecompetition.typeComp }}</td> 
-                  <td>{{ compet.location }}</td>
-                  <td class='text-center min-width-70'> {{ compet.startRegistration|date('d-m') }}</td>  
-                  {% if compet.endRegistration <= date('now') %}
-                    <td class='text-danger text-center min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
-                  {% else %}
-                    <td class='text-dark text-center min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
-                  {% endif %}                         
-                  <td>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM') }}</td>
-                  <td>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM') }}</td>
-                  {% if is_granted('ROLE_USER') %}   
-                    {% if compet.startRegistration <= date('now') and
-                       date('now') <= compet.endRegistration %}
-                      <td> 
-                        <div class="d-flex justify-content-center gap-2">
-                            {# Edit button #}
-                            <a href="{{ path('crews_registration',{'competId': compet.id} ) }}"
-                              class="btn btn-outline-success btn-sm"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              title="Inscription">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
-                          </div>
-                      </td> 
-                    {% else %}
-                      <td>                      
-                        <div class="d-flex justify-content-center gap-2">                        
-                          {% if compet.endRegistration <= date('now') %}      
-                            <div class="d-flex justify-content-center gap-2">  
-                              <span data-bs-toggle="tooltip" data-bs-placement="top" title="Hors délai">
-                                  <button class="btn btn-outline-secondary btn-sm" disabled>
-                                      <i class="fa-solid fa-clock text-danger"></i>
-                                  </button>  
-                              </span>    
-                            </div>     
-                          {% else %}      
-                            <div class="d-flex justify-content-center gap-2">  
-                              <span data-bs-toggle="tooltip" data-bs-placement="top" title="Hors délai">
-                                  <button class="btn btn-outline-secondary btn-sm" disabled>
-                                      <i class="fa-solid fa-hourglass-half text-warning"></i>
-                                  </button>  
-                              </span>    
-                            </div>                      
-                          {% endif %} 
-                        </div>                           
-                      </td>                             
-                    {% endif %} 
-                  {% endif %}       
-                </tr>
-              {% endfor %} 
-            </tbody>
-        </table>      
-        <!-- Cards for small screens -->
-        <div class="d-md-none">
+        <div class="row">
             {% for compet in competition_list %}
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ compet.name }}</h5>
-                        <p class="card-text mb-1"><strong>Type:</strong> {{ compet.typecompetition.typeComp }}</p>
-                        <p class="card-text mb-1"><strong>Lieu:</strong> {{ compet.location }}</p>
-                        <p class="card-text mb-1"><strong>Inscription:</strong> 
-                            {{ compet.startRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
-                            <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
-                                {{ compet.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
-                            </span>
-                        </p>
-                        <p class="card-text mb-2"><strong>Compétition:</strong> 
-                            {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
-                            {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
-                        </p>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="card mb-3 shadow-sm border border-info">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ compet.name }}</h5>
+                            <p class="card-text mb-1"><strong>Type:</strong> {{ compet.typecompetition.typeComp }}</p>
+                            <p class="card-text mb-1"><strong>Lieu:</strong> {{ compet.location }}</p>
+                            <p class="card-text mb-1"><strong>Inscription:</strong> 
+                                {% if compet.startRegistration|date('Y-m-d') != compet.endRegistration|date('Y-m-d') %} 
+                                    {{ compet.startRegistration|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+                                {% endif %}                                                         
+                                <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
+                                    {{ compet.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                                </span>
+                            </p>
+                            <p class="card-text mb-2"><strong>Compétition:</strong> 
+                                {% if compet.startDate|date('Y-m-d') != compet.endDate|date('Y-m-d') %}
+                                    {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au
+                                {% endif %}
+                                {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                            </p>
 
-                        {% if is_granted('ROLE_USER') %}
-                          <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
-                            {% if compet.startRegistration <= date('now') and date('now') <= compet.endRegistration %}
-                              <form action="{{ path('crews_registration', {'competId': compet.id}) }}" method="get" style="display: inline;">
-                                  <button type="submit"
-                                          class="btn btn-outline-success btn-sm text-center"
-                                          title="Modifier">
-                                      <i class="fa-solid fa-pen-to-square"></i>Inscription
-                                  </button>
-                              </form>                                
-                            {% elseif compet.endRegistration <= date('now') %}
-                                <button class="btn btn-outline-danger btn-sm" disabled>
-                                  <i class="fa-solid fa-clock me-1"></i>Hors délai
-                                </button>
-                            {% else %}
-                                <button class="btn btn-outline-warning btn-sm" disabled>
-                                  <i class="fa-solid fa-hourglass-half me-1"></i>En attente
-                                </button>
-                            {% endif %}                              
-                          </div>
-                        {% endif %}
-                        
-                    </div>
+                            {% if is_granted('ROLE_USER') %}
+                              <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
+                                {% if compet.startRegistration <= date('now') and date('now') <= compet.endRegistration %}
+                                  <form action="{{ path('crews_registration', {'competId': compet.id}) }}" method="get" style="display: inline;">
+                                      <button type="submit"
+                                              class="btn btn-outline-success btn-sm text-center"
+                                              title="Modifier">
+                                          <i class="fa-solid fa-pen-to-square"></i>Inscription
+                                      </button>
+                                  </form>                                
+                                {% elseif compet.endRegistration <= date('now') %}
+                                    <button class="btn btn-outline-danger btn-sm" disabled>
+                                      <i class="fa-solid fa-clock me-1"></i>Hors délai
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-outline-warning btn-sm" disabled>
+                                      <i class="fa-solid fa-hourglass-half me-1"></i>En attente
+                                    </button>
+                                {% endif %}                              
+                              </div>
+                            {% endif %}
+                            
+                        </div>
+                    </div>                  
                 </div>
             {% endfor %}
         </div>

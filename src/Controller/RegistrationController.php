@@ -29,17 +29,17 @@ class RegistrationController extends AbstractController
         private SmileService $smileService
     ) {}
 
-    #[Route('/verify_smile/{license}/{birthdate}', name: 'verify_identity_smile', methods: ['GET'])]
-    public function verifyUserSmile(
-        string $license,
-        \DateTimeInterface $birthdate,
-        SmileService $smileService
-    ): JsonResponse {
-
-        return $this->json($smileService->verifyLicense($license, $birthdate));
-    }
-
-    #[Route('/register', name: 'new_register')]
+/**
+ * New user registration function
+ *
+ * @param Request $request
+ * @param UserPasswordHasherInterface $userPasswordHasher
+ * @param EntityManagerInterface $entityManager
+ * @param SendMailService $mail
+ * @param JWTService $jwt
+ * @return Response
+ */    
+    #[Route('/register', name: 'new_user_registration')]    
     public function register(
         Request $request, 
         UserPasswordHasherInterface $userPasswordHasher, 
@@ -111,7 +111,19 @@ class RegistrationController extends AbstractController
         ]);
     }
     
-    #[Route('/profil/edit', name: 'edit_profil')]
+
+/**
+ * Edit user's profil function
+ *
+ * @param Request $request
+ * @param UserPasswordHasherInterface $userPasswordHasher
+ * @param EntityManagerInterface $entityManager
+ * @param SendMailService $mail
+ * @param Security $security
+ * @param JWTService $jwt
+ * @return Response
+ */    
+    #[Route('/profil/edit', name: 'edit_profil')]    
     public function editRegister(
         Request $request, 
         UserPasswordHasherInterface $userPasswordHasher, 
@@ -174,7 +186,17 @@ class RegistrationController extends AbstractController
         ]);
     }
 
-    #[Route('/verify/{token}', name: 'verify_user')]
+
+/**
+ * Verification is the email come from autorized user function
+ *
+ * @param [type] $token
+ * @param JWTService $jwt
+ * @param UsersRepository $usersRepository
+ * @param EntityManagerInterface $em
+ * @return Response
+ */
+    #[Route('/verify/{token}', name: 'verify_user')]    
     public function verifyUser(
         $token,
         JWTService $jwt,
@@ -213,7 +235,17 @@ class RegistrationController extends AbstractController
         return $this->redirectToRoute(('login'));
     }
 
-    #[Route('/resendVerif', name: 'resend_verif')]
+
+/**
+ * Resend email confirmation function
+ *
+ * @param JWTService $jwt
+ * @param Request $request
+ * @param SendMailService $mail
+ * @param UsersRepository $usersRepository
+ * @return Response
+ */
+    #[Route('/resendVerif', name: 'resend_verif')]    
     public function resendVerif( 
         JWTService $jwt,        
         Request $request, 

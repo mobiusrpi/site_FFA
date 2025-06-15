@@ -104,7 +104,7 @@ class CrewsRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('c')
             ->select('1')
             ->innerJoin('c.pilot', 'p')
-            ->innerJoin('c.navigator', 'n')
+            ->leftJoin('c.navigator', 'n')
             ->innerJoin('c.competition','t')
             ->where('(p.id = :userId or n.id = :userId)')
             ->andWhere('t.id = :competId')

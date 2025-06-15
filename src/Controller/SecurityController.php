@@ -18,6 +18,13 @@ use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
 
 class SecurityController extends AbstractController
 {
+
+/**
+ * Login function
+ *
+ * @param AuthenticationUtils $authenticationUtils
+ * @return Response
+ */
     #[Route(path: '/login', name: 'login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
@@ -33,6 +40,11 @@ class SecurityController extends AbstractController
         ]);
     }
 
+    /**
+     * logout function
+     *
+     * @return void
+     */
     #[Route(path: '/logout', name: 'logout')]
     public function logout(): void
     {
@@ -92,6 +104,16 @@ class SecurityController extends AbstractController
         ]);
     }
 
+/**
+ * Resend password email function
+ *
+ * @param string $token
+ * @param Request $request
+ * @param UsersRepository $usersRepository
+ * @param EntityManagerInterface $entityManager
+ * @param UserPasswordHasherInterface $passwordHasher
+ * @return Response
+ */    
     #[Route('/oubli-pass/{token}', name:'reset_pass')]
     public function resetPass(
         string $token,

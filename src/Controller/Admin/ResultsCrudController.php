@@ -33,7 +33,6 @@ class ResultsCrudController extends AbstractCrudController
 
     //The route admin_result_selected_email is redirected to this function in the file
     //config/routes/easyadmin.yaml
-
     public function selectedEmail(
         Request $request,
         ResultsRepository $resultsRepository,
@@ -46,7 +45,7 @@ class ResultsCrudController extends AbstractCrudController
             'wip' => 1,
         ]);
     
-    // todo link with Pipper
+    // todo : link with Pipper
     
         // Get selected result IDs from form POST
         $selectedResultIds = $request->request->all('selectedResults');
@@ -66,9 +65,9 @@ class ResultsCrudController extends AbstractCrudController
         $results = $resultsRepository->findBy(['id' => $selectedResultIds]);
 
         foreach ($results as $result) {
-            $crew = $result->getCrew(); // Assuming getCrew() returns Crew entity
-            $crewEmail = $crew->getEmail(); // Assuming Crew has getEmail()
-            $crewName = $crew->getName();   // Or however you get their name
+            $crew = $result->getCrew(); 
+            $crewEmail = $crew->getEmail(); 
+            $crewName = $crew->getName();  
 
             // Compose and send email
             $email = (new Email())

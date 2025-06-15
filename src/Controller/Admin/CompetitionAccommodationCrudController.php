@@ -21,24 +21,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CompetitionAccommodationCrudController extends AbstractCrudController
 {
-    private RequestStack $requestStack;
-    private CompetitionsRepository $competitionRepo;
-    private AdminUrlGenerator $adminUrlGenerator;
-    private UrlGeneratorInterface $urlGenerator;
-
     public function __construct(
-        RequestStack $requestStack,
-        CompetitionsRepository $competitionRepo,
-        AdminUrlGenerator $adminUrlGenerator,
-        UrlGeneratorInterface $urlGenerator)
-    {
-        $this->requestStack = $requestStack;
-        $this->competitionRepo = $competitionRepo;
-        $this->adminUrlGenerator = $adminUrlGenerator;
-        $this->urlGenerator = $urlGenerator;
-    }
+        private RequestStack $requestStack,
+        private CompetitionsRepository $competitionRepo,
+        private AdminUrlGenerator $adminUrlGenerator,
+        private UrlGeneratorInterface $urlGenerator
+    ) {}
 
-     public static function getEntityFqcn(): string
+    public static function getEntityFqcn(): string
     {
         return CompetitionAccommodation::class;
     }

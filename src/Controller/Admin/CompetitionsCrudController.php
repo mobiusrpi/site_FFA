@@ -55,9 +55,8 @@ class CompetitionsCrudController extends AbstractCrudController
         Security $security,
         ManagerRegistry $registry,
         private AdminUrlGenerator $adminUrlGenerator,        
-        private LoggerInterface $logger    )
-    {       
-        $this->adminUrlGenerator = $adminUrlGenerator;
+        private LoggerInterface $logger    
+    ) {       
         $this->security = $security;
         $this->entityManager = $registry->getManager();  
     } 

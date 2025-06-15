@@ -10,7 +10,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class HomeController extends AbstractController
 {
-    #[Route(path: '/', name:'home', methods:['GET'])]
+
+/**
+ * Home page with results sorted by date decreasing function
+ *
+ * @param Request $request
+ * @param CompetitionsRepository $competitionRepository
+ * @return Response
+ */
+    #[Route(path: '/', name:'home', methods:['GET'])]    
     public function index(Request $request, CompetitionsRepository $competitionRepository): Response
     {
         $selectedYear = $request->query->get('year') ?? (new \DateTime())->format('Y');
@@ -44,7 +52,6 @@ final class HomeController extends AbstractController
                 'honneur' => $honneurResults->toArray(),
             ];
         }
-//    dd($groupedCompetitions);
 
         $years = $competitionRepository->findDistinctYears(); // Voir méthode plus bas
 

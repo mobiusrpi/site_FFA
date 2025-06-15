@@ -26,14 +26,17 @@ final class CrewsController extends AbstractController
         $this->addNavigatorFieldListener = $addNavigatorFieldListener;
     }      
 
-     #[Route(path: '/crews/list', name: 'admin.crews.list', methods: ['GET'])]
-    public function list(CrewsRepository $crewsRepository): Response
-    {
-        return $this->render('pages/admin/crews/list.html.twig', [
-            'crews' => $crewsRepository->findAll(),
-        ]);
-    }
-
+/**
+ * Delete crew's registration function
+ *
+ * @param integer $competId
+ * @param Request $request
+ * @param EntityManagerInterface $entityManager
+ * @param CompetitionsRepository $repositoryCompetition
+ * @param CrewsRepository $repositoryCrew
+ * @param Security $security
+ * @return Response
+ */
     #[Route('/crews/{competId}/delete', name: 'crews_delete', methods: ['POST'])]
     public function delete(
         int $competId, 
@@ -60,14 +63,14 @@ final class CrewsController extends AbstractController
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
-        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
         
         };
 
         if (!$user->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
-        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
         
         };
     
@@ -82,9 +85,20 @@ final class CrewsController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('crews_registration_list', ['competId'=>$competId], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('user_registrations_list', ['competId'=>$competId], Response::HTTP_SEE_OTHER);
     }
 
+/**
+ * Crew registration function
+ *
+ * @param [type] $competId
+ * @param Request $request
+ * @param CompetitionsRepository $repositoryCompetition
+ * @param CrewsRepository $repositoryCrew
+ * @param EntityManagerInterface $entityManager
+ * @param Security $security
+ * @return Response
+ */    
     #[Route(path :'/registration/crews/{competId}', name: 'crews_registration', methods:['GET','POST'])]
     public function registration(
         $competId,
@@ -123,13 +137,11 @@ final class CrewsController extends AbstractController
         $compet = $repositoryCompetition->find($competId);     
 
        //Checkif the user is alreadu registered
- 
- //   dd($competByUser);
         $isAlreadyRegistered = $repositoryCrew->userIsRegistered($user->getId(),$compet->getId());
 
         if ( $isAlreadyRegistered ) 
         {
-            $this->addFlash('danger','Vous êtes déjà enregistré pour cette competition');     
+            $this->addFlash('danger','Vous êtes déjà enregistré pour cette compétition');     
 
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         };
@@ -162,7 +174,14 @@ final class CrewsController extends AbstractController
         ]);
     }    
     
-    #[Route(path :'/crews/registration/list', name: 'crews_registration_list', methods:['GET','POST'])]
+/**
+ * User's registrations function
+ *
+ * @param CrewsRepository $repositoryCrew
+ * @param Security $security
+ * @return Response
+ */
+    #[Route(path :'/crews/userRegistration/list', name: 'user_registrations_list', methods:['GET','POST'])]
     public function registration_list(
         CrewsRepository $repositoryCrew,
         Security $security,                 
@@ -188,6 +207,17 @@ final class CrewsController extends AbstractController
         ]);
     }
 
+/**
+ * Edit crew's registration function
+ *
+ * @param Competitions $competId
+ * @param Request $request
+ * @param CrewsRepository $repositoryCrew
+ * @param CompetitionsRepository $repositoryCompetition
+ * @param EntityManagerInterface $entityManager
+ * @param Security $security
+ * @return Response
+ */
     #[Route('/crews/edit/registration/{competId}', name: 'edit_crew')]
     public function editCrew(
         Competitions $competId,
@@ -213,14 +243,14 @@ final class CrewsController extends AbstractController
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
-        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
         
         };
 
         if (!$user->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
-        return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
         
         };
     
@@ -239,9 +269,9 @@ final class CrewsController extends AbstractController
             $crew = $form->getData();
             $entityManager->persist($crew);
             $entityManager->flush();
-            return $this->redirectToRoute('crews_registration_list', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
        }
-        return $this->render('pages/crews/editTestCrew.html.twig', [
+        return $this->render('pages/crews/editCrew.html.twig', [
             'compet' => $compet,
             'form' => $form,
             ]);
