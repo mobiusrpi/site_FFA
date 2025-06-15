@@ -90,7 +90,7 @@ class DashboardController extends AbstractDashboardController
         }
 
         $firstDayYear = (new \DateTime('first day of January'))->setTime(0, 0, 0);
-dd($firstDayYear);
+
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             $competitions = $competitionRepo->getQueryCompetitionSorted($firstDayYear);
         } else {
