@@ -56,11 +56,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToRoute('Retour accueil', 'fa-solid fa-right-from-bracket', 'home');
         yield MenuItem::linkToDashboard('Home admin', 'fa fa-home');
         yield MenuItem::section('Management');
-        yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class)
-            ->setDefaultSort(['startDate' => 'ASC',]);
-        yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class)
-            ->setDefaultSort(['email' => 'ASC']);
-        yield  MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
+        yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class);
+        yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
+        yield MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
         yield MenuItem::section('Administration')
             ->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page')

@@ -80,6 +80,7 @@ class CompetitionsCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
+            ->setDefaultSort(['startDate' => 'ASC'])            
             ->setEntityLabelInSingular('Compétition') // singular label
             ->setEntityLabelInPlural('Compétitions')  // plural label
             ->overrideTemplate('crud/index', 'admin/competitions/index.html.twig')
@@ -108,27 +109,46 @@ class CompetitionsCrudController extends AbstractCrudController
         }
 
         // Basic fields
-        $fields[] = TextField::new('name', 'Nom');
+        $fields[] = TextField::new('name', 'Nom')
+            ->setSortable(true) ;
 
         // Conditionally disable typecompetition if crews exist
-        $typeField = TextField::new('typecompetition', 'Type de compétition');
-
+        if ($pageName === Crud::PAGE_INDEX) {
+            $typeField = TextField::new('typecompetition', 'Type de compétition')
+                ->setSortable(true); 
+        } else {
+             $typeField = AssociationField::new('typecompetition', 'Type de compétition');
+        }
+        
         if ($hasCrews) {
             $typeField = $typeField->setFormTypeOption('disabled', true);
         }
 
         $fields[] = $typeField;
         $fields[] = FormField::addColumn(8);
-        $fields[] = TextField::new('name','Désignation');
-        $fields[] = DateField::new('startRegistration', 'Date de début d\'enrégistrement')->setFormat('dd/MM/yy')->onlyOnForms();
-        $fields[] = DateField::new('endRegistration', 'Date de fin d\'enrégistrement ')->setFormat('dd/MM/yy')->onlyOnForms();       
-        $fields[] = DateField::new('startDate', 'Date de début')->setFormat('dd/MM/yy');
-        $fields[] = DateField::new('endDate', 'Date de fin')->setFormat('dd/MM/yy');
+        $fields[] = TextField::new('name','Désignation')
+            ->setSortable(false);
+        $fields[] = DateField::new('startRegistration', 'Date de début d\'enrégistrement')
+            ->setSortable(false)            
+            ->setFormat('dd/MM/yy')
+            ->onlyOnForms();
+        $fields[] = DateField::new('endRegistration', 'Date de fin d\'enrégistrement ')
+            ->setSortable(false) 
+            ->setFormat('dd/MM/yy')
+            ->onlyOnForms();       
+        $fields[] = DateField::new('startDate', 'Date de début')->setFormat('dd/MM/yy')
+            ->setSortable(true);
+        $fields[] = DateField::new('endDate', 'Date de fin')->setFormat('dd/MM/yy')
+            ->setSortable(false);
         $fields[] = BooleanField::new('selectable','Sélection')
-                ->renderAsSwitch()->onlyOnForms();
-        $fields[] = DateField::new('createdAt')->onlyOnDetail();
-        $fields[] = TextareaField::new('paymentInfo','Informations de réglement')->onlyOnForms();
-        $fields[] = TextareaField::new('information','Informations utiles')->onlyOnForms();
+            ->setSortable(false) 
+            ->renderAsSwitch()->onlyOnForms();
+        $fields[] = DateField::new('createdAt')
+            ->onlyOnDetail();
+        $fields[] = TextareaField::new('paymentInfo','Informations de réglement')
+            ->onlyOnForms();
+        $fields[] = TextareaField::new('information','Informations utiles')
+            ->onlyOnForms();
             
         $fields[] = FormField::addFieldset('Organisateurs');
         $fields[] = CollectionField::new('competitionsUsers')
@@ -150,11 +170,12 @@ class CompetitionsCrudController extends AbstractCrudController
        
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
         // Get the current authenticated user
+   
         $user = $this->security->getUser();
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             // If the user is an admin, show all users   
-            $qb->orderBy('entity.startDate', 'ASC'); 
+
             return $qb;
         }
 
@@ -171,9 +192,6 @@ class CompetitionsCrudController extends AbstractCrudController
                         $qb->andWhere('1 = 0'); // No access
                     }
                 }
-
-        // Apply ordering if needed
-        $qb->orderBy('entity.startDate', 'ASC');
 
         return $qb;
     }

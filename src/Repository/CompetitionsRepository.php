@@ -49,7 +49,7 @@ class CompetitionsRepository extends ServiceEntityRepository
     {    
         return $this->createQueryBuilder('compet')
             ->where('compet.startDate > :displayDate')                    
-            ->orderBy('compet.startDate','ASC')
+//            ->orderBy('compet.startDate','ASC')
             ->setParameter('displayDate', $day)
             ->getQuery()
             ->getResult()
