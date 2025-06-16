@@ -44,6 +44,7 @@ class UsersCrudController extends AbstractCrudController
     }
 
     public function __construct(
+        private UsersRepository $repositoryUser,
         public UserPasswordHasherInterface $userPasswordHasher,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private AdminUrlGenerator $adminUrlGenerator,          
@@ -84,6 +85,7 @@ class UsersCrudController extends AbstractCrudController
                 
             ])
             ->setRequired($pageName === Crud::PAGE_NEW)
+            ->setSortable(false)
             ->onlyOnForms()
         ;
         if ($pageName === Crud::PAGE_EDIT) {
@@ -112,17 +114,25 @@ class UsersCrudController extends AbstractCrudController
             ];
         }
         return [
-            IdField::new('id')->hideOnForm()->hideOnIndex(),
+            IdField::new('id')
+                ->hideOnForm()
+                ->hideOnIndex(),
             TextField::new('lastname','Nom'),            
-            TextField::new('firstname','Prénom'),
-            EmailField::new('email','Email'), 
+            TextField::new('firstname','Prénom')
+                ->setSortable(false),
+            EmailField::new('email','Email')
+                ->setSortable(false), 
             $password,      
-            BooleanField::new('isCompetitor','Compétiteur')->hideOnIndex(),            
-            TextField::new('phone','Téléphone'),            
-            TextField::new('licenseFfa','Licence FFA'),            
+            BooleanField::new('isCompetitor','Compétiteur')
+                ->hideOnIndex(),            
+            TextField::new('phone','Téléphone')
+                ->setSortable(false),            
+            TextField::new('licenseFfa','Licence FFA')
+                ->setSortable(true),            
             ChoiceField::new('roles')
                 ->setChoices($availableRoles)
                 ->allowMultipleChoices(true)
+                ->setSortable(false)
                 ->renderExpanded(true), // or false for a dropdown
 
             DateField::new('dateBirth','Date de naissance')->hideOnIndex(),       
@@ -146,8 +156,10 @@ class UsersCrudController extends AbstractCrudController
                 ))
                 ->hideOnIndex(),
 
-            TextField::new('flyingclub','Aéroclub')->hideOnIndex(),  
-            BooleanField::new('isVerified','Vérifié')->hideOnIndex(),            
+            TextField::new('flyingclub','Aéroclub')
+                ->hideOnIndex(),  
+            BooleanField::new('isVerified','Vérifié')
+                ->hideOnIndex(),            
         ];
     }
 
@@ -266,8 +278,6 @@ class UsersCrudController extends AbstractCrudController
             $n = $n + 1;
         }
 
-//        $this->entityManager->flush();
-
         $this->addFlash('success', $n . ' utilisateus ont été archivés.');
         $url = $this->adminUrlGenerator
             ->setController(self::class)
@@ -317,28 +327,17 @@ class UsersCrudController extends AbstractCrudController
         // Get the current authenticated user
         $user = $this->security->getUser();
 
-    //dd($user);
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             // If the user is an admin, show all users exept archived
-            $qb 
-                ->orderBy('entity.lastname', 'ASC'); 
+            $qb->andWhere('entity.archivedAt IS NULL');
+
             return $qb;
         }
 
         if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
             // First: Get all user IDs linked via pilot or navigator roles in competitions managed by this user
-            $subQb = $this->entityManager->createQueryBuilder()
-                ->select('DISTINCT u.id')
-                ->from(Users::class, 'u')
-                ->leftJoin('u.pilot', 'pilotCrew')
-                ->leftJoin('u.navigator', 'navigatorCrew')
-                ->leftJoin(CompetitionsUsers::class, 'cu', 'WITH', 'cu.user = :manager')
-                ->leftJoin('pilotCrew.competition', 'comp1')
-                ->leftJoin('navigatorCrew.competition', 'comp2')
-                ->where('cu.competition = comp1 OR cu.competition = comp2')
-                ->andWhere('u.archivedAt IS NULL')
-                ->setParameter('manager', $user);
+            $subQb = $this->repositoryUser->getVisibleToManagerQueryBuilder($user);
 
             $userIds = array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult());
 
@@ -348,9 +347,6 @@ class UsersCrudController extends AbstractCrudController
             } else {
                 $qb->andWhere('1 = 0');
             }
-
-            // Apply the ordering here
-            $qb->orderBy('entity.lastname', 'ASC');
         }
 
         return $qb;

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Users;
 use App\Entity\Competitions;
+use App\Entity\CompetitionsUsers;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -108,5 +109,20 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         return $em->createQuery($dql)
                 ->setParameter('cutoff', $cutoff)
                 ->getResult();
+    }
+
+    public function getVisibleToManagerQueryBuilder($user){
+    return $this->createQueryBuilder('u')
+        ->select('DISTINCT u')
+        ->leftJoin('u.pilot', 'pilotCrew')
+        ->leftJoin('u.navigator', 'navigatorCrew')
+        ->leftJoin(CompetitionsUsers::class, 'cu', 'WITH', 'cu.user = :manager')
+        ->leftJoin('pilotCrew.competition', 'comp1')
+        ->leftJoin('navigatorCrew.competition', 'comp2')
+        ->where('cu.competition = comp1 OR cu.competition = comp2')
+        ->andWhere('u.archivedAt IS NULL')
+        ->setParameter('manager', $user)
+        ->getQuery()
+        ->getResult();
     }
 }
