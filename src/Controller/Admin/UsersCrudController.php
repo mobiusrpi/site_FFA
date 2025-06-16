@@ -7,7 +7,6 @@ use App\Entity\Enum\Gender;
 use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
 use Doctrine\ORM\QueryBuilder;
-use App\Entity\CompetitionsUsers;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -165,9 +164,14 @@ class UsersCrudController extends AbstractCrudController
             BooleanField::new('isVerified', 'Vérifié')
                 ->onlyOnForms(),
             
-            DateField::new('endValidity','Date licence'),   
+            DateField::new('endValidity','Date licence')
+                ->setFormTypeOption('widget', 'single_text')
+                ->setFormTypeOption('html5', true)
+                ->setRequired(false),   
             
-            DateField::new('archivedAt','Date archivage')->hideOnIndex(),   
+            DateField::new('archivedAt','Date archivage')
+
+                ->hideOnIndex(),   
         ];
     }  
     

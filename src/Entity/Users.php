@@ -353,7 +353,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->endValidity;
     }
 
-    public function setEndValidity(\DateTimeImmutable $endValidity): static
+    public function setEndValidity(?\DateTimeImmutable $endValidity): static
     {
         $this->endValidity = $endValidity;
 
