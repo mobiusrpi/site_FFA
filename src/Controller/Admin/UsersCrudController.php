@@ -225,7 +225,7 @@ class UsersCrudController extends AbstractCrudController
         $user->setPassword('');
         $user->isCompetitor('false');        
         $user->isVerified('false');
-        $user->setLicenseFfa('00000'.$user->getId());
+        $user->setLicenseFfa(null);
         $user->setDateBirth(new \DateTimeImmutable());
         $user->setArchivedAt(new \DateTimeImmutable());
         $this->entityManager->flush();

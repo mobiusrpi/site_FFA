@@ -358,7 +358,7 @@ class CompetitionsCrudController extends AbstractCrudController
         if (!$user instanceof Users) {
             $this->addFlash('warning', 'Utilisateur no authentifié.');
 
-            // ✅ Redirect to EasyAdmin Competitions index page
+            // Redirect to EasyAdmin Competitions index page
             return $this->redirect($this->generateUrl('admin', [
                 'crudControllerFqcn' => CompetitionsCrudController::class,
                 'action' => 'index',

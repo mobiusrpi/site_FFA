@@ -57,7 +57,7 @@ class RegistrationCrewType extends AbstractType
             // toArray() returns a plain array of CompetitionAccommodation entities
             $accommodations = $compet->getCompetitionAccommodation()->toArray();
         }
-//dd($compet,$accommodations);
+
         $builder   
             ->add('competition', EntityType::class, [
                 'class' => Competitions::class,

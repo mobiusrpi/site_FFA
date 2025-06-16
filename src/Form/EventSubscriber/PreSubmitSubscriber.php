@@ -41,11 +41,7 @@ class PreSubmitSubscriber implements EventSubscriberInterface
         // Fetch full User entities
         $pilot = $pilotId ? $this->entityManager->getRepository(Users::class)->find($pilotId) : null;
         $navigator = $navigatorId ? $this->entityManager->getRepository(Users::class)->find($navigatorId) : null;
-
-     //   $registeredBy = $form->getData()->getRegisteredBy()->getEmail();
- 
-
-        
+       
         $currentUser = $this->security->getUser();
         if (!$currentUser instanceof \App\Entity\Users) {
             return; // Can't validate without a real user
@@ -57,7 +53,6 @@ class PreSubmitSubscriber implements EventSubscriberInterface
         $emailPilot = $pilot ? $pilot->getEmail() : null;
         $emailNavigator = $navigator ? $navigator->getEmail() : null;     
 
-        // Perform your custom validation logic here
         if (isset($data['navigator'])) {
             if ($pilot && $navigator && $pilot === $navigator) {
                 $error = new FormError('Le pilote ne pas être identique au navigateur');
