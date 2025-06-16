@@ -111,7 +111,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $fields[] = TextField::new('name', 'Nom');
 
         // Conditionally disable typecompetition if crews exist
-        $typeField = AssociationField::new('typecompetition', 'Type de compétition');
+        $typeField = TextField::new('typecompetition', 'Type de compétition');
 
         if ($hasCrews) {
             $typeField = $typeField->setFormTypeOption('disabled', true);
