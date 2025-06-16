@@ -135,8 +135,7 @@ class UsersCrudController extends AbstractCrudController
                 ->setSortable(false)
                 ->renderExpanded(true), // or false for a dropdown
 
-            DateField::new('dateBirth','Date de naissance')->hideOnIndex(),       
-               
+            DateField::new('dateBirth','Date de naissance')->hideOnIndex(),                      
       
             ChoiceField::new('committee','CRA')
                 ->setChoices(array_combine(
@@ -158,11 +157,20 @@ class UsersCrudController extends AbstractCrudController
 
             TextField::new('flyingclub','Aéroclub')
                 ->hideOnIndex(),  
-            BooleanField::new('isVerified','Vérifié')
-                ->hideOnIndex(),            
-        ];
-    }
 
+            BooleanField::new('isVerified', 'Vérifié')
+                ->renderAsSwitch(false)  // display as icon/text, not a toggle
+                ->onlyOnIndex(),
+
+            BooleanField::new('isVerified', 'Vérifié')
+                ->onlyOnForms(),
+            
+            DateField::new('endValidity','Date licence'),   
+            
+            DateField::new('archivedAt','Date archivage')->hideOnIndex(),   
+        ];
+    }  
+    
     private function handlePassword(Users $user): void
     {
         $request = $this->container->get('request_stack')->getCurrentRequest();
