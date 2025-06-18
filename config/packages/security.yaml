@@ -53,7 +53,6 @@ security:
         ROLE_MANAGER: [ROLE_USER]
         ROLE_ADMIN: [ROLE_MANAGER]
 
-
 when@test:
     security:
         password_hashers:

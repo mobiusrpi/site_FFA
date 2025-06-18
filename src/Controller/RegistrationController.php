@@ -138,12 +138,14 @@ class RegistrationController extends AbstractController
         $user->setUpdatedAt( new \DateTimeImmutable());  
         $form = $this->createForm(EditProfilType::class, $user);
         $form->handleRequest($request);
-        $license = $form->get('licenseFfa')->getData(); 
-        
-        if ($license){
-            $birthdate = $form->get('dateBirth')->getData();
+
+        if ($form->isSubmitted()) {            
+            $license = $form->get('licenseFfa')->getData(); 
+            $birthdate = $form->get('dateBirth')->getData(); 
+
+            if (!$license === null || !$birthdate === null){
             // Check if SmileService validates the user
-            $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+                $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
 
             if (isset($dataSmile['error'])) {
                 $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
@@ -157,9 +159,12 @@ class RegistrationController extends AbstractController
                 $user = $form->getData();
                 $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
                 $user->setEndValidity($dateValidity);
-            }      
+                } 
+            }     
         }
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {        
+            $license = $form->get('licenseFfa')->getData(); 
+
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
             $isCompetitorChecked = $form->get('isCompetitor');

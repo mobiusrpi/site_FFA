@@ -23,7 +23,7 @@ class PreSubmitSubscriber implements EventSubscriberInterface
         $this->security = $security;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             \Symfony\Component\Form\FormEvents::PRE_SUBMIT => 'onPreSubmit',
