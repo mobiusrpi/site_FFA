@@ -79,6 +79,12 @@ class Competitions
      */
     #[ORM\OneToMany(targetEntity: Results::class, mappedBy: 'competition')]
     private Collection $results;
+
+    /**
+     * @var Collection<int, Navigations>
+     */
+    #[ORM\OneToMany(targetEntity: Navigations::class, mappedBy: 'nav')]
+    private Collection $navigations;
    
     public function __construct()
     {
@@ -87,6 +93,7 @@ class Competitions
         $this->competitionAccommodation = new ArrayCollection();
         $this->competitionsUsers = new ArrayCollection();
         $this->results = new ArrayCollection();
+        $this->navigations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -371,5 +378,35 @@ class Competitions
     public function __toString(): string
     {
         return $this->name ?? 'N/A'; 
+    }
+
+    /**
+     * @return Collection<int, Navigations>
+     */
+    public function getNavigations(): Collection
+    {
+        return $this->navigations;
+    }
+
+    public function addNavigation(Navigations $navigation): static
+    {
+        if (!$this->navigations->contains($navigation)) {
+            $this->navigations->add($navigation);
+            $navigation->setNav($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNavigation(Navigations $navigation): static
+    {
+        if ($this->navigations->removeElement($navigation)) {
+            // set the owning side to null (unless already changed)
+            if ($navigation->getNav() === $this) {
+                $navigation->setNav(null);
+            }
+        }
+
+        return $this;
     }
 }

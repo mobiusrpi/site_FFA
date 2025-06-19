@@ -51,8 +51,6 @@ class RegistrationController extends AbstractController
         $user = new Users();
         $user->setCreatedAt( new \DateTimeImmutable());
         $user->setUpdatedAt( new \DateTimeImmutable());  
-        $defaultDateBirth = new DateTimeImmutable('1970-01-01');
-        $user->setDateBirth($defaultDateBirth);  
         $form = $this->createForm(RegistrationForm::class, $user);
         $form->handleRequest($request);
 

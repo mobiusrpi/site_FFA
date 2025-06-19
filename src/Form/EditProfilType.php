@@ -90,7 +90,7 @@ class EditProfilType extends AbstractType
                     'maxlength' => '15'
                 ],
                 'required' => false,                      
-                'label' => '<strong>Licence fédérale, </strong><span class="smaller-text">elle sera vérifier avec Smile</span>',
+                'label' => '<strong>Licence fédérale, </strong><span class="smaller-text">elle sera vérifiée avec Smile</span>',
                 'label_html' => true,
                 'label_attr' => [
                     'class' => 'form-label'
