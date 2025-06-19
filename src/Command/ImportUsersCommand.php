@@ -59,27 +59,32 @@ class ImportUsersCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-//           $this->uploadPilots();
-   $this->uploadNavigators();
-
-        return Command::SUCCESS;
+//        $this->uploadPilots();
+        $this->uploadNavigators();
+         return Command::SUCCESS;
     }
 
     private function getDataFromFile(): array
     {
-        $file = $this->dataDirectory . 'IRRA-2025-1.csv';
-        $fileExtension = pathinfo($file,PATHINFO_EXTENSION);
+        try{
+            $file = $this->dataDirectory . 'CDF_RA_2025.csv';
+            $fileExtension = pathinfo($file,PATHINFO_EXTENSION);
 
-        $normalizers = [new ObjectNormalizer];
-        $encoders = [ 
-           new CsvEncoder(),
-           new JsonEncoder()
-        ];
-        $serializer = new Serializer($normalizers,$encoders);
+            $normalizers = [new ObjectNormalizer];
+            $encoders = [ 
+            new CsvEncoder(),
+            new JsonEncoder()
+            ];
+            $serializer = new Serializer($normalizers,$encoders);
 
-        /** $var string $fileString */
-        $fileString = file_get_contents($file);
-
+            /** $var string $fileString */
+            $fileString = file_get_contents($file);
+        } finally {
+            // Fermer le fichier
+            if ($file !== null) {
+                $file = null; // \SplFileObject est automatiquement fermé quand il est mis à null
+            }
+        }
         $data = $serializer->decode($fileString,$fileExtension);
         
         return $data;
@@ -88,10 +93,14 @@ class ImportUsersCommand extends Command
     private function uploadPilots(): void
     {
         $userCreated = 0;
+    //    foreach($this->getdataFromFile() as $row){          
+    //        if (array_key_exists('adresse_mail_pilote',$row) && !empty($row['adresse_mail_pilote'])) {
+    //            $user = $this->userRepository->findOneBy([
+    //                'email' => $row['adresse_mail_pilote'],
         foreach($this->getdataFromFile() as $row){          
-            if (array_key_exists('Adresse e-mail',$row) && !empty($row['Adresse e-mail'])) {
-                $user = $this->userRepository->findOneBy([
-                    'email' => $row['Adresse e-mail'],
+                if (array_key_exists('adresse_mail_navigateur',$row) && !empty($row['adresse_mail_navigateur'])) {
+                    $user = $this->userRepository->findOneBy([
+                        'email' => $row['adresse_mail_navigateur'],
                 ] );
 
                 if  (!$user) {                          
@@ -104,7 +113,7 @@ class ImportUsersCommand extends Command
                         $polo = $row['Taille_polo_pilote'];
                     };
                   
-                    $birthdateArray = explode('/',$row['date_pilote']);
+                    $birthdateArray = explode('/',$row['date_de_naissance_pilote']);
                     $newDate= new DateTimeImmutable();              
                     $birthdate = $newDate->setDate($birthdateArray[2],$birthdateArray[1],$birthdateArray[0]);
 
@@ -128,7 +137,8 @@ class ImportUsersCommand extends Command
                     $userCreated++;
                 }
             } 
-        }                  
+        }           
+        
         $this->entityManager->flush();
 
         if ($userCreated > 0 ){           
@@ -184,8 +194,9 @@ class ImportUsersCommand extends Command
                     $this->entityManager->persist($user);
                     $userCreated++;
                 } 
-            } 
+            }     
         }                  
+
         $this->entityManager->flush();
 
         if ($userCreated > 0 ){           
