@@ -2,12 +2,13 @@
 
 namespace App\Entity;
 
-use App\Entity\Enum\CompetitionRole;
-use App\Repository\CompetitionsRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\test;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Enum\CompetitionRole;
+use App\Repository\CompetitionsRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: CompetitionsRepository::class)]
@@ -80,13 +81,21 @@ class Competitions
     #[ORM\OneToMany(targetEntity: Results::class, mappedBy: 'competition')]
     private Collection $results;
    
+
+    /**
+     * @var Collection<int, test>
+     */
+    #[ORM\OneToMany(mappedBy: 'competition', targetEntity: Tests::class, orphanRemoval: true, cascade: ['persist'])]
+    private Collection $test;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->crew = new ArrayCollection();
         $this->competitionAccommodation = new ArrayCollection();
         $this->competitionsUsers = new ArrayCollection();
-        $this->results = new ArrayCollection();
+        $this->results = new ArrayCollection();        
+        $this->test = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -366,6 +375,45 @@ class Competitions
         }
 
         return $this;
+    }
+        
+    /**
+     * @return Collection<int, test>
+     */
+    public function getTest(): Collection
+    {
+        return $this->test;
+    }
+
+    public function addTest(Tests $test): static
+    {
+        if (!$this->test->contains($test)) {
+            $this->test->add($test);
+            $test->setCompetition($this);
+        }
+        return $this;
+    }
+
+    public function removeTest(Tests $test): self
+    {
+        if ($this->test->removeElement($test)) {
+            if ($test->getCompetition() === $this) {
+                $test->setCompetition(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getTestCodes(): string
+    {
+        $codes = [];
+        foreach ($this->test as $test) {
+            if ($test->getCode()) {
+                $codes[] = $test->getCode();
+            }
+        }
+
+        return implode(', ', $codes);
     }
 
     public function __toString(): string
