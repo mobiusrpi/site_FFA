@@ -13,28 +13,16 @@ class TestResults
     #[ORM\Column]
     private ?int $id = null;
 
-   #[ORM\Column]
-    private ?int $ranking = null;
-
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $gender = null;
-
-    #[ORM\Column(length: 128, nullable: true)]
-    private ?string $flyingclub = null;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $committee = null;
-
-    #[ORM\Column]
+    #[ORM\Column( nullable: true)]
     private ?int $navigation = null;
 
-    #[ORM\Column]
+    #[ORM\Column( nullable: true)]
     private ?int $observation = null;
 
-    #[ORM\Column]
+    #[ORM\Column( nullable: true)]
     private ?int $landing = null;
 
-    #[ORM\Column]
+    #[ORM\Column( nullable: true)]
     private ?int $flightPlanning = null;
 
      #[ORM\Column(length: 15, nullable: true)]
@@ -60,54 +48,6 @@ class TestResults
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getRanking(): ?int
-    {
-        return $this->ranking;
-    }
-
-    public function setRanking(int $ranking): static
-    {
-        $this->ranking = $ranking;
-
-        return $this;
-    }
-
-    public function getGender(): ?string
-    {
-        return $this->gender;
-    }
-
-    public function setGender(?string $gender): static
-    {
-        $this->gender = $gender;
-
-        return $this;
-    }
-
-    public function getFlyingclub(): ?string
-    {
-        return $this->flyingclub;
-    }
-
-    public function setFlyingclub(?string $flyingclub): static
-    {
-        $this->flyingclub = $flyingclub;
-
-        return $this;
-    }
-
-    public function getCommittee(): ?string
-    {
-        return $this->committee;
-    }
-
-    public function setCommittee(?string $committee): static
-    {
-        $this->committee = $committee;
-
-        return $this;
     }
 
     public function getNavigation(): ?int

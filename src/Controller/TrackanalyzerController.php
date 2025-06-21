@@ -2,60 +2,93 @@
 // src/Controller/TrackAnalyzerController.php
 namespace App\Controller;
 
+use App\Entity\TestResults;
+use Psr\Log\LoggerInterface;
+use App\Repository\CrewsRepository;
+use App\Repository\TestsRepository;
+use Psr\Cache\CacheItemPoolInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
 
 class TrackanalyzerController extends AbstractController
 {
     #[Route('/3rdparty/trackanalyzer/import-crews-data', name: 'import_trackanalyzer_crews_data', methods: ['POST'])]
-    public function importCrewsData(Request $request): JsonResponse
-    {
-        $expectedToken = $_ENV['AIRNODE_API_TOKEN']; 
+    public function importCrewsData(
+        Request $request,
+        CacheItemPoolInterface $cache,
+        EntityManagerInterface $em,
+        TestsRepository $testRepository,
+        CrewsRepository $crewRepository,
+        LoggerInterface $logger
+    ): JsonResponse {
         $authHeader = $request->headers->get('Authorization');
-return new JsonResponse([
-    'token_received' => $expectedToken,
-    'auth_header' => $authHeader,
-    'raw_json' => $request->getContent(),
-]);
+        $rawJson = $request->getContent();
 
-        if (!str_starts_with($authHeader, 'Bearer ')) {
-            return new JsonResponse(['result' => 'Missing Bearer'], 401);
+        $logger->info('TrackAnalyzer import called', [
+            'Authorization' => $authHeader,
+            'Raw JSON' => $rawJson,
+        ]);
+        $data = json_decode($rawJson, true);
+        if (!$data) {
+            $logger->error('Invalid JSON received', ['raw' => $rawJson]);
+        }
+        $logger->debug('Parsed JSON:', $data);
+
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
         }
 
-        $token = trim(str_replace('Bearer', '', $authHeader));
-
-        if ($token !== $expectedToken) {
-            return new JsonResponse(['result' => 'Invalid Token'], 403);
-        }
-           // Vérifie l'autorisation (token Bearer)
-        $authHeader = $request->headers->get('Authorization');
-        if ($authHeader !== 'Bearer YOUR_SECRET_TOKEN') {
-            return new JsonResponse(['result' => 'Unauthorized'], 401);
+        $token = trim(substr($authHeader, 7));
+        $item = $cache->getItem('trackanalyzer_token_' . $token);
+        if (!$item->isHit()) {
+            return new JsonResponse(['error' => 'Invalid or expired token'], 403);
         }
 
-        $content = $request->getContent();
-        $data = json_decode($content, true);
-
-        if ($data === null || !isset($data['Crews'])) {
-            return new JsonResponse(['result' => 'Invalid JSON'], 400);
+        $data = json_decode($request->getContent(), true);
+        if (!$data || empty($data['testId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
+            return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
         }
 
-        foreach ($data['Crews'] as $crew) {
-            $crewId = $crew['crewid'] ?? null;
-            $sp = $crew['SPPenalties'] ?? 0;
-            $fp = $crew['FPPenalties'] ?? 0;
-            $nav = $crew['NavPenalties'] ?? 0;
-
-            // 🔽 Traitement ici : enregistrer en BDD, mise à jour, etc.
-
-            // Exemple de log :
-            // file_put_contents('php://stderr', "Received penalties for crew $crewId: SP=$sp, FP=$fp, Nav=$nav\n", FILE_APPEND);
+        $test = $testRepository->findOneBy(['code' => $data['testId']]); // adjust if you use a different field
+        if (!$test) {
+            return new JsonResponse(['error' => 'Test not found'], 404);
         }
 
-        return new JsonResponse(['result' => 'OK']);
+        $results = [];
+
+        foreach ($data['Crews'] as $crewData) {
+            if (empty($crewData['crewId'])) {
+                continue;
+            }
+
+            $crew = $crewRepository->find($crewData['crewId']);
+            if (!$crew) {
+                continue;
+            }
+
+            $testResult = new TestResults();
+            $testResult->setTest($test);
+            $testResult->setCrew($crew);
+            $testResult->setNavigation($crewData['nav'] ?? null);
+    //        $testResult->setStatus($crewData['complaint'] ?? false);
+    //                $testResult->setLanding($data['att'] ?? null);            
+    //                $testResult->setObservation($data['obs'] ?? null);
+    //                $testResult->setFlightPlanning($data['flightPlanning'] ?? null);
+
+
+            $em->persist($testResult);
+            $results[] = $testResult;
+        }
+
+        $em->flush();
+
+        return new JsonResponse([
+            'status' => 'ok',
+            'imported' => count($results),
+        ]);
     }
+
 }
