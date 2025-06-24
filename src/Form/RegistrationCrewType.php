@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\Crews;
 use App\Entity\Users;
+use App\Entity\Aircrafts;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
@@ -38,6 +40,8 @@ class RegistrationCrewType extends AbstractType
     {     
         /** @var Crews|null $crew */
         $crew = $options['data'];
+        $user = $options['user'];
+
         $compet = $crew?->getCompetition();
         $competId = $compet?->getId();
         // Only include the pilotId if it's an edit (i.e., pilot is already set)
@@ -109,16 +113,15 @@ class RegistrationCrewType extends AbstractType
                 ],               
                 'placeholder'=>'Selectionner une catégorie'
             ])
-            ->add('callsign',TextType::class,[
+            ->add('callsign', TextType::class, [
+                'label' => 'Immatriculation (ou sélection)',
+                'required' => false,
                 'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '8'
-                ],                
-                'required' => true,
-                'label' => 'Immatriculation',
-                'label_attr' => [
-                    'class' => 'form-label'
+                    'autocomplete' => 'off',
+                    'class' => 'form-control',
+                    'list' => 'aircraft-callsigns', 
                 ],
+                'mapped' => true, 
             ])
             ->add('aircraftSpeed',EnumType::class,[
                 'class' => SpeedList::class,
@@ -181,6 +184,11 @@ class RegistrationCrewType extends AbstractType
                     'class' => 'form-label'
                 ],
             ])
+            ->add('aircraftRegistration', CheckboxType::class, [
+                'mapped' => false, 
+                'required' => false,
+                'label' => 'Enregistrer mon avion',
+            ])
             ->add('aircraftSharing',CheckboxType::class,[   
                 'attr' => [
                     'class' => 'form-check-input',                    
@@ -230,7 +238,9 @@ class RegistrationCrewType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'compet' => null,           
+            'data_class' => Crews::class,
+            'compet' => null, 
+            'user' => null,          
         ]);
         $resolver->setAllowedTypes('compet', 'object');
     }

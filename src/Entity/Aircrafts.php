@@ -32,6 +32,9 @@ class Aircrafts
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $brand = null;
 
+    #[ORM\ManyToOne(inversedBy: 'aircrafts')]
+    private ?Users $user = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -44,8 +47,21 @@ class Aircrafts
 
     public function setCallsign(string $callsign): static
     {
-        $this->callsign = $callsign;
-
+        $country1 = ['F','G','D','I','C','N'];
+        $country2 = ['OO','HB','EC','PH','OE','OK','S5','OM','SE','OH','OY','LN','LX'];
+        // Delete dash
+        $callsign = str_replace('-', '', $callsign);        
+        // Delet space
+        $callsign = str_replace(' ', '', $callsign);
+        $callsign = strtoupper($callsign);
+        // Ajouter un tiret après le premier caractère si c'est un "F"
+        if (strlen($callsign) > 0 && in_array($callsign[0],$country1)) {
+            $this->callsign = substr_replace($callsign, '-', 1, 0);
+        } elseif (strlen($callsign) >= 2 && in_array(substr($callsign, 0, 2), $country2)){
+            $this->callsign = substr_replace($callsign, '-', 2, 0);
+        } else {
+            $this->callsign = $callsign;
+        }
         return $this;
     }
 
@@ -105,6 +121,18 @@ class Aircrafts
     public function setBrand(?string $brand): static
     {
         $this->brand = $brand;
+
+        return $this;
+    }
+
+    public function getUser(): ?Users
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Users $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

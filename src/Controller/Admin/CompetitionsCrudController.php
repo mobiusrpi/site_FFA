@@ -33,7 +33,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -387,7 +386,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $user = $security->getUser();
 
         if (!$user instanceof Users) {
-            $this->addFlash('warning', 'Utilisateur no authentifié.');
+            $this->addFlash('warning', 'Utilisateur non authentifié.');
 
             // Redirect to EasyAdmin Competitions index page
             return $this->redirect($this->generateUrl('admin', [
@@ -409,10 +408,11 @@ class CompetitionsCrudController extends AbstractCrudController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
             $entityManager->persist($form->getData());
 
             $entityManager->flush();
-            $this->addFlash('success', 'Inscription mise à jour avec succès.');
+            $this->addFlash('success', 'Inscription faite avec succès.');
 
             return $this->redirect($this->generateUrl('admin', [
                 'crudAction' => 'index',

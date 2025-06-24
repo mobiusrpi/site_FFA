@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Crews;
 use App\Entity\Users;
+use App\Entity\Aircrafts;
 use App\Entity\Competitions;
 use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
@@ -161,7 +162,20 @@ final class CrewsController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) 
         {
             $crew= $form->getData();
+            $shouldRegisterAircraft = $form->get('aircraftRegistration')->getData();
 
+            if ($shouldRegisterAircraft) {
+                $aircraft = new Aircrafts();
+                $aircraft->setCallsign($form->get('callsign')->getData());
+                $aircraft->setSpeed($form->get('aircraftSpeed')->getData());
+                $aircraft->setFlyingClub($form->get('aircraftFlyingclub')->getData());
+                $aircraft->setBrand($form->get('aircraftBrand')->getData());
+                $aircraft->setType($form->get('aircraftType')->getData());
+                $aircraft->setOaci($form->get('aircraftOaci')->getData());
+                $aircraft->setUser($user);
+
+                $entityManager->persist($aircraft);
+            }
             $entityManager->persist($crew);
             $entityManager->flush();
 
@@ -169,7 +183,8 @@ final class CrewsController extends AbstractController
         }
 
         return $this->render('pages/crews/registrationCrew.html.twig', [
-            'compet' => $compet,
+            'compet' => $compet,            
+            'user' => $user,
             'form' => $form     
         ]);
     }    
@@ -272,7 +287,8 @@ final class CrewsController extends AbstractController
             return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
        }
         return $this->render('pages/crews/editCrew.html.twig', [
-            'compet' => $compet,
+            'compet' => $compet,            
+            'user' => $user,
             'form' => $form,
             ]);
     }

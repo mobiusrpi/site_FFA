@@ -148,6 +148,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Crews::class, mappedBy: 'registeredby')]
     private Collection $registeredBy;
+
+    /**
+     * @var Collection<int, Aircrafts>
+     */
+    #[ORM\OneToMany(targetEntity: Aircrafts::class, mappedBy: 'user')]
+    private Collection $aircrafts;
     
     public function __construct()
     {
@@ -157,6 +163,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->registeredBy = new ArrayCollection();
         $this->pilot = new ArrayCollection();
         $this->navigator = new ArrayCollection();
+        $this->aircrafts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -553,6 +560,36 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
     {
         $this->archivedAt = $archivedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Aircrafts>
+     */
+    public function getAircrafts(): Collection
+    {
+        return $this->aircrafts;
+    }
+
+    public function addAircraft(Aircrafts $aircraft): static
+    {
+        if (!$this->aircrafts->contains($aircraft)) {
+            $this->aircrafts->add($aircraft);
+            $aircraft->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAircraft(Aircrafts $aircraft): static
+    {
+        if ($this->aircrafts->removeElement($aircraft)) {
+            // set the owning side to null (unless already changed)
+            if ($aircraft->getUser() === $this) {
+                $aircraft->setUser(null);
+            }
+        }
 
         return $this;
     }

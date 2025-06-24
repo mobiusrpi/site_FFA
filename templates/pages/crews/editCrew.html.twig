@@ -117,7 +117,14 @@
                                     </div>
                                     <div class="mb-3">            
                                         {{ form_row(form.aircraftOaci) }}
-                                    </div>                    
+                                    </div>           
+                                    <div class="mb-3" id="aircraft_registration">
+                                        {{ form_errors(form.aircraftRegistration) }}
+                                        {{ form_label(form.aircraftRegistration) }}
+                                        <span class="ms-2">
+                                            {{ form_widget(form.aircraftRegistration) }}
+                                        </span>
+                                    </div>         
                                     <div class="col border border-dark text-center rounded-3 bg-secondary text-white mt-2 p-2">
                                         {{ form_errors(form.aircraftSharing) }}
                                         {{ form_label(form.aircraftSharing) }}
