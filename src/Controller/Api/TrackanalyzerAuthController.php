@@ -62,4 +62,5 @@ class TrackanalyzerAuthController extends AbstractController
         $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><result>{$message}</result><token>{$token}</token></response>";
         return new Response($xml, 200, ['Content-Type' => 'application/xml']);
     }
+    
 }

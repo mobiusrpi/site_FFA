@@ -6,6 +6,7 @@ use App\Repository\TestResultsRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TestResultsRepository::class)]
+#[ORM\UniqueConstraint(columns: ['test_id', 'crew_id'])]
 class TestResults
 {
     #[ORM\Id]
@@ -34,8 +35,8 @@ class TestResults
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $literalCrew = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $status = null;
+    #[ORM\Column(nullable: true)]
+    private ?bool $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'result')]
     #[ORM\JoinColumn(nullable: false)]
@@ -55,7 +56,7 @@ class TestResults
         return $this->navigation;
     }
 
-    public function setNavigation(int $navigation): static
+    public function setNavigation(?int $navigation): static
     {
         $this->navigation = $navigation;
 
@@ -67,7 +68,7 @@ class TestResults
         return $this->observation;
     }
 
-    public function setObservation(int $observation): static
+    public function setObservation(?int $observation): static
     {
         $this->observation = $observation;
 
@@ -79,7 +80,7 @@ class TestResults
         return $this->landing;
     }
 
-    public function setLanding(int $landing): static
+    public function setLanding(?int $landing): static
     {
         $this->landing = $landing;
 
@@ -91,7 +92,7 @@ class TestResults
         return $this->flightPlanning;
     }
 
-    public function setFlightPlanning(int $flightPlanning): static
+    public function setFlightPlanning(?int $flightPlanning): static
     {
         $this->flightPlanning = $flightPlanning;
 
@@ -132,10 +133,9 @@ class TestResults
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(?string $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 

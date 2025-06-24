@@ -15,8 +15,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TrackanalyzerController extends AbstractController
 {
-    #[Route('/3rdparty/trackanalyzer/import-crews-data', name: 'import_trackanalyzer_crews_data', methods: ['POST'])]
-    public function importCrewsData(
+    #[Route('/3rdparty/trackanalyzer/import-live-data', name: 'import_trackanalyzer_live_data', methods: ['POST'])]
+    public function importLiveData(
         Request $request,
         CacheItemPoolInterface $cache,
         EntityManagerInterface $em,
@@ -60,24 +60,32 @@ class TrackanalyzerController extends AbstractController
         $results = [];
 
         foreach ($data['Crews'] as $crewData) {
-            if (empty($crewData['crewId'])) {
+            if (empty($crewData['CrewId'])) {
                 continue;
             }
 
-            $crew = $crewRepository->find($crewData['crewId']);
+            $crew = $crewRepository->find($crewData['CrewId']);
             if (!$crew) {
+                $logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
                 continue;
             }
 
-            $testResult = new TestResults();
-            $testResult->setTest($test);
+            // 🔍 Try to find existing TestResults
+            $testResult = $em->getRepository(TestResults::class)->findOneBy([
+                'test' => $test,
+                'crew' => $crew,
+            ]);
+            if (!$testResult) {
+                $testResult = new TestResults();
+                $testResult->setTest($test);
+            }                
             $testResult->setCrew($crew);
-            $testResult->setNavigation($crewData['nav'] ?? null);
+            $testResult->setNavigation($crewData['Nav'] ?? null);
+            $testResult->setLanding($data['Att'] ?? null);            
+            $testResult->setObservation($data['Obs'] ?? null);
+    //        $testResult->setFlightPlanning($data['flightPlanning'] ?? null);
     //        $testResult->setStatus($crewData['complaint'] ?? false);
-    //                $testResult->setLanding($data['att'] ?? null);            
-    //                $testResult->setObservation($data['obs'] ?? null);
-    //                $testResult->setFlightPlanning($data['flightPlanning'] ?? null);
-
+ 
 
             $em->persist($testResult);
             $results[] = $testResult;
@@ -91,4 +99,87 @@ class TrackanalyzerController extends AbstractController
         ]);
     }
 
+    #[Route('/3rdparty/trackanalyzer/import-results-data', name: 'import_trackanalyzer_results_data', methods: ['POST'])]
+    public function importREsultsData(
+        Request $request,
+        CacheItemPoolInterface $cache,
+        EntityManagerInterface $em,
+        TestsRepository $testRepository,
+        CrewsRepository $crewRepository,
+        LoggerInterface $logger
+    ): JsonResponse {
+        $authHeader = $request->headers->get('Authorization');
+        $rawJson = $request->getContent();
+
+        $logger->info('TrackAnalyzer import called', [
+            'Authorization' => $authHeader,
+            'Raw JSON' => $rawJson,
+        ]);
+        $data = json_decode($rawJson, true);
+        if (!$data) {
+            $logger->error('Invalid JSON received', ['raw' => $rawJson]);
+        }
+        $logger->debug('Parsed JSON:', $data);
+
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
+        }
+
+        $token = trim(substr($authHeader, 7));
+        $item = $cache->getItem('trackanalyzer_token_' . $token);
+        if (!$item->isHit()) {
+            return new JsonResponse(['error' => 'Invalid or expired token'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!$data || empty($data['testId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
+            return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
+        }
+
+        $test = $testRepository->findOneBy(['code' => $data['testId']]); 
+        if (!$test) {
+            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu : ' . $data['testId']], 404);
+        }
+
+        $results = [];
+
+        foreach ($data['Crews'] as $crewData) {
+            if (empty($crewData['CrewId'])) {
+                continue;
+            }
+
+            $crew = $crewRepository->find($crewData['CrewId']);
+            if (!$crew) {
+                $logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
+                continue;
+            }
+
+            // 🔍 Try to find existing TestResults
+            $testResult = $em->getRepository(TestResults::class)->findOneBy([
+                'test' => $test,
+                'crew' => $crew,
+            ]);
+            if (!$testResult) {
+                $testResult = new TestResults();
+                $testResult->setTest($test);
+            }                
+            $testResult->setCrew($crew);
+            $testResult->setCategory($crewData['Category'] ?? null);            
+            $testResult->setNavigation($crewData['Nav'] ?? null);
+            $testResult->setLanding($crewData['Att'] ?? null);            
+            $testResult->setObservation($crewData['Obs'] ?? null);
+            $testResult->setFlightPlanning($crewData['FlightPlanning'] ?? null);
+            $testResult->setStatus($crewData['Status'] ?? false); 
+
+            $em->persist($testResult);
+            $results[] = $testResult;
+        }
+
+        $em->flush();
+
+        return new JsonResponse([
+            'status' => 'ok',
+            'imported' => count($results),
+        ]);
+    }
 }
