@@ -29,7 +29,7 @@
                                 {% if compet.startRegistration|date('Y-m-d') != compet.endRegistration|date('Y-m-d') %} 
                                     {{ compet.startRegistration|format_datetime(locale='fr', pattern='dd MMMM') }} au 
                                 {% endif %}                                                         
-                                <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
+                                <span class="{{ compet.endRegistration|date('Y-m-d') < date('now')|date('Y-m-d') ? 'text-danger' : '' }}">
                                     {{ compet.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                                 </span>
                             </p>
@@ -42,7 +42,8 @@
 
                             {% if is_granted('ROLE_USER') %}
                               <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
-                                {% if compet.startRegistration <= date('now') and date('now') <= compet.endRegistration %}
+                                {% if compet.startRegistration|date('Y-m-d') <= date('now')|date('Y-m-d')
+                                      and date('now')|date('Y-m-d') <= compet.endRegistration|date('Y-m-d') %}
                                   <form action="{{ path('crews_registration', {'competId': compet.id}) }}" method="get" style="display: inline;">
                                       <button type="submit"
                                               class="btn btn-outline-success btn-sm text-center"
@@ -50,7 +51,7 @@
                                           <i class="fa-solid fa-pen-to-square"></i>Inscription
                                       </button>
                                   </form>                                
-                                {% elseif compet.endRegistration <= date('now') %}
+                                {% elseif compet.endRegistration|date('Y-m-d') < date('now')|date('Y-m-d') %}
                                     <button class="btn btn-outline-danger btn-sm" disabled>
                                       <i class="fa-solid fa-clock me-1"></i>Hors délai
                                     </button>
