@@ -114,8 +114,8 @@ class RegistrationCrewType extends AbstractType
                 'placeholder'=>'Selectionner une catégorie'
             ])
             ->add('callsign', TextType::class, [
-                'label' => 'Immatriculation (ou sélection)',
-                'required' => false,
+                'label' => 'Immatriculation',
+                'required' => true,
                 'attr' => [
                     'autocomplete' => 'off',
                     'class' => 'form-control',

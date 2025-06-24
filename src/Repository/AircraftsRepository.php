@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Users;
 use App\Entity\Aircrafts;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Entity\Enum\SpeedList;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Aircrafts>
@@ -15,29 +17,19 @@ class AircraftsRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Aircrafts::class);
     }
-
-    //    /**
-    //     * @return Aircrafts[] Returns an array of Aircrafts objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Aircrafts
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    
+    public function isDuplicate(Users $user, string $callsign, SpeedList $speed): bool
+    {
+        return (bool) $this->createQueryBuilder('a')
+            ->select('1')
+            ->andWhere('a.user = :user')
+            ->andWhere('a.callsign = :callsign')
+            ->andWhere('a.speed = :speed')
+            ->setParameter('user', $user)
+            ->setParameter('callsign', $callsign)
+            ->setParameter('speed', $speed)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

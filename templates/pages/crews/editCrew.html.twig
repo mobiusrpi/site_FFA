@@ -4,12 +4,6 @@
 
 {% block body %}
      <style>
-        input:required:placeholder-shown,
-        select:required:invalid,
-        textarea:required:placeholder-shown {
-            border: 1px solid orange;
-        }
-
         input:invalid,
         select:invalid,
         textarea:invalid {
@@ -92,12 +86,30 @@
                             <div class="col-11 col-md-4 form-group border rounded-4 border-primary ms-3 p-3">     
                                 <div class="justify-content-center fw-bold p-3">
                                     <p class="fw-bold text-center">Avion</p>
-                                    <div class="mb-3">  
+                                    <div class="mb-2">
                                         {{ form_label(form.callsign) }}
-                                        <div class='required-field '>
-                                            {{ form_widget(form.callsign) }}
+                                        <div class="required-field mt-2">
+                                            {{ form_widget(form.callsign, {
+                                                attr: {
+                                                    list: 'aircraft-callsigns',
+                                                    class: 'form-control' ~ (form.callsign.vars.errors|length > 0 ? ' is-invalid' : '')
+                                                }
+                                            }) }}
                                         </div>
-                                        {{ form_errors(form.callsign) }}
+                                        <datalist id="aircraft-callsigns">
+                                            {% for aircraft in user.aircrafts %}
+                                                <option 
+                                                    value="{{ aircraft.callsign }}" 
+                                                    data-brand="{{ aircraft.brand|e('html_attr') }}" 
+                                                    data-type="{{ aircraft.type|e('html_attr') }}" 
+                                                    data-speed="{{ aircraft.speed.getLabel() }}"
+                                                    data-flyingclub="{{ aircraft.flyingClub|e('html_attr') }}"
+                                                    data-oaci="{{ aircraft.oaci|e('html_attr') }}"
+                                                >
+                                                </option>
+                                            {% endfor %}
+                                        </datalist>                                    
+                                        {{ form_errors(form.callsign) }}                                    
                                     </div>
                                     <div class="mb-3">
                                         {{ form_label(form.aircraftSpeed) }}
@@ -247,6 +259,41 @@
 
         document.getElementById('okBtn').addEventListener('click', () => {
             document.getElementById('infoModal').style.display = 'none';
+        });
+        //script to fill aircraft fields
+        document.addEventListener('DOMContentLoaded', () => {
+            const callsignInput = document.querySelector('input[name="{{ form.callsign.vars.full_name }}"]');
+
+            const brandInput = document.querySelector('input[name="{{ form.aircraftBrand.vars.full_name }}"]');
+            const typeInput = document.querySelector('input[name="{{ form.aircraftType.vars.full_name }}"]');
+            const speedInput = document.querySelector('select[name="{{ form.aircraftSpeed.vars.full_name }}"]'); // select
+            const flyingClubInput = document.querySelector('input[name="{{ form.aircraftFlyingclub.vars.full_name }}"]');
+            const oaciInput = document.querySelector('input[name="{{ form.aircraftOaci.vars.full_name }}"]');
+
+            const datalist = document.getElementById('aircraft-callsigns');
+
+            callsignInput.addEventListener('input', () => {
+                const val = callsignInput.value;
+
+                // Trouver l'option correspondant au callsign
+                const option = Array.from(datalist.options).find(opt => opt.value === val);
+
+                if (option) {
+                    // Met à jour les autres champs
+                    if (brandInput) brandInput.value = option.dataset.brand || '';
+                    if (typeInput) typeInput.value = option.dataset.type || '';
+                    if (speedInput) speedInput.value = option.dataset.speed || '';
+                    if (flyingClubInput) flyingClubInput.value = option.dataset.flyingclub || '';
+                    if (oaciInput) oaciInput.value = option.dataset.oaci || '';
+                } else {
+                    // Si aucune correspondance, vide les champs
+                    if (brandInput) brandInput.value = '';
+                    if (typeInput) typeInput.value = '';
+                    if (speedInput) speedInput.value = '';
+                    if (flyingClubInput) flyingClubInput.value = '';
+                    if (oaciInput) oaciInput.value = '';
+                }
+            });
         });
     </script>
 {% endblock %}

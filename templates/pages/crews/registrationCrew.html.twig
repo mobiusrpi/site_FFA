@@ -5,16 +5,10 @@
 
 {% block body %}  
     <style>
-        input:required:placeholder-shown,
-        select:required:invalid,
-        textarea:required:placeholder-shown {
-            border: 1px solid orange;
-        }
-
         input:invalid,
         select:invalid,
         textarea:invalid {
-            outline: 2px solid red; /* optional, keeps HTML5 validation feedback visible */
+            outline: 2px solid orange; /* optional, keeps HTML5 validation feedback visible */
         }
     </style>
 
@@ -45,7 +39,7 @@
                             </div>
                         {% endif %}
 
-                        <div class="mb-3">
+                        <div class="mb-2">
                             <div class="text-center text-break">
                                 {{ form_widget(form.competition) }}
                             </div>
@@ -58,7 +52,7 @@
                                 <!-- Left Column -->
                                 <div class="col-12 col-md-5">
                                     <!-- Pilot -->                   
-                                    <div class="row mb-3"> 
+                                    <div class="row mb-2"> 
                                         <div>
                                             {{ form_label(form.pilot) }}
                                         </div>
@@ -68,9 +62,9 @@
                                         {{ form_errors(form.pilot) }}
                                     </div>                        
                                     <!-- Navigator -->                           
-                                    <div class="row mb-3">                
+                                    <div class="row mb-2">                
                                         {% if form.navigator is defined %}
-                                            <div class="mb-3">
+                                            <div class="mb-2">
                                                 {{ form_label(form.navigator) }}
                                             </div>
                                             <div class='required-field'>
@@ -106,11 +100,16 @@
                             <div class="col-11 col-md-4 form-group border rounded-4 border-primary ms-3 p-3">     
                                 <div class="justify-content-center fw-bold p-3">
                                     <p class="fw-bold text-center">Avion</p>
-                                    <div class="mb-3">
+                                    <div class="mb-2">
                                         {{ form_label(form.callsign) }}
-                                        {{ form_widget(form.callsign, { 'attr': { 'list': 'aircraft-callsigns' } }) }}
-                                        {{ form_errors(form.callsign) }}
-
+                                        <div class="required-field mt-2">
+                                            {{ form_widget(form.callsign, {
+                                                attr: {
+                                                    list: 'aircraft-callsigns',
+                                                    class: 'form-control' ~ (form.callsign.vars.errors|length > 0 ? ' is-invalid' : '')
+                                                }
+                                            }) }}
+                                        </div>
                                         <datalist id="aircraft-callsigns">
                                             {% for aircraft in user.aircrafts %}
                                                 <option 
@@ -121,33 +120,37 @@
                                                     data-flyingclub="{{ aircraft.flyingClub|e('html_attr') }}"
                                                     data-oaci="{{ aircraft.oaci|e('html_attr') }}"
                                                 >
-                                                    {{ aircraft.brand ~ ' ' ~ aircraft.type }}
                                                 </option>
                                             {% endfor %}
-                                        </datalist>                                    </div>
-                                    <div class="mb-3">
+                                        </datalist>                                    
+                                        {{ form_errors(form.callsign) }}                                    
+                                    </div>
+                                    <div class="mb-2">
                                         {{ form_label(form.aircraftSpeed) }}
                                         <div class="required-field">
                                             {{ form_widget(form.aircraftSpeed) }}
                                         </div>
                                         {{ form_errors(form.aircraftSpeed) }}
                                     </div>
-                                    <div class="mb-3"> 
+                                    <div class="mb-2"> 
                                         {{ form_row(form.aircraftFlyingclub) }}   
                                     </div>                                         
-                                    <div class="mb-3">            
+                                    <div class="mb-2">            
                                         {{ form_row(form.aircraftBrand) }}
                                     </div>
-                                    <div class="mb-3">                       
+                                    <div class="mb-2">                       
                                         {{ form_row(form.aircraftType) }}
                                     </div>
-                                    <div class="mb-3">            
+                                    <div class="mb-2">            
                                         {{ form_row(form.aircraftOaci) }}
                                     </div>  
-                                    <div class="mb-3" id="aircraft_registration">
-                                        <label for="aircaftRegistrationCheckbox">Enregistrer mon avion :</label>
-                                        <input type="checkbox" id="aircaftRegistrationCheckbox" name="aircaftRegistrationCheckbox" value="valeurCheckbox">
-                                    </div>
+                                    <div class="mb-2" id="aircraft_registration">
+                                        {{ form_errors(form.aircraftRegistration) }}
+                                        {{ form_label(form.aircraftRegistration) }}
+                                        <span class="ms-2">
+                                            {{ form_widget(form.aircraftRegistration) }}
+                                        </span>  
+                                   </div>
                   
                                     <div class="col border border-dark text-center rounded-3 bg-secondary text-white mt-2 p-2">
                                         {{ form_errors(form.aircraftSharing) }}
@@ -164,7 +167,7 @@
                             </div>                                         
                             <div class="col-11 col-md-7 form-group border rounded-4 border-primary ms-3 p-3">     
                                 <!-- Accommodation -->                    
-                                <div class='mb-3'>
+                                <div class='mb-2'>
                                     {{ form_errors(form.competitionAccommodation) }}
                                     <div>
                                         <table class="table table-bordered">
@@ -195,7 +198,7 @@
                                                 {% endfor %}
                                             </tbody>
                                         </table>
-                                        <div class='mb-3'>
+                                        <div class='mb-2'>
                                             {{ compet.paymentInfo|raw }}                              
                                         </div>
                                     </div>   

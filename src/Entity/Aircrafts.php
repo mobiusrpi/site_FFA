@@ -5,8 +5,13 @@ namespace App\Entity;
 use App\Entity\Enum\SpeedList;
 use App\Repository\AircraftsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: AircraftsRepository::class)]
+#[UniqueEntity(
+    fields: ['user', 'callsign', 'speed'],
+    message: 'Vous avez déjà enregistré un avion avec cette immatriculation et à cette vitesse.'
+)]
 class Aircrafts
 {
     #[ORM\Id]
