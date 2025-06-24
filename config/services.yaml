@@ -53,4 +53,7 @@ services:
             $apiUsername: '%env(SMILE_API_USERNAME)%'            
             $apiPassword: '%env(SMILE_API_PASSWORD)%'
 
+    App\EventListener\TestCodeGeneratorListener:
+        tags:
+            - { name: doctrine.orm.entity_listener }
           

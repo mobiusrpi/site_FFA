@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Crews;
 use App\Entity\Users;
+use App\Form\TestsType;
 use App\Service\PdfService;
 use App\Entity\Competitions;
 use App\Service\CsvExporter;
@@ -32,6 +33,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -152,11 +154,22 @@ class CompetitionsCrudController extends AbstractCrudController
             
         $fields[] = FormField::addFieldset('Organisateurs');
         $fields[] = CollectionField::new('competitionsUsers')
-                ->setEntryType(CompetitionsUsersType::class)
-                ->onlyOnForms()
-                ->allowAdd()
-                ->allowDelete()
-                ->setLabel('Organisateurs de la compétition');
+            ->setEntryType(CompetitionsUsersType::class)
+            ->onlyOnForms()
+            ->allowAdd()
+            ->allowDelete()
+            ->setLabel('Organisateurs de la compétition');
+
+        $fields[] = CollectionField::new('test')
+            ->setEntryType(TestsType::class)
+            ->allowAdd()
+            ->allowDelete()
+            ->onlyOnForms()
+            ->setFormTypeOptions(['by_reference' => false])
+            ->setLabel('Epreuve');
+        $fields[] = TextField::new('testCodes', 'Codes')
+            ->onlyOnIndex();
+
 
         return $fields;
     }

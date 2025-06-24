@@ -2,12 +2,13 @@
 
 namespace App\Controller\Api;
 
+use Psr\Log\LoggerInterface;
 use App\Repository\UsersRepository;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -18,7 +19,8 @@ class TrackanalyzerAuthController extends AbstractController
         Request $request,
         UsersRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
-        CacheItemPoolInterface $cache
+        CacheItemPoolInterface $cache,
+
     ): Response {
         $apiKey  = $request->request->get('key');
         $email   = $request->request->get('email');
@@ -60,4 +62,5 @@ class TrackanalyzerAuthController extends AbstractController
         $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><result>{$message}</result><token>{$token}</token></response>";
         return new Response($xml, 200, ['Content-Type' => 'application/xml']);
     }
+    
 }

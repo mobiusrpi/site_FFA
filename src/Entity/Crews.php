@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\TestResults;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -84,11 +85,18 @@ class Crews
      */
     #[ORM\OneToMany(targetEntity: Results::class, mappedBy: 'crew')]
     private Collection $results;
+    
+    /**
+     * @var Collection<int, TestResults>
+     */
+    #[ORM\OneToMany(mappedBy: 'crew', targetEntity: TestResults::class)]
+    private Collection $testResults;
 
     public function __construct()
     {
         $this->competitionAccommodation = new ArrayCollection();
         $this->results = new ArrayCollection();
+        $this->testResults = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -371,5 +379,35 @@ class Crews
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, TestResults>
+     */
+    public function getTestResults(): Collection
+    {
+        return $this->testResults;
+    }
+
+    public function addTestResult(TestResults $result): static
+    {
+        if (!$this->testResults->contains($result)) {
+            $this->testResults->add($result);
+            $result->setCrew($this); // correctly sync inverse side
+        }
+
+        return $this;
+    }
+
+    public function removeTestResult(TestResults $result): static
+    {
+        if ($this->testResults->removeElement($result)) {
+            if ($result->getCrew() === $this) {
+                $result->setCrew(null);
+            }
+        }
+
+        return $this;
+    }
+    
 }
 
