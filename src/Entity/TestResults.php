@@ -75,9 +75,9 @@ class TestResults
         return $this;
     }
 
-    public function getLanding(): ?int
+    public function getLanding(): int
     {
-        return $this->landing;
+        return $this->landing  ?? 0;
     }
 
     public function setLanding(?int $landing): static

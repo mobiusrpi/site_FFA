@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Competitions;
 use App\Form\CompetitionsType;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\TestResultsRepository;
 use App\Repository\CompetitionsRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,5 +55,5 @@ final class CompetitionsController extends AbstractController
             'elite' => $eliteResults,
             'honneur' => $honneurResults,
         ]);
-    }
+    } 
 }

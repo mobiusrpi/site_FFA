@@ -20,8 +20,8 @@ class TrackanalyzerController extends AbstractController
         Request $request,
         CacheItemPoolInterface $cache,
         EntityManagerInterface $em,
-        TestsRepository $testRepository,
-        CrewsRepository $crewRepository,
+        TestsRepository $repositoryTest,
+        CrewsRepository $repositoryCrew,
         LoggerInterface $logger
     ): JsonResponse {
         $authHeader = $request->headers->get('Authorization');
@@ -52,7 +52,7 @@ class TrackanalyzerController extends AbstractController
             return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
         }
 
-        $test = $testRepository->findOneBy(['code' => $data['testId']]); // adjust if you use a different field
+        $test = $repositoryTest->findOneBy(['code' => $data['testId']]); // adjust if you use a different field
         if (!$test) {
             return new JsonResponse(['error' => 'Test not found'], 404);
         }
@@ -64,7 +64,7 @@ class TrackanalyzerController extends AbstractController
                 continue;
             }
 
-            $crew = $crewRepository->find($crewData['CrewId']);
+            $crew = $repositoryCrew->find($crewData['CrewId']);
             if (!$crew) {
                 $logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
                 continue;
@@ -104,8 +104,8 @@ class TrackanalyzerController extends AbstractController
         Request $request,
         CacheItemPoolInterface $cache,
         EntityManagerInterface $em,
-        TestsRepository $testRepository,
-        CrewsRepository $crewRepository,
+        TestsRepository $repositoryTest,
+        CrewsRepository $repositoryCrew,
         LoggerInterface $logger
     ): JsonResponse {
         $authHeader = $request->headers->get('Authorization');
@@ -136,7 +136,7 @@ class TrackanalyzerController extends AbstractController
             return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
         }
 
-        $test = $testRepository->findOneBy(['code' => $data['testId']]); 
+        $test = $repositoryTest->findOneBy(['code' => $data['testId']]); 
         if (!$test) {
             return new JsonResponse(['error' => 'Code de l\'épreuve inconnu : ' . $data['testId']], 404);
         }
@@ -148,7 +148,7 @@ class TrackanalyzerController extends AbstractController
                 continue;
             }
 
-            $crew = $crewRepository->find($crewData['CrewId']);
+            $crew =$repositoryCrew->find($crewData['CrewId']);
             if (!$crew) {
                 $logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
                 continue;

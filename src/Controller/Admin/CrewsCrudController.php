@@ -9,6 +9,7 @@ use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use App\Repository\UsersRepository;
+use Psr\Log\LoggerInterface;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -32,6 +33,7 @@ error_log("CrewsCrudController loaded from: " . __FILE__);
 
 class CrewsCrudController extends AbstractCrudController
 {   
+    private LoggerInterface $logger;
     private RequestStack $requestStack;    
     private EntityManagerInterface $entityManager;
     private Security $security;  
@@ -53,6 +55,7 @@ class CrewsCrudController extends AbstractCrudController
     }
 
     public function __construct(
+               LoggerInterface $logger,
         RequestStack $requestStack,
         EntityManagerInterface $entityManager,
         UsersRepository $usersRepository,        
@@ -60,6 +63,7 @@ class CrewsCrudController extends AbstractCrudController
         Security $security,
         AdminUrlGenerator $adminUrlGenerator 
     ){
+        $this->logger = $logger;
         $this->requestStack = $requestStack;
         $this->entityManager = $entityManager;  
         $this->security = $security;         
@@ -360,7 +364,11 @@ class CrewsCrudController extends AbstractCrudController
                 $this->addFlash('success', 'Concurrent supprimé avec succès.');
             }
         } catch (\Exception $e) {
-            dd('Exception on delete:', $e->getMessage());
+        // Log the exception details for debugging
+            $this->logger->error('Exception on delete: ' . $e->getMessage());
+
+            // Display a generic error message to the user
+            $this->addFlash('error', 'Une erreur est survenue lors de la suppression.');
         }
         return $this->redirect($this->adminUrlGenerator->setController(self::class)->setAction('index')->generateUrl());
     }

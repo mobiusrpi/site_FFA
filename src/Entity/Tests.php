@@ -25,12 +25,12 @@ class Tests
     #[ORM\Column(length: 16, unique: true, nullable: false)]
     private ?string $code = null;
 
-    #[ORM\ManyToOne(inversedBy: 'test')]
+    #[ORM\ManyToOne(inversedBy: 'tests')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Competitions $competition = null;
 
     #[ORM\OneToMany(mappedBy: 'test', targetEntity: TestResults::class, orphanRemoval: true, cascade: ['persist'])]
-    private Collection $testResult;
+    private Collection $testResults;
 
     #[ORM\Column(type: 'test_compet', nullable: true)]
     private ?TestCompet $type = null;
@@ -38,7 +38,7 @@ class Tests
 
     public function __construct()
     {
-        $this->testResult = new ArrayCollection();
+        $this->testResults = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -93,15 +93,15 @@ class Tests
     /**
      * @return Collection<int, TestResults>
      */
-    public function getTestResult(): Collection
+    public function getTestResults(): Collection
     {
-        return $this->testResult;
+        return $this->testResults;
     }
 
     public function addTestResult(TestResults $result): static
     {
-        if (!$this->testResult->contains($result)) {
-            $this->testResult->add($result);
+        if (!$this->testResults->contains($result)) {
+            $this->testResults[] = $result;
             $result->setTest($this);
         }
 
@@ -110,8 +110,7 @@ class Tests
 
     public function removeTestResult(TestResults $result): static
     {
-        if ($this->testResult->removeElement($result)) {
-            // Set the owning side to null (unless already changed)
+        if ($this->testResults->removeElement($result)) {
             if ($result->getTest() === $this) {
                 $result->setTest(null);
             }

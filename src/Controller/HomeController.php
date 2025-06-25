@@ -53,7 +53,7 @@ final class HomeController extends AbstractController
             ];
         }
 
-        $years = $competitionRepository->findDistinctYears(); // Voir méthode plus bas
+        $years = $competitionRepository->findDistinctYears();
 
         return $this->render('pages/home.html.twig', [
             'groupedCompetitions' => $groupedCompetitions,

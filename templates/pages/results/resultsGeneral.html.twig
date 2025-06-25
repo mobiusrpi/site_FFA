@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Classement de {{ competition.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        {% for category, crews in scoreByCategory %}
+            <div class="col-md-6">
+                <h5 class="text-center"><strong>Catégorie {{ category }}</strong></h5>
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                          <th>Équipage</th>
+                          {% for testKey, displayName in testNames %}
+                            <th class="text-center">{{ displayName }}</th>
+                          {% endfor %}
+                          <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for crewData in crews %}
+                          <tr>
+                            <td>
+                              {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}<br>
+                            </td>
+                            
+                            {% for testKey, displayName in testNames %}
+                              {% set result = crewData.tests[testKey] ?? {'nav': 0, 'att': 0} %}
+                              {% if result.att > 0 %}
+                                <td>{{ result.att }}</td>
+                              {% else %}
+                                <td>{{ result.nav }}</td>
+                              {% endif %}
+                            {% endfor %}
+
+                            <td><strong>{{ crewData.total }}</strong></td>
+                          </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>    
+</div>
+{% endblock %}

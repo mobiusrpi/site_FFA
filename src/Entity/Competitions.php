@@ -80,19 +80,12 @@ class Competitions
      */
     #[ORM\OneToMany(targetEntity: Results::class, mappedBy: 'competition')]
     private Collection $results;
-
-    /**
-     * @var Collection<int, Navigations>
-     */
-    #[ORM\OneToMany(targetEntity: Navigations::class, mappedBy: 'nav')]
-    private Collection $navigations;
    
-
     /**
      * @var Collection<int, test>
      */
     #[ORM\OneToMany(mappedBy: 'competition', targetEntity: Tests::class, orphanRemoval: true, cascade: ['persist'])]
-    private Collection $test;
+    private Collection $tests;
 
     public function __construct()
     {
@@ -101,7 +94,7 @@ class Competitions
         $this->competitionAccommodation = new ArrayCollection();
         $this->competitionsUsers = new ArrayCollection();
         $this->results = new ArrayCollection();        
-        $this->test = new ArrayCollection();
+        $this->tests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -386,15 +379,15 @@ class Competitions
     /**
      * @return Collection<int, test>
      */
-    public function getTest(): Collection
+    public function getTests(): Collection
     {
-        return $this->test;
+        return $this->tests;
     }
 
     public function addTest(Tests $test): static
     {
-        if (!$this->test->contains($test)) {
-            $this->test->add($test);
+        if (!$this->tests->contains($test)) {
+            $this->tests->add($test);
             $test->setCompetition($this);
         }
         return $this;
@@ -402,7 +395,7 @@ class Competitions
 
     public function removeTest(Tests $test): self
     {
-        if ($this->test->removeElement($test)) {
+        if ($this->tests->removeElement($test)) {
             if ($test->getCompetition() === $this) {
                 $test->setCompetition(null);
             }
@@ -413,7 +406,7 @@ class Competitions
     public function getTestCodes(): string
     {
         $codes = [];
-        foreach ($this->test as $test) {
+        foreach ($this->tests as $test) {
             if ($test->getCode()) {
                 $codes[] = $test->getCode();
             }
@@ -425,35 +418,5 @@ class Competitions
     public function __toString(): string
     {
         return $this->name ?? 'N/A'; 
-    }
-
-    /**
-     * @return Collection<int, Navigations>
-     */
-    public function getNavigations(): Collection
-    {
-        return $this->navigations;
-    }
-
-    public function addNavigation(Navigations $navigation): static
-    {
-        if (!$this->navigations->contains($navigation)) {
-            $this->navigations->add($navigation);
-            $navigation->setNav($this);
-        }
-
-        return $this;
-    }
-
-    public function removeNavigation(Navigations $navigation): static
-    {
-        if ($this->navigations->removeElement($navigation)) {
-            // set the owning side to null (unless already changed)
-            if ($navigation->getNav() === $this) {
-                $navigation->setNav(null);
-            }
-        }
-
-        return $this;
     }
 }
