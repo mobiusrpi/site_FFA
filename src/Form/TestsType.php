@@ -17,7 +17,7 @@ class TestsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {                
         $builder->add('name', TextType::class, [
-                    'label' => 'Nom du test',
+                    'label' => 'Nom du l\'épreuve',
                     'required' => true,
                     'constraints' => [
                         new Assert\NotBlank(['message' => 'Le nom est obligatoire.']),

@@ -54,7 +54,7 @@ class TrackanalyzerController extends AbstractController
 
         $test = $repositoryTest->findOneBy(['code' => $data['testId']]); // adjust if you use a different field
         if (!$test) {
-            return new JsonResponse(['error' => 'Test not found'], 404);
+            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu'], 404);
         }
 
         $results = [];
@@ -100,7 +100,7 @@ class TrackanalyzerController extends AbstractController
     }
 
     #[Route('/3rdparty/trackanalyzer/import-results-data', name: 'import_trackanalyzer_results_data', methods: ['POST'])]
-    public function importREsultsData(
+    public function importResultsData(
         Request $request,
         CacheItemPoolInterface $cache,
         EntityManagerInterface $em,
@@ -136,9 +136,12 @@ class TrackanalyzerController extends AbstractController
             return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
         }
 
+        $logger->info('Searching test with code: ' . $data['testId']);
+
         $test = $repositoryTest->findOneBy(['code' => $data['testId']]); 
         if (!$test) {
             return new JsonResponse(['error' => 'Code de l\'épreuve inconnu : ' . $data['testId']], 404);
+            exit();
         }
 
         $results = [];

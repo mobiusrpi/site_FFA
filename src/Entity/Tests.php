@@ -25,6 +25,9 @@ class Tests
     #[ORM\Column(length: 16, unique: true, nullable: false)]
     private ?string $code = null;
 
+    #[ORM\Column(type: 'test_compet', nullable: true)]
+    private ?TestCompet $type = null;
+    
     #[ORM\ManyToOne(inversedBy: 'tests')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Competitions $competition = null;
@@ -32,8 +35,6 @@ class Tests
     #[ORM\OneToMany(mappedBy: 'test', targetEntity: TestResults::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $testResults;
 
-    #[ORM\Column(type: 'test_compet', nullable: true)]
-    private ?TestCompet $type = null;
 
 
     public function __construct()

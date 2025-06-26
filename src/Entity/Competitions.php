@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Entity\test;
+use App\Entity\tests;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Enum\CompetitionRole;
@@ -82,7 +82,7 @@ class Competitions
     private Collection $results;
    
     /**
-     * @var Collection<int, test>
+     * @var Collection<int, tests>
      */
     #[ORM\OneToMany(mappedBy: 'competition', targetEntity: Tests::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $tests;

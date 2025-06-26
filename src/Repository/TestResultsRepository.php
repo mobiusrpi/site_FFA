@@ -17,7 +17,7 @@ class TestResultsRepository extends ServiceEntityRepository
     public function findByTestId(int $testId): array
     {
         return $this->createQueryBuilder('r')
-            ->join('r.test', 't')
+            ->join('r.tests', 't')
             ->where('t.id = :testId')
             ->setParameter('testId', $testId)
             ->orderBy('r.crewIdentifier', 'ASC')

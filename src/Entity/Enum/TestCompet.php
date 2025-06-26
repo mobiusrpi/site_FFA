@@ -5,7 +5,7 @@ namespace App\Entity\Enum;
 
 enum TestCompet: string
 {
-    case NAV_ATT = 'navi&att';    
+    case NAV_ATT = 'nav&att';    
     case NAVIGATION = 'nav';
     case LANDING = 'att';
 
