@@ -22,10 +22,6 @@
           <a class="nav-link {% if app.request.attributes.get('_route') == 'competitions_list' %}active{% endif %}"
              href="{{ path('competitions_list') }}">Compétitions</a>
         </li>
-       <li class="nav-item">
-          <a class="nav-link {% if app.request.attributes.get('_route') == 'competitions_list' %}active{% endif %}"
-             href="{{ path('test_results_general') }}">Résultats</a>
-        </li>
         {% if is_granted('ROLE_MANAGER') %}
           <li class="nav-item">
             <a class="nav-link {% if app.request.attributes.get('_route') == 'user.list' %}active{% endif %}"

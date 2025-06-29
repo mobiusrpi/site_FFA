@@ -152,10 +152,10 @@
                 <div class="col-md-6">
                   <h6>Elite</h6>
                   <ol class="ps-3">
-                    {% for result in item.elite|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
+                    {% for result in item.elite|slice(0, 3) %}
                       <li>
-                        {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {{ result.literalCrew }} – {{ result.score }} pts
+                        {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
+                        {{ result.crew }} – {{ result.total }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>
@@ -165,10 +165,10 @@
                 <div class="col-md-6">
                   <h6>Honneur</h6>
                   <ol class="ps-3">
-                    {% for result in item.honneur|sort((a, b) => a.ranking <=> b.ranking)|slice(0, 3) %}
+                    {% for result in item.honneur|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {{ result.literalCrew }} – {{ result.score }} pts
+                        {{ result.crew }} – {{ result.total }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>
@@ -177,7 +177,7 @@
                 </div>
               </div>
 
-              <a href="{{ path('competitions_results', { id: competition.id }) }}"
+              <a href="{{ path('test_results_general', { id: competition.id }) }}"
                 class="btn btn-sm btn-outline-primary px-2 py-1 small">
                 Résultats complets
               </a>          
