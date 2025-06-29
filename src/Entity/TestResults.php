@@ -6,7 +6,6 @@ use App\Repository\TestResultsRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TestResultsRepository::class)]
-#[ORM\UniqueConstraint(columns: ['test_id', 'crew_id'])]
 class TestResults
 {
     #[ORM\Id]
@@ -38,12 +37,12 @@ class TestResults
     #[ORM\Column(nullable: true)]
     private ?bool $status = null;
 
-    #[ORM\ManyToOne(inversedBy: 'result')]
+    #[ORM\ManyToOne(inversedBy: 'testResults')]
     #[ORM\JoinColumn(nullable: false)]
     private Tests $test;
 
     #[ORM\ManyToOne(inversedBy: 'testResults')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Crews $crew = null;
 
     public function getId(): ?int
@@ -156,7 +155,7 @@ class TestResults
         return $this->test;
     }
 
-    public function setTest(?tests $test): static
+    public function setTest(?Tests $test): static
     {
         $this->test = $test;
 

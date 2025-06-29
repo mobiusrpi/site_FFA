@@ -99,21 +99,21 @@ class Tests
         return $this->testResults;
     }
 
-    public function addTestResult(TestResults $result): static
+    public function addTestResult(TestResults $testResult): static
     {
-        if (!$this->testResults->contains($result)) {
-            $this->testResults[] = $result;
-            $result->setTest($this);
+        if (!$this->testResults->contains($testResult)) {
+            $this->testResults[] = $testResult;
+            $testResult->setTest($this);
         }
 
         return $this;
     }
 
-    public function removeTestResult(TestResults $result): static
+    public function removeTestResult(TestResults $testResult): static
     {
-        if ($this->testResults->removeElement($result)) {
-            if ($result->getTest() === $this) {
-                $result->setTest(null);
+        if ($this->testResults->removeElement($testResult)) {
+            if ($testResult->getTest() === $this) {
+                $testResult->setTest(null);
             }
         }
 

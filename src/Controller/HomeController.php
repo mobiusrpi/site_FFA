@@ -28,7 +28,7 @@ final class HomeController extends AbstractController
 
         $competitions = $competitionRepository->resultCompetitions($start,$end);
         $nextCompetitions = $competitionRepository->nextCompetition();
-        
+     
         $eliteResults = [];
         $honneurResults = [];
         $groupedCompetitions = [];

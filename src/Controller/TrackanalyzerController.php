@@ -144,34 +144,42 @@ class TrackanalyzerController extends AbstractController
             exit();
         }
 
+        $existingResults = $em->getRepository(TestResults::class)->findBy(['test' => $test]);
+        if (!empty($existingResults)) {
+            foreach ($existingResults as $result) {
+                $em->remove($result);
+            }
+            $em->flush();
+        }
         $results = [];
 
         foreach ($data['Crews'] as $crewData) {
-            if (empty($crewData['CrewId'])) {
-                continue;
-            }
+            if ($crewData['Status'] == true) {
+                if (empty($crewData['CrewId'])) {
+                    continue;
+                }
 
-            $crew =$repositoryCrew->find($crewData['CrewId']);
-            if (!$crew) {
-                $logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
-                continue;
-            }
+                $crew = $repositoryCrew->find($crewData['CrewId']);
+                if (!$crew) {
+                    $logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
+                    continue;
+                }
 
-            // 🔍 Try to find existing TestResults
-            $testResult = $em->getRepository(TestResults::class)->findOneBy([
-                'test' => $test,
-                'crew' => $crew,
-            ]);
-            if (!$testResult) {
                 $testResult = new TestResults();
-                $testResult->setTest($test);
-            }                
-            $testResult->setCrew($crew);
+                $testResult->setTest($test);                
+                $testResult->setCrew($crew);
+
+            }
+            else{
+                $testResult = new TestResults();
+                $testResult->setTest($test);                 
+            }                  
             $testResult->setCategory($crewData['Category'] ?? null);            
             $testResult->setNavigation($crewData['Nav'] ?? null);
             $testResult->setLanding($crewData['Att'] ?? null);            
             $testResult->setObservation($crewData['Obs'] ?? null);
-            $testResult->setFlightPlanning($crewData['FlightPlanning'] ?? null);
+            $testResult->setFlightPlanning($crewData['FlightPlanning'] ?? null);            
+            $testResult->setLiteralCrew($crewData['Competitor'] ?? null);
             $testResult->setStatus($crewData['Status'] ?? false); 
 
             $em->persist($testResult);

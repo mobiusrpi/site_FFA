@@ -22,6 +22,7 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th>Id</th>                     
                     <th>Categorie</th>                    
                     <th class='text-center'>Pilote</th>
                     {% if crews[0].competition.typecompetition.id != 2 %} 
@@ -34,6 +35,7 @@
             <tbody>
                 {% for crew in crews %}
                     <tr>
+                        <td>{{ crew.Id }}</td>                        
                         <td>{{ crew.category.value }}</td>                        
                         <td>{{ crew.pilot.getLastname() }} {{ crew.pilot.firstname }}</td>
                         {% if crew.competition.typecompetition.id != 2 %}   

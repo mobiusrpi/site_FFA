@@ -3,44 +3,192 @@
 {% block title %}Classement de {{ competition.name }}{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="row">
-        {% for category, crews in scoreByCategory %}
-            <div class="col-md-6">
-                <h5 class="text-center"><strong>Catégorie {{ category }}</strong></h5>
-                <table class="table table-bordered table-sm">
-                    <thead>
-                        <tr>
-                          <th>Équipage</th>
-                          {% for testKey, displayName in testNames %}
-                            <th class="text-center">{{ displayName }}</th>
-                          {% endfor %}
-                          <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for crewData in crews %}
-                          <tr>
-                            <td>
-                              {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}<br>
-                            </td>
-                            
-                            {% for testKey, displayName in testNames %}
-                              {% set result = crewData.tests[testKey] ?? {'nav': 0, 'att': 0} %}
-                              {% if result.att > 0 %}
-                                <td>{{ result.att }}</td>
-                              {% else %}
-                                <td>{{ result.nav }}</td>
-                              {% endif %}
-                            {% endfor %}
+    <style>
+        .sort-column {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sort-column:hover {
+            background-color:rgb(243, 158, 158);
+        }
+        .sort-arrow {
+            color: #999 !important;
+            text-decoration: none !important;
+            pointer-events: auto;
+        }
 
-                            <td><strong>{{ crewData.total }}</strong></td>
-                          </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endfor %}
-    </div>    
-</div>
+        .sort-arrow:hover {
+            color: #000 !important;       
+        }
+    </style>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="text-center"><strong>Compétition {{ competition.name }}</strong> -
+              {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+              {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}</h5>
+          <a href="javascript:history.back()" class="btn btn-secondary mb-3">← Retour</a>
+        </div>
+        <div class="row"> 
+            {% for category, crews in scoreByCategory %}
+                <div class="col-md-6">
+                    <h5 class="text-center"><strong>Catégorie {{ category }}</strong></h5>
+
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Class.</th>
+                                <th>
+                                  {% if competition.typecompetition.id == 2 %}
+                                      Pilote
+                                  {% else %}
+                                      Équipage                            
+                                  {% endif %}
+                                </th>
+                                {% for testId, test in testNames %}
+                                  <th class="text-center sort-column" data-key="{{ loop.index }}">
+                                    {% if test.hasDetail %}
+                                        <a href="{{ path('test_results_detail', { testId: testId }) }}"
+                                            class="text-primary text-decoration-underline fw-bold d-inline-flex align-items-center sort-column"
+                                            data-key="{{ loop.index }}"
+                                            style="white-space: nowrap;"
+                                            title="Voir les détails de {{ test.label }}">
+                                            {{ test.label }}
+                                            <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                                        </a>
+                                    {% else %}
+                                      <span class="fw-bold" title="Pas de détail">{{ test.label }}</span>
+                                    {% endif %}
+                                 </th>
+                                {% endfor %}   
+                               <th class="text-center sort-column" data-key="total">
+                                    <span class="fw-bold" style="white-space: nowrap;">
+                                        Total <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+                                    </span>
+                                </th>                            
+                            </tr>
+                        </thead>
+                        <tbody> 
+                            {% set lastScore = null %}
+                            {% set rank = 0 %}
+                            {% set actualRank = 0 %}  
+                            {% for crewData in crews %}
+                                {% set actualRank = actualRank + 1 %}
+                                {% if crewData.total != lastScore %}
+                                    {% set rank = actualRank %}
+                                {% endif %}
+                                <tr data-score="{{ crewData.total }}">
+                                    <td class="text-center">{{ rank }}</td>
+                                    <td>
+                                        {% if crewData.crew.pilot is defined %}   
+                                            {% if competition.typecompetition.id == 2 %}
+                                                {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}
+                                            {% else %}
+                                                {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}<br>
+                                                {{ crewData.crew.navigator.lastName }} {{ crewData.crew.navigator.firstName }}                           
+                                            {% endif %}    
+                                        {% else %}
+                                            {{ crewData.crew }}
+                                        {% endif %}
+                                    </td>
+                                    {% if competition.typecompetition.id == 2 %}
+                                        {% for testKey, displayName in testNames %}
+                                            {% set result = crewData.tests[testKey] ?? {'nav': 0, 'att': 0} %}
+                                            {% if competition.typecompetition.id == 2 %}
+                                                {% if result.att > 0 %}
+                                                    <td data-key="{{ loop.index }}" data-value="{{ result.att }}">{{ result.att }}</td>
+                                                {% else %}
+                                                    <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">{{ result.nav }}</td>
+                                                {% endif %}
+                                            {% else %}
+                                                <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">{{ result.nav }}</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for testKey, displayName in testNames %}
+                                            {% set result = crewData.tests[testKey] ?? {'nav': 0, 'att': 0} %}
+                                            <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">{{ result.nav }}</td>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <td data-key="total" data-value="{{ crewData.total }}"><strong>{{ crewData.total }}</strong></td>                                </tr>
+                                {% set lastScore = crewData.total %}                              
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        </div>    
+    </div>
+    <script>
+        document.querySelectorAll('.table').forEach(table => {
+            const headers = table.querySelectorAll('.sort-column');
+
+            headers.forEach((header) => {
+                const icon = header.querySelector('.sort-arrow');
+                let ascending = true;
+                const key = header.dataset.key;
+
+                if (icon && key) {
+                    icon.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                        rows.sort((a, b) => {
+                            const aCell = a.querySelector(`td[data-key="${key}"]`);
+                            const bCell = b.querySelector(`td[data-key="${key}"]`);
+
+                            const aVal = parseFloat(aCell?.getAttribute('data-value') || 0);
+                            const bVal = parseFloat(bCell?.getAttribute('data-value') || 0);
+
+                            return ascending ? aVal - bVal : bVal - aVal;
+                        });
+
+                        ascending = !ascending;
+                        rows.forEach(row => tbody.appendChild(row));
+
+                        headers.forEach(h => {
+                            const i = h.querySelector('.sort-arrow');
+                            if (i) {
+                                i.classList.remove('fa-sort-up', 'fa-sort-down');
+                                i.classList.add('fa-sort');
+                            }
+                        });
+                        icon.classList.remove('fa-sort');
+                        icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
+
+                        if (key === 'total') {
+                            let previousScore = null;
+                            let rank = 0;
+                            let displayRank = 0;
+
+                            rows.forEach((row) => {
+                                const score = parseFloat(row.getAttribute('data-score') || 0);
+                                rank++;
+                                if (score !== previousScore) {
+                                    displayRank = rank;
+                                }
+
+                                const rankCell = row.children[0];
+                                if (rankCell) {
+                                    rankCell.textContent = displayRank;
+                                }
+
+                                previousScore = score;
+                            });
+                        } else {
+                            rows.forEach((row, i) => {
+                                const rankCell = row.children[0];
+                                if (rankCell) {
+                                    rankCell.textContent = i + 1;
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
 {% endblock %}
