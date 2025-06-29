@@ -17,15 +17,20 @@ class TrackanalyzerAuthController extends AbstractController
     #[Route('/auth/login/xml', name: 'trackanalyzer_login', methods: ['POST'])]
     public function login(
         Request $request,
+        LoggerInterface $logger,
         UsersRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         CacheItemPoolInterface $cache,
 
     ): Response {
+
         $apiKey  = $request->request->get('key');
         $email   = $request->request->get('email');
         $password = $request->request->get('password');
-
+        $logger->info('Clé reçue : "' . $apiKey . '"');
+        $logger->info('email reçue : "' . $email . '"');
+        $logger->info('password reçue : "' . $password . '"');
+        return new Response('<?xml version="1.0" encoding="UTF-8"?><response><result>RECEIVED_KEY</result><key>' . htmlspecialchars($apiKey) . '</key></response>', 200, ['Content-Type' => 'application/xml']);
         if ($apiKey !== $_ENV['FFA_API_KEY']) {
             return $this->xmlError('INVALID_KEY');
         }
