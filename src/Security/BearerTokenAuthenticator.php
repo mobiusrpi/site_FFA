@@ -3,9 +3,10 @@
 
 namespace App\Security;
 
+use Psr\Log\LoggerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
@@ -16,12 +17,13 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
 class BearerTokenAuthenticator extends AbstractAuthenticator
-{
+{   private  LoggerInterface $logger;
     private CacheItemPoolInterface $cache;
     private UserProviderInterface $userProvider;
 
-    public function __construct(UserProviderInterface $userProvider, CacheItemPoolInterface $cache)
+    public function __construct(UserProviderInterface $userProvider, CacheItemPoolInterface $cache, LoggerInterface $logger,)
     {
+        $this->logger = $logger;
         $this->userProvider = $userProvider;
         $this->cache = $cache;
     }
@@ -41,8 +43,15 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
         $authHeader = $request->headers->get('Authorization');
         $token = substr($authHeader, 7);
 
-         // Utilise le cache avec la méthode getItem()
+        $this->logger->info('Looking for token in cache', ['key' => 'trackanalyzer_token_' . $token]);
+
         $cacheItem = $this->cache->getItem('trackanalyzer_token_' . $token);
+
+        if (!$cacheItem->isHit()) {
+            $this->logger->warning('Token not found in cache', ['token' => $token]);
+            throw new UserNotFoundException('Token invalid');
+        }
+
 
         if (!$cacheItem->isHit()) {
             throw new UserNotFoundException('Token invalid');
