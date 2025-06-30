@@ -124,12 +124,12 @@ class TrackanalyzerController extends AbstractController
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
         }
-
-        $token = trim(substr($authHeader, 7));
-        $item = $cache->getItem('trackanalyzer_token_' . $token);
-        if (!$item->isHit()) {
-            return new JsonResponse(['error' => 'Invalid or expired token'], 403);
-        }
+        
+        /** @var \App\Entity\Users $user */
+        $user = $this->getUser(); 
+        $logger->info('Import called by user', [
+            'email' => $user?->getEmail() ?? 'unknown',
+        ]);
 
         $data = json_decode($request->getContent(), true);
         if (!$data || empty($data['testId']) || empty($data['Crews']) || !is_array($data['Crews'])) {

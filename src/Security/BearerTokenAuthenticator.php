@@ -3,11 +3,10 @@
 
 namespace App\Security;
 
-use App\Entity\Users;
+use App\Repository\UsersRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -17,11 +16,11 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class BearerTokenAuthenticator extends AbstractAuthenticator
 {
-    private UserProviderInterface $userProvider;
-
-    public function __construct(UserProviderInterface $userProvider)
+    private UsersRepository $usersRepository;
+    
+    public function __construct(UsersRepository $usersRepository)
     {
-        $this->userProvider = $userProvider;
+        $this->usersRepository = $usersRepository;
     }
 
     public function supports(Request $request): ?bool
@@ -46,22 +45,18 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
         return new SelfValidatingPassport(
             new UserBadge($token, function ($token) {
-                // Récupère le user à partir du token
-                $user = $this->userProvider->loadUserByIdentifier($token);
+            $user = $this->usersRepository->findOneBy(['apiToken' => $token]);
 
-                if (!$user instanceof Users) {
-                    throw new AuthenticationException('User not found');
-                }
+            if (!$user) {
+                throw new UserNotFoundException('Token invalid');
+            }
 
-                if (!$user->getApiToken() || $user->getApiToken() !== $token) {
-                    throw new AuthenticationException('Token mismatch');
-                }
+            if ($user->getApiTokenExpiresAt() < new \DateTimeImmutable()) {
+                throw new AuthenticationException('Token expired');
+            }
 
-                if ($user->getApiTokenExpiresAt() < new \DateTimeImmutable()) {
-                    throw new AuthenticationException('Token expired');
-                }
+            return $user;
 
-                return $user;
             })
         );
     }
