@@ -46,21 +46,13 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
         $this->logger->info('Looking for token in cache', ['key' => 'trackanalyzer_token_' . $token]);
 
         $cacheItem = $this->cache->getItem('trackanalyzer_token_' . $token);
-
         if (!$cacheItem->isHit()) {
-            $this->logger->warning('Token not found in cache', ['token' => $token]);
-            throw new UserNotFoundException('Token invalid');
+            throw new AuthenticationException('Token invalid');
         }
-
-
-        if (!$cacheItem->isHit()) {
-            throw new UserNotFoundException('Token invalid');
-        }
-
-        $userIdentifier = $cacheItem->get();
+        $email = $cacheItem->get();
 
         return new SelfValidatingPassport(
-            new UserBadge($userIdentifier, function (string $identifier) {
+            new UserBadge($email, function (string $identifier) {
                 return $this->userProvider->loadUserByIdentifier($identifier);
             })
         );

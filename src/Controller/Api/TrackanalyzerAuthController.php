@@ -48,14 +48,16 @@ class TrackanalyzerAuthController extends AbstractController
             return $this->xmlError('ACCESS_DENIED');
         }
 
-        $user->setApiToken(Uuid::v4()); // ou une méthode personnalisée
+        $user->setApiToken(Uuid::v4()); 
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 day'));
         $entityManager->flush();
 
         $token = bin2hex(random_bytes(16));
         $item = $cache->getItem('trackanalyzer_token_' . $token);
-        $item->set($user->getId())->expiresAfter(3600);
+        $item->set($user->getEmail())->expiresAfter(36000);
         $cache->save($item);
+        
+        $logger->info('TrackAnalyzer login success', ['email' => $email]);
 
         return $this->xmlSuccess('OK', $token);
     }
