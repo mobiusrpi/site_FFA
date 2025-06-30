@@ -54,7 +54,7 @@ class TrackanalyzerAuthController extends AbstractController
 
         $token = bin2hex(random_bytes(16));
         $cacheKey = 'trackanalyzer_token_' . $token;
-        $cacheItem = $cache->getItem($$cacheKey);
+        $cacheItem = $cache->getItem($cacheKey);
         $cacheItem->set($user->getEmail())->expiresAfter(36000);
         $cache->save($cacheItem);
         
