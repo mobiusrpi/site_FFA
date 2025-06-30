@@ -3,9 +3,10 @@
 
 namespace App\Security;
 
-use App\Repository\UsersRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
@@ -16,11 +17,13 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class BearerTokenAuthenticator extends AbstractAuthenticator
 {
-    private UsersRepository $usersRepository;
-    
-    public function __construct(UsersRepository $usersRepository)
+    private CacheItemPoolInterface $cache;
+    private UserProviderInterface $userProvider;
+
+    public function __construct(UserProviderInterface $userProvider, CacheItemPoolInterface $cache)
     {
-        $this->usersRepository = $usersRepository;
+        $this->userProvider = $userProvider;
+        $this->cache = $cache;
     }
 
     public function supports(Request $request): ?bool
@@ -36,27 +39,20 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
     public function authenticate(Request $request): Passport
     {
         $authHeader = $request->headers->get('Authorization');
-
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            throw new AuthenticationException('No Bearer token found');
-        }
-
         $token = substr($authHeader, 7);
 
+         // Utilise le cache avec la méthode getItem()
+        $cacheItem = $this->cache->getItem('trackanalyzer_token_' . $token);
+
+        if (!$cacheItem->isHit()) {
+            throw new UserNotFoundException('Token invalid');
+        }
+
+        $userIdentifier = $cacheItem->get();
+
         return new SelfValidatingPassport(
-            new UserBadge($token, function ($token) {
-            $user = $this->usersRepository->findOneBy(['apiToken' => $token]);
-
-            if (!$user) {
-                throw new UserNotFoundException('Token invalid');
-            }
-
-            if ($user->getApiTokenExpiresAt() < new \DateTimeImmutable()) {
-                throw new AuthenticationException('Token expired');
-            }
-
-            return $user;
-
+            new UserBadge($userIdentifier, function (string $identifier) {
+                return $this->userProvider->loadUserByIdentifier($identifier);
             })
         );
     }
