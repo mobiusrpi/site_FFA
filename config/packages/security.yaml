@@ -13,6 +13,14 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+            
+        api:
+            pattern: ^/3rdparty/trackanalyzer
+            provider: app_user_provider
+            stateless: true
+            custom_authenticators:                
+                - App\Security\BearerTokenAuthenticator
+
         main:
             lazy: true            
             pattern: ^/
@@ -30,13 +38,6 @@ security:
             login_throttling:
                 max_attempts: 5          # per minute ...
                 interval: '15 minutes' # ... or in a custom period
-
-        api:
-            pattern: ^/3rdparty/trackanalyzer
-            provider: app_user_provider
-            stateless: true
-            custom_authenticators:                
-                - App\Security\BearerTokenAuthenticator
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
