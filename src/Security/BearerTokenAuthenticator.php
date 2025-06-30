@@ -37,17 +37,30 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
     public function authenticate(Request $request): Passport
     {
         $authHeader = $request->headers->get('Authorization');
-        $token = substr($authHeader, 7); 
+
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            throw new AuthenticationException('No Bearer token found');
+        }
+
+        $token = substr($authHeader, 7);
 
         return new SelfValidatingPassport(
             new UserBadge($token, function ($token) {
-                // Logique pour récupérer l'utilisateur par token
-                // Par exemple, appel userProvider
+                // Récupère le user à partir du token
                 $user = $this->userProvider->loadUserByIdentifier($token);
 
                 if (!$user instanceof Users) {
                     throw new AuthenticationException('User not found');
                 }
+
+                if (!$user->getApiToken() || $user->getApiToken() !== $token) {
+                    throw new AuthenticationException('Token mismatch');
+                }
+
+                if ($user->getApiTokenExpiresAt() < new \DateTimeImmutable()) {
+                    throw new AuthenticationException('Token expired');
+                }
+
                 return $user;
             })
         );

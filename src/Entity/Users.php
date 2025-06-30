@@ -154,6 +154,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Aircrafts::class, mappedBy: 'user')]
     private Collection $aircrafts;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $apiToken = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $apiTokenExpiresAt = null;
     
     public function __construct()
     {
@@ -547,11 +553,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-    public function __toString(): string
-    {
-        return $this->getLastname() . ' ' . $this->getFirstname();
-    }
-
+ 
     public function getArchivedAt(): ?\DateTimeImmutable
     {
         return $this->archivedAt;
@@ -592,5 +594,32 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?string $apiToken): self
+    {
+        $this->apiToken = $apiToken;
+        return $this;
+    }
+
+    public function getApiTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->apiTokenExpiresAt;
+    }
+
+    public function setApiTokenExpiresAt(?\DateTimeImmutable $expiresAt): self
+    {
+        $this->apiTokenExpiresAt = $expiresAt;
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getLastname() . ' ' . $this->getFirstname();
     }
 }

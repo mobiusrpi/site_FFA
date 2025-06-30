@@ -3,11 +3,13 @@
 namespace App\Controller\Api;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Uid\Uuid;
 use App\Repository\UsersRepository;
 use Psr\Cache\CacheItemPoolInterface;
+use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,7 +23,7 @@ class TrackanalyzerAuthController extends AbstractController
         UsersRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         CacheItemPoolInterface $cache,
-
+        EntityManagerInterface $entityManager
     ): Response {
 
         $apiKey  = $request->request->get('key');
@@ -34,6 +36,7 @@ class TrackanalyzerAuthController extends AbstractController
 
         $user = $userRepository->findOneBy(['email' => $email]);
 
+
         if (!$user) {
             return $this->xmlError('INVALID_EMAIL');
         }
@@ -44,6 +47,10 @@ class TrackanalyzerAuthController extends AbstractController
         if (!in_array('ROLE_ADMIN', $user->getRoles()) && !in_array('ROLE_MANAGER', $user->getRoles())) {
             return $this->xmlError('ACCESS_DENIED');
         }
+
+        $user->setApiToken(Uuid::v4()); // ou une méthode personnalisée
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 day'));
+        $entityManager->flush();
 
         $token = bin2hex(random_bytes(16));
         $item = $cache->getItem('trackanalyzer_token_' . $token);
