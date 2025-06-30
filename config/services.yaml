@@ -57,3 +57,6 @@ services:
         tags:
             - { name: doctrine.orm.entity_listener }
           
+    App\Security\BearerTokenAuthenticator:
+        arguments:
+            $cache: '@cache.app'
