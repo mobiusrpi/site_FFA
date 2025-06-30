@@ -53,12 +53,13 @@ class TrackanalyzerAuthController extends AbstractController
         $entityManager->flush();
 
         $token = bin2hex(random_bytes(16));
-        $cacheItem = $cache->getItem($token);
+        $cacheKey = 'trackanalyzer_token_' . $token;
+        $cacheItem = $cache->getItem($$cacheKey);
         $cacheItem->set($user->getEmail())->expiresAfter(36000);
         $cache->save($cacheItem);
         
         $logger->info('Token stored in cache', [
-            'key' => $token,
+            'key' => $cacheKey,
             'email' => $user->getEmail()
         ]);
         return $this->xmlSuccess('OK', $token);
