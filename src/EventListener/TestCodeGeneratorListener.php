@@ -23,6 +23,7 @@ class TestCodeGeneratorListener
         if (empty($entity->getName())) {
             // Detach entity to prevent persisting it if name is empty
             $entityManager->detach($entity);
+            return;
         }
             // Now generate a unique code based on the name
         if ($entity->getCode() !== null) {

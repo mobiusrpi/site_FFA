@@ -83,9 +83,6 @@ class TrackanalyzerController extends AbstractController
             $testResult->setNavigation($crewData['Nav'] ?? null);
             $testResult->setLanding($data['Att'] ?? null);            
             $testResult->setObservation($data['Obs'] ?? null);
-    //        $testResult->setFlightPlanning($data['flightPlanning'] ?? null);
-    //        $testResult->setStatus($crewData['complaint'] ?? false);
- 
 
             $em->persist($testResult);
             $results[] = $testResult;
@@ -113,8 +110,8 @@ class TrackanalyzerController extends AbstractController
 
         $logger->info('TrackAnalyzer import called', [
             'Authorization' => $authHeader,
-            'Raw JSON' => $rawJson,
         ]);
+
         $data = json_decode($rawJson, true);
         if (!$data) {
             $logger->error('Invalid JSON received', ['raw' => $rawJson]);
@@ -135,8 +132,6 @@ class TrackanalyzerController extends AbstractController
         if (!$data || empty($data['testId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
             return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
         }
-
-        $logger->info('Searching test with code: ' . $data['testId']);
 
         $test = $repositoryTest->findOneBy(['code' => $data['testId']]); 
         if (!$test) {

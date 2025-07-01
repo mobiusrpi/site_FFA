@@ -16,11 +16,11 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
 class BearerTokenAuthenticator extends AbstractAuthenticator
-{   private  LoggerInterface $logger;
-    private CacheItemPoolInterface $cache;
-    private UserProviderInterface $userProvider;
-
-    public function __construct(UserProviderInterface $userProvider, CacheItemPoolInterface $cache, LoggerInterface $logger,)
+{
+    public function __construct(
+        private UserProviderInterface $userProvider,
+        private CacheItemPoolInterface $cache,
+        private LoggerInterface $logger,)
     {
         $this->logger = $logger;
         $this->userProvider = $userProvider;
@@ -29,7 +29,7 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
-        // Vérifie que l'URL commence par /3rdparty/trackanalyzer
+        // Check that URL start by /3rdparty/trackanalyzer
         if (str_starts_with($request->getPathInfo(), '/3rdparty/trackanalyzer')) {
             return $request->headers->has('Authorization');
         }
@@ -41,8 +41,8 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
     {
         $authHeader = $request->headers->get('Authorization');
         $token = substr($authHeader, 7);
-
-        $this->logger->info('Looking for token in cache', ['key' => 'trackanalyzer_token_' . $token]);
+        
+        $this->logger->error('Authentication failed: invalid or missing token.');
 
         $cacheItem = $this->cache->getItem('trackanalyzer_token_' . $token);
         if (!$cacheItem->isHit()) {
@@ -58,7 +58,7 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
-    {
+    {    
         return new Response(
             'Authentication Failed: '.$exception->getMessage(),
             Response::HTTP_UNAUTHORIZED
@@ -67,7 +67,7 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        return null; // Continue the request
+        return null; 
     }
 }
 

@@ -235,7 +235,6 @@ final class TestResultsController extends AbstractController
     #[Route(path: '/testResults/general/{id}', name:'test_results_general', methods:['GET'])]    
     public function resultsGeneral(
         int $id,
-        Request $request,
         CompetitionsRepository $repositoryCompetition,
         CompetitionScoringService $scoringService
     ): Response {
@@ -260,6 +259,63 @@ final class TestResultsController extends AbstractController
         }
 
         return $this->render('pages/results/resultsGeneral.html.twig', [
+            'competition' => $competition,
+            'testNames' => $testNames,
+            'scoreByCategory' => $scoreByCategory,
+        ]);
+    }
+
+    /**
+     * general results sorted by score function
+     *
+     * @param Request $request
+     * @param CompetitionsRepository $competitionRepository
+     * @return Response
+     */
+    #[Route(path: '/testResults/live/{id}', name:'test_results_live', methods:['GET'])]    
+    public function resultslive(
+        int $id,
+        CompetitionsRepository $repositoryCompetition,
+        CompetitionScoringService $scoringService
+    ): Response {
+        //$competition = $repositoryCompetition->find($id);
+        $competition = $repositoryCompetition->findWithCrews($id);
+
+        if (!$competition) {
+            throw $this->createNotFoundException('Compétition non trouvée');
+        }
+        $crews = $competition->getCrew();
+ //   dd($competition,$crews);
+        foreach ($crews as $crew) {
+            $crewId = $crew->getId();
+            $category = $crew->getCategory()->value;
+
+            // Initialize category if not present
+            if (!isset($scoreByCategory[$category])) {
+                $scoreByCategory[$category] = [];
+            }
+
+            // If the crew is not already in the score list, set default score to 0
+            if (!array_key_exists($crewId, $scoreByCategory[$category])) {
+                $scoreByCategory[$category][$crewId] = [
+                    'crew' =>$crewId,
+                    'tests' => [],
+                    'total' => 0,
+                ];
+            }
+        }        
+        $testNames = [];
+        foreach ($competition->getTests() as $test) {
+            $testId = $test->getId();
+            $label = $test->getName();
+            $type = $test->getType();
+
+            $testNames[$testId] = [
+                'label' => $label,
+                'hasDetail' => $type !== TestCompet::LANDING,
+            ];
+        }
+        return $this->render('pages/results/resultsLive.html.twig', [
             'competition' => $competition,
             'testNames' => $testNames,
             'scoreByCategory' => $scoreByCategory,

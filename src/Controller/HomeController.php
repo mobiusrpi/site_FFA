@@ -2,8 +2,6 @@
 
 namespace App\Controller;
 
-use Symfony\Component\Uid\Uuid;
-use Doctrine\Common\Collections\Criteria;
 use App\Repository\CompetitionsRepository;
 use App\Service\CompetitionScoringService;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,12 +30,14 @@ final class HomeController extends AbstractController
         
         $start = new \DateTime("$selectedYear-01-01");
         $end = new \DateTime("$selectedYear-12-31 23:59:59");
+        $today = new \DateTimeImmutable();
         
-        $competitions = $competitionRepository->resultCompetitions($start, $end);
+        $competitionsFinished = $competitionRepository->resultCompetitions($start, $end);
+        $liveCompetitions = $competitionRepository->liveCompetitions( $today);
         $nextCompetitions = $competitionRepository->nextCompetition();
         $groupedCompetitions = [];
-
-        foreach ($competitions as $competition) {
+//dd($liveCompetitions);
+        foreach ($competitionsFinished as $competition) {
             $scores = $scoringService->calculateScores($competition);
 
             if (empty($scores['Elite']) && empty($scores['Honneur'])) {
@@ -55,6 +55,7 @@ final class HomeController extends AbstractController
         return $this->render('pages/home.html.twig', [
             'groupedCompetitions' => $groupedCompetitions,
             'years' => $years,
+            'live' => $liveCompetitions,            
             'selectedYear' => $selectedYear,
             'nextCompetitions' => $nextCompetitions,
         ]);

@@ -55,11 +55,10 @@ class TrackanalyzerAuthController extends AbstractController
         $token = bin2hex(random_bytes(16));
         $cacheKey = 'trackanalyzer_token_' . $token;
         $cacheItem = $cache->getItem($cacheKey);
-        $cacheItem->set($user->getEmail())->expiresAfter(36000);
+        $cacheItem->set($user->getEmail())->expiresAfter(3600);
         $cache->save($cacheItem);
         
-        $logger->info('Token stored in cache', [
-            'key' => $cacheKey,
+        $logger->info('Token stored in cache by :', [
             'email' => $user->getEmail()
         ]);
         return $this->xmlSuccess('OK', $token);

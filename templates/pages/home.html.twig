@@ -128,6 +128,19 @@
               </a>
             {% endfor %}
           </div>
+          {% if live is not empty %}
+          <div class="mt-4">
+            <strong>Direct</strong>
+              {% for compet in live %}
+                <div class="mt-2">
+                  <a href="{{ path('test_results_live', { id: compet.id }) }}"
+                    class="btn btn-sm {{ compet ? 'btn-warning' : 'btn-outline-warning' }}  w-100 text-centered">
+                    {{ compet.typecompetition.typecomp }}
+                  </a>            
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}        
         </div>
       </div>
       {% set medals = ['🥇', '🥈', '🥉'] %} 

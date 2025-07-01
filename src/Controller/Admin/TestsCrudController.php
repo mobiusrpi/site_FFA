@@ -17,26 +17,12 @@ class TestsCrudController extends AbstractCrudController
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
-{
-    if (!$entityInstance instanceof Tests) {
-        return;
-    }
-
-    // Competition should be set already by form listener
-
-    $entityManager->persist($entityInstance);
-    $entityManager->flush();
-    // TestCodeGeneratorListener::prePersist() will be triggered automatically here
-}
-
-    /*
-    public function configureFields(string $pageName): iterable
     {
-        return [
-            IdField::new('id'),
-            TextField::new('title'),
-            TextEditorField::new('description'),
-        ];
+        if (!$entityInstance instanceof Tests) {
+            return;
+        }
+
+        $entityManager->persist($entityInstance);
+        $entityManager->flush();
     }
-    */
 }

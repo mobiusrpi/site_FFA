@@ -119,8 +119,8 @@ class CompetitionsRepository extends ServiceEntityRepository
 
     public function resultCompetitions($start,$end): array
     {
-    return $this->createQueryBuilder('c')
-            ->innerJoin('c.results', 'r')
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.tests', 'r')
             ->addSelect('r')
             ->where('c.startDate BETWEEN :start AND :end')
             ->setParameter('start', $start)
@@ -128,6 +128,26 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->orderBy('c.startDate', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function liveCompetitions($today): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.startDate = :today')
+            ->setParameter('today',  $today->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findWithCrews(int $id): ?Competitions
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.crew', 'cr')
+            ->addSelect('cr')
+            ->where('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function nextCompetition(): array
