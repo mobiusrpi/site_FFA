@@ -36,7 +36,7 @@ final class HomeController extends AbstractController
         $liveCompetitions = $competitionRepository->liveCompetitions( $today);
         $nextCompetitions = $competitionRepository->nextCompetition();
         $groupedCompetitions = [];
-//dd($liveCompetitions);
+
         foreach ($competitionsFinished as $competition) {
             $scores = $scoringService->calculateScores($competition);
 

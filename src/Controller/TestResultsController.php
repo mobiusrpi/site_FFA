@@ -123,32 +123,29 @@ final class TestResultsController extends AbstractController
  * @param CompetitionsRepository $repositoryCompetition
  * @return Response
  */
-    #[Route(path: '/testResults/general1', name:'test_results_general1', methods:['GET'])]    
-    public function resultsGeneral1Detail(
-        Request $request, 
+    #[Route(path: '/testResults/perCategory/{id}/{category}', name:'test_results_per_category', methods:['GET'])]    
+    public function resultsPerCategory(
+        int $id,
+        $category,
         CompetitionsRepository $repositoryCompetition,
-    ): Response
-    {
-        $competition = $repositoryCompetition->findOneBy(['id' => (int) 23]);    
+    ): Response {
+        $competition = $repositoryCompetition->find($id);   
         if (!$competition) {
             throw $this->createNotFoundException('Compétition non trouvée');
         }        
 
-        $rankingByCategory = [];
+        $ranking= [];
         foreach ($competition->getTests() as $test) {
             foreach ($test->getTestResults() as $result) {
 
                 if(!$result->getCrew()){
-                    $crew = $result->getCrew();
-                    $crewId = $crew->getId();
-                    $category = $result->getCategory() ?? $crew->getCategory();
-                    if (!in_array($category, ['Elite', 'Honneur'])) continue;
-
-                    if (!$category) continue;
-
-                    if (!isset($rankingByCategory[$category][$crewId])) {
+                    $crew = $result->getLiteralCrew();
+                    if ($result->getCategory() !== $category) {
+                        continue;
+                    }
+                    if (!isset($ranking[$result->getLiteralCrew()])) {
                         if ($competition->getTypecompetition()->getId() == 2) {
-                            $rankingByCategory[$category][$crewId] = [
+                            $ranking[$result->getLiteralCrew()] = [
                                 'crew' => $crew,
                                 'navigation' => 0,
                                 'observation' => 0,                        
@@ -157,7 +154,7 @@ final class TestResultsController extends AbstractController
                                 'total' => 0,
                             ];
                         } else{
-                            $rankingByCategory[$category][$crewId] = [
+                            $ranking[$result->getLiteralCrew()] = [
                                 'crew' => $crew,
                                 'navigation' => 0,
                                 'observation' => 0,                        
@@ -166,17 +163,32 @@ final class TestResultsController extends AbstractController
                             ];                        
                         }
                     }
+                                        $nav = $result->getNavigation() ?? 0;
+                    $obs = $result->getObservation() ?? 0;
+                    $att = $result->getLanding() ?? 0;
+
+
+                    $ranking[$result->getLiteralCrew()]['navigation'] += $nav;
+                    $ranking[$result->getLiteralCrew()]['observation'] += $obs;
+                    $ranking[$result->getLiteralCrew()]['landing'] += $att;
+                    if ($competition->getTypecompetition()->getId() == 2) {
+                        $fp  = $result->getFlightPlanning() ?? 0;
+                        $ranking[$result->getLiteralCrew()]['flightPlanning'] += $fp;
+                    } 
+                    else {
+                        $fp = 0;       
+                    }
+                    $ranking[$result->getLiteralCrew()]['total'] += ($nav + $obs + $att + $fp);
                 } else {
                     $crew = $result->getCrew();
+                    if ($crew->getCategory() !== $category) {
+                        continue;
+                    }
                     $crewId = $crew->getId();
-                    $category = $result->getCategory() ?? $crew->getCategory();
-                    if (!in_array($category, ['Elite', 'Honneur'])) continue;
 
-                    if (!$category) continue;
-
-                    if (!isset($rankingByCategory[$category][$crewId])) {
+                    if (!isset($ranking[$crewId])) {
                         if ($competition->getTypecompetition()->getId() == 2) {
-                            $rankingByCategory[$category][$crewId] = [
+                            $ranking[$crewId] = [
                                 'crew' => $crew,
                                 'navigation' => 0,
                                 'observation' => 0,                        
@@ -185,43 +197,41 @@ final class TestResultsController extends AbstractController
                                 'total' => 0,
                             ];
                         } else {
-                            $rankingByCategory[$category][$crewId] = [
+                            $ranking[$crewId] = [
                                 'crew' => $crew,
                                 'navigation' => 0,
                                 'observation' => 0,                        
                                 'landing' => 0,                        
                                 'total' => 0,
-                            ];                        }
+                            ];                       
+                        }
                     }                
+                    $nav = $result->getNavigation() ?? 0;
+                    $obs = $result->getObservation() ?? 0;
+                    $att = $result->getLanding() ?? 0;
+
+
+                    $ranking[$crewId]['navigation'] += $nav;
+                    $ranking[$crewId]['observation'] += $obs;
+                    $ranking[$crewId]['landing'] += $att;
+                    if ($competition->getTypecompetition()->getId() == 2) {
+                        $fp  = $result->getFlightPlanning() ?? 0;
+                        $ranking[$crewId]['flightPlanning'] += $fp;
+                    }        
+                    else {
+                        $fp = 0;       
+                    }
+                    $ranking[$crewId]['total'] += ($nav + $obs + $att + $fp);
                 }
-
-                $nav = $result->getNavigation() ?? 0;
-                $obs = $result->getObservation() ?? 0;
-                $att = $result->getLanding() ?? 0;
-
-
-                $rankingByCategory[$category][$crewId]['navigation'] += $nav;
-                $rankingByCategory[$category][$crewId]['observation'] += $obs;
-                $rankingByCategory[$category][$crewId]['landing'] += $att;
-                if ($competition->getTypecompetition()->getId() == 2) {
-                    $fp  = $result->getFlightPlanning() ?? 0;
-                    $rankingByCategory[$category][$crewId]['flightPlanning'] += $fp;
-                }
-
-                $rankingByCategory[$category][$crewId]['total'] += ($nav + $obs + $att + $fp);
-
             }
         }
-        foreach ($rankingByCategory as &$results) {
-            usort($results, fn($a, $b) => $a['total'] <=> $b['total']); 
-        }
 
-        $years = $repositoryCompetition->findDistinctYears();
+        usort($ranking, fn($a, $b) => $a['total'] <=> $b['total']);
 
-        return $this->render('pages/results/resultsDetail.html.twig', [
+        return $this->render('pages/results/resultsPerCategory.html.twig', [
             'competition' => $competition,
-            'rankingByCategory' => $rankingByCategory,
-            'years' => $years,
+            'ranking' => $ranking,
+            'category' => $category,
         ]);
     }
 

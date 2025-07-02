@@ -31,8 +31,17 @@
         <div class="row"> 
             {% for category, crews in scoreByCategory %}
                 <div class="col-md-6">
-                    <h5 class="text-center"><strong>Catégorie {{ category }}</strong></h5>
-
+                    <h5 class="text-center">
+                        <strong>
+                            Catégorie
+                            <a href="{{ path('test_results_per_category',{ id: competition.id, category: category }) }}"
+                                class="text-primary text-decoration-underline fw-bold d-inline-flex align-items-center sort-column"
+                                style="white-space: nowrap;"
+                                title="Voir par categorie {{ category }}">
+                                {{ category }}
+                            </a>
+                       </strong>
+                    </h5>
                     <table class="table table-bordered table-sm">
                         <thead>
                             <tr>

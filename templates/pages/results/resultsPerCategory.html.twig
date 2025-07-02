@@ -1,0 +1,156 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Résultats {% endblock %}
+
+{% block body %}
+  <style>
+      .sort-column {
+          cursor: pointer;
+          user-select: none;
+      }
+      .sort-column:hover {
+          background-color:rgb(243, 158, 158);
+      }
+      .sort-arrow {
+          color: #999 !important;
+          text-decoration: none !important;
+          pointer-events: auto;
+      }
+
+      .sort-arrow:hover {
+          color: #000 !important;       
+      }
+  </style>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-center"><strong>Compétition {{ competition.name }}</strong> -
+            {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+            {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}  - 
+            <strong>{{ category }}</strong>
+            </h5>
+        <a href="javascript:history.back()" class="btn btn-secondary mb-3">← Retour</a>
+    </div>
+    <div class="row gx-4">
+      <div class="col-md-6 mb-4">
+        <div class="text-center">
+          <h5><strong>Catégorie {{ category }}</strong></h5>
+        </div>          
+
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr>
+              <th>Class.</th>
+              <th>
+                {% if competition.typecompetition.id == 2 %}
+                  Pilote            
+                {% else %}
+                  Équipage
+                {% endif %}
+              </th>
+              <th>Sexe</th>
+              <th>Association</th>
+              <th>CRA</th>
+              <th class="text-center sort-column" data-key="navigation">
+                <span class="d-inline-flex align-items-center">
+                  Nav <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                </span>
+              </th>
+              <th class="text-center sort-column" data-key="observation">
+                <span class="d-inline-flex align-items-center">
+                  Obs <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                </span>
+              </th>
+              {% if competition.typecompetition.id == 2 %}
+                <th class="text-center sort-column" data-key="flightPlanning">                        
+                  <span class="d-inline-flex align-items-center">               
+                    Théo <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>            
+                  </span>
+                </th>                 
+              {% else %}
+                <th class="text-center sort-column" data-key="landing">            
+                  <span class="d-inline-flex align-items-center">           
+                    Att <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                  </span>                
+                </th>
+              {% endif %}
+
+              <th class="text-center sort-column" data-key="total"> 
+                <span class="d-inline-flex align-items-center">
+                  Total <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                </span>
+              </th>  
+            </tr>
+          </thead>
+          <tbody>
+            {% set lastScore = null %}
+            {% set rank = 0 %}
+            {% set actualRank = 0 %}    
+            {% for row in ranking %}
+              {% set actualRank = actualRank + 1 %}
+              {% if row.total != lastScore %}
+                {% set rank = actualRank %}
+              {% endif %}
+              <tr>
+                <td class="text-center">{{ rank }}</td>
+              
+                <td style="white-space: nowrap;">
+                  <small>
+                    {% if crewData.crew.pilot is defined %}  
+                      {% if row.competition.typecompetition.id == 2 %}
+                        {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                      {% else %}
+                        {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                        {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
+                      {% endif %}
+                    {% else %}
+                      {{ row.crew }}
+                    {% endif %}
+                  </small>
+                </td>
+                <td></td>               
+                <td></td>
+                <td></td>
+                <td data-key="navigation" data-value="{{ row.navigation }}">{{ row.navigation }}</td>
+                <td data-key="observation" data-value="{{ row.observation }}">{{ row.observation }}</td>
+                {% if competition.typecompetition.id == 2 %}
+                  <td data-key="flightPlanning" data-value="{{ row.flightPlanning }}">>                  
+                    {{ row.flightPlanning }}
+                  </td>  
+                {% else %}
+                  <td data-key="landing" data-value="{{ row.landing }}">                 
+                    {{ row.landing }}
+                  </td>  
+                {% endif %}             
+                <td data-key="total" data-value="{{ row.total }}">{{ row.total }}</td>   
+              </tr>
+              {% set lastScore = row.total %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const table = document.querySelector('table');
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      let currentSort = { key: null, asc: true };
+
+      document.querySelectorAll('th.sort-column').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.key;
+          const asc = currentSort.key === key ? !currentSort.asc : true;
+
+          rows.sort((a, b) => {
+            const aVal = parseFloat(a.querySelector(`td[data-key="${key}"]`)?.dataset.value || 0);
+            const bVal = parseFloat(b.querySelector(`td[data-key="${key}"]`)?.dataset.value || 0);
+            return asc ? aVal - bVal : bVal - aVal;
+          });
+
+          rows.forEach(row => table.querySelector('tbody').appendChild(row));
+          currentSort = { key, asc };
+        });
+      });
+    });
+  </script>
+{% endblock %}
