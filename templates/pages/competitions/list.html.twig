@@ -16,10 +16,12 @@
             {{message}}
           </div> 
         {% endfor %}
-        
+        {% if competition_list is empty %}
+          <div class="mt-4"><p>Les compétitions pour {{ 'now'|date('Y') }} sont terminées, rendez-vous pour {{  ('now'|date('Y')|number_format(0, '', '')) + 1 }}</p></div>
+        {% endif %}
         <div class="row">
             {% for compet in competition_list %}
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mt-4">
                     <div class="card mb-3 shadow-sm border border-info">
                         <div class="card-body">
                             <h5 class="card-title">{{ compet.name }}</h5>
