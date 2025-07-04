@@ -591,10 +591,26 @@ class CompetitionsCrudController extends AbstractCrudController
         $data = [];
 
         foreach ($crews as $crew) {
+            // check if pilot is null
+            $pilLastname = $crew->getPilot()->getLastname();
+            $pilFirstname = $crew->getPilot()->getFirstname();
+            if (!$pilLastname && !$pilFirstname) {
+                $pilFullname = '';
+            } else {
+                $pilFullname = trim(($pilLastname ?? '') . ' ' . ($pilFirstname ?? ''));            
+            }
+            // check if navigator is null
+            $navLastname = $crew->getNavigator()->getLastname();
+            $navFirstname = $crew->getNavigator()->getFirstname();
+            if (!$navLastname && !$navFirstname) {
+                $navFullname = '';
+            } else {
+                $navFullname = trim(($lastname ?? 'Inconnu') . ' ' . ($firstname ?? 'Inconnu'));
+            }
             $data[] = [
                 'Concurrent' => $crew->getId(),
                 'Categorie' => $crew->getCategory()?->value ?? '',   
-                'Pilote' => $crew->getPilot()->getLastname() . ' ' . $crew->getPilot()->getFirstname(),
+                'Pilote' => $pilFullname,
                 'Pilote_Licence_FFA' => $crew->getPilot()->getLicenseFfa() ,
                 'Pilote_Telephone' => $crew->getPilot()->getPhone() ? $crew->getPilot()->getPhone() : '',
                 'Pilote_Email' => $crew->getPilot()->getEmail() ,
@@ -603,14 +619,14 @@ class CompetitionsCrudController extends AbstractCrudController
                 'Pilote_CRA' => $crew->getPilot()->getCommittee()?->value ?? '',                          
                 'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
                 'Pilote_taille_polo' => $crew->getPilot()->getPoloSize() ?->value ?? '',
-                'Navigateur' => $crew->getNavigator()->getLastname() . ' ' . $crew->getNavigator()->getFirstname(),
-                'Navigateur_Licence_FFA' => $crew->getNavigator()->getLicenseFfa(),
+                'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                'Navigateur' => $navFullname,
+                'Navigateur_Licence_FFA' => $crew->getNavigator()->getLicenseFfa() ?? '',
                 'Navigateur_Telephone' => $crew->getNavigator()->getPhone() ? $crew->getNavigator()->getPhone() : '',
-                'Navigateur_Email' => $crew->getNavigator()->getEmail() ,
+                'Navigateur_Email' => $crew->getNavigator()->getEmail() ??'',
                 'Navigateur_Date_Naissance' => $this->DateFormated($crew->getNavigator()->getDateBirth()),
                 'Navigateur_Aeroclub' => $crew->getNavigator()->getFlyingclub() ? $crew->getNavigator()->getFlyingclub() : '',
-                'Navigateur_CRA' => $crew->getNavigator()->getCommittee() ?->value ?? '',                          
-                'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                'Navigateur_CRA' => $crew->getNavigator()->getCommittee() ?->value ?? '',
                 'Navigateur_taille_polo' => $crew->getNavigator()->getPoloSize() ?->value ?? '',
                 'Immatriculation' => $crew->getCallsign() ? $crew->getCallSign() : '',
                 'Vitesse' => $crew->getAircraftSpeed() ?->value ?? '', 
@@ -661,11 +677,11 @@ class CompetitionsCrudController extends AbstractCrudController
                 'pilot_sex' => $crew->getPilot()->getGender()?->value[0] ?? '',
                 'pilot_club' =>  (string) $crew->getPilot()->getFlyingclub() ?? '',
                 'pilot_cra' =>  $crew->getPilot()->getCommittee()->getCode() ?? '',  
-                'copilot_lastname' => $crew->getNavigator()->getLastname() ,
-                'copilot_firstname' => $crew->getNavigator()->getFirstname(),
-                'copilot_sex' => $crew->getNavigator()->getGender()?->value[0] ?? '',
-                'copilot_club' => (string) $crew->getNavigator()->getFlyingclub() ?? '',
-                'copilot_cra' => $crew->getNavigator()->getCommittee()->getCode() ?? '',
+                'copilot_lastname' => '' ,
+                'copilot_firstname' => '',
+                'copilot_sex' => '',
+                'copilot_club' => '',
+                'copilot_cra' => '', 
                 'aircraft_brand' => (string) $crew->getAircraftBrand() ? $crew->getAircraftBrand() : '',
                 'aircraft_type' => (string) $crew->getAircraftType() ? $crew->getAircraftType() : '',
                 'aircraft_matriculation' => (string) $crew->getCallsign() ? $crew->getCallSign() : '', 

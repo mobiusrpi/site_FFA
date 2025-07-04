@@ -42,6 +42,7 @@
                 <li><a class="dropdown-item" href="{{ path('user_registrations_list') }}">Mes inscriptions</a></li>
               {% endif %}            
               <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profil</a></li>
+              <li><a class="dropdown-item" href="{{ path('user_aircrafts') }}">Mes avions</a></li>              
               <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
             </ul>
           </div>
@@ -77,6 +78,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="{{ path('edit_profil') }}">Profil</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{{ path('user_aircrafts') }}">Mes avions</a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="{{ path('logout') }}">Déconnexion</a>
