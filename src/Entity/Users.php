@@ -43,24 +43,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
    #[ORM\OneToMany(mappedBy: 'user', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
     private Collection $competitionsUsers;
 
-    private ?string $plainPassword = null;
-
-    /**
-     * @return string|null
-     */
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    /***
-     * @param string|null $plainPassword
-     */
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
-        return $this;
-    }
 
     #[ORM\Column]
     private bool $isVerified = false;
@@ -186,6 +168,25 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->email = $email;
 
+        return $this;
+    }
+    
+    private ?string $plainPassword = null;
+
+    /**
+     * @return string|null
+     */
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    /***
+     * @param string|null $plainPassword
+     */
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
         return $this;
     }
 
@@ -342,7 +343,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->dateBirth;
     }
 
-    public function setDateBirth(\DateTimeImmutable $dateBirth): static
+    public function setDateBirth(?\DateTimeImmutable $dateBirth): static
     {
         $this->dateBirth = $dateBirth;
 
