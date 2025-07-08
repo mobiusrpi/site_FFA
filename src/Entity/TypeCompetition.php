@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
+use App\Entity\Enum\SpeedList;
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
 use App\Repository\TypeCompetitionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeCompetitionRepository::class)]
 class TypeCompetition
@@ -16,7 +17,10 @@ class TypeCompetition
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    private ?string $typecomp = null;
+    private ?string $typecomp = null; 
+    
+    #[ORM\Column(enumType: SpeedList::class, nullable: true)]
+    private ?SpeedList $fixSpeed = null;
 
     /**
      * @var Collection<int, Competitions>
@@ -36,6 +40,17 @@ class TypeCompetition
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getFixSpeed(): ?SpeedList
+    {
+        return $this->fixSpeed;
+    }
+
+    public function setFixSpeed(?SpeedList $fixSpeed): self
+    {
+        $this->fixSpeed = $fixSpeed;
+        return $this;
     }
 
     public function getTypecomp(): ?string

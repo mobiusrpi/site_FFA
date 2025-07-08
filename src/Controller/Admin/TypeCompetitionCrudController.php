@@ -2,15 +2,16 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Enum\SpeedList;
 use App\Entity\TypeCompetition;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -35,7 +36,7 @@ class TypeCompetitionCrudController extends AbstractCrudController
         return $crud
             ->setPageTitle('index', 'Type de compétition')
             ->setPageTitle('detail', 'Type compétition')
-            ->setPageTitle('edit', 'Modification d\'un type de compétitionervice')       
+            ->setPageTitle('edit', 'Modification d\'un type de compétition')       
             ->setPageTitle('new', 'Ajout d\'un type de compétition');
     }
     
@@ -81,7 +82,17 @@ class TypeCompetitionCrudController extends AbstractCrudController
             IdField::new('id')->hideOnForm(),
             TextField::new('typecomp', 'Type de compétition'),
             AssociationField::new('championship', 'Championnat de France')
-                ->autocomplete(),      
+                ->autocomplete(),   
+            ChoiceField::new('fixSpeed', 'Vitesse imposée')
+                ->setChoices(array_combine(
+                    array_map(fn(SpeedList $case) => $case->getLabel(), SpeedList::cases()),
+                    SpeedList::cases()
+                ))
+                ->formatValue(fn(?SpeedList $value) => $value?->getLabel())
+                ->renderExpanded(false)
+                ->autocomplete(false)
+                ->allowMultipleChoices(false)
+                ->setRequired(false),
             ];
     }
 

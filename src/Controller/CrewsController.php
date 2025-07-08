@@ -10,7 +10,6 @@ use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
 use App\Repository\AircraftsRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\TestResultsRepository;
 use App\Repository\CompetitionsRepository;
 use App\Controller\Admin\CrewsCrudController;
 use Symfony\Component\HttpFoundation\Request;
@@ -324,8 +323,6 @@ final class CrewsController extends AbstractController
             'compet' => $compet,            
             'user' => $user,
             'form' => $form,
-            ]);
+        ]);
     }
-
-
 }

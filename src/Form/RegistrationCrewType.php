@@ -4,7 +4,6 @@ namespace App\Form;
 
 use App\Entity\Crews;
 use App\Entity\Users;
-use App\Entity\Aircrafts;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
@@ -42,11 +41,12 @@ class RegistrationCrewType extends AbstractType
         $crew = $options['data'];
         $user = $options['user'];
 
-        $compet = $crew?->getCompetition();
-        $competId = $compet?->getId();
+        $competition = $crew?->getCompetition();
+        $competId = $competition?->getId();
         // Only include the pilotId if it's an edit (i.e., pilot is already set)
         $pilotId = $crew && $crew->getPilot() ? $crew->getPilot()->getId() : null;
         $navigatorId = $crew && $crew->getNavigator() ? $crew->getNavigator()->getId() : null;
+        $fixSpeed = $competition?->getTypeCompetition()?->getFixSpeed();
 
         $includedUserIds = [];
         if ($pilotId !== null) {
@@ -57,19 +57,19 @@ class RegistrationCrewType extends AbstractType
         $builder->addEventSubscriber($this->preSubmitSubscriber);
         $accommodations = [];
 
-        if ($compet !== null && $compet->getCompetitionAccommodation() !== null) {
+        if ($competition !== null && $competition->getCompetitionAccommodation() !== null) {
             // toArray() returns a plain array of CompetitionAccommodation entities
-            $accommodations = $compet->getCompetitionAccommodation()->toArray();
+            $accommodations = $competition->getCompetitionAccommodation()->toArray();
         }
 
         $builder   
             ->add('competition', EntityType::class, [
                 'class' => Competitions::class,
-                'query_builder' => function (EntityRepository $er) use($compet) {
-                    return $er->getCompetChoice($compet);
+                'query_builder' => function (EntityRepository $er) use($competition) {
+                    return $er->getCompetChoice($competition);
                 },  
                 'choice_label' => 'name',
-                'data' => $compet,
+                'data' => $competition,
             ])
             ->add('pilot', EntityType::class, [
                 'class' => Users::class,   
@@ -123,23 +123,6 @@ class RegistrationCrewType extends AbstractType
                 ],
                 'mapped' => true, 
             ])
-            ->add('aircraftSpeed',EnumType::class,[
-                'class' => SpeedList::class,
-                'choice_label' => function (
-                    mixed $value
-                ): TranslatableMessage|string {
-                    return $value->getLabel();  
-                },
-                'attr' => [
-                    'class' => 'form-control',                    
-                ],                
-                'required' => true,
-                'label' => 'Vitesse en kt',
-                'label_attr' => [
-                    'class' => 'form-label'
-                ],               
-                'placeholder'=>'Choisir sa vitesse'
-             ])
             ->add('aircraftBrand',TextType::class,[
                 'attr' => [
                     'class' => 'form-control',                    
@@ -233,6 +216,29 @@ class RegistrationCrewType extends AbstractType
             ->addEventListener(FormEvents::PRE_SUBMIT, 
                 [$this->preSubmitSubscriber, 'onPreSubmit'])
         ; 
+
+        if ($fixSpeed instanceof SpeedList) {
+            $builder->add('aircraftSpeed', EnumType::class, [
+                'class' => SpeedList::class,
+                'choices' => [$fixSpeed], // only one value
+                'choice_label' => fn(SpeedList $value) => $value->getLabel(),
+                'attr' => ['class' => 'form-control', 'readonly' => true],
+                'disabled' => true, // no change
+                'label' => 'Vitesse imposée',
+                'label_attr' => ['class' => 'form-label'],
+                'required' => true,
+            ]);
+        } else {
+            $builder->add('aircraftSpeed', EnumType::class, [
+                'class' => SpeedList::class,
+                'choice_label' => fn(SpeedList $value) => $value->getLabel(),
+                'attr' => ['class' => 'form-control'],
+                'required' => true,
+                'label' => 'Vitesse',
+                'label_attr' => ['class' => 'form-label'],
+                'placeholder' => 'Choisir sa vitesse',
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver)

@@ -17,15 +17,6 @@ enum SpeedList: string
 
 
     public function getLabel(): string {
-        return match ($this) {
-            self::S60  => '60',
-            self::S65  => '65',
-            self::S70  => '70',
-            self::S75  => '75',
-            self::S80  => '80',
-            self::S85  => '85',
-            self::S90  => '90',
-            self::S95  => '95',
-      };
+        return $this->value . ' kt';    
     }
 }

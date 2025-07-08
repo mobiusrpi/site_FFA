@@ -37,7 +37,7 @@ class AircraftsType extends AbstractType
                     'class' => 'form-control',                    
                 ],                
                 'required' => true,
-                'label' => 'Vitesse en kt',
+                'label' => 'Vitesse',
                 'label_attr' => [
                     'class' => 'form-label'
                 ],               

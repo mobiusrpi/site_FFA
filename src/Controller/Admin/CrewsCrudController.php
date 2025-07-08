@@ -14,7 +14,6 @@ use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\RouterInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -42,7 +41,6 @@ class CrewsCrudController extends AbstractCrudController
 
     private function hasLinkedResults(Crews $crew): bool
     {
-        // Assuming you have a ResultRepository injected or accessible
         $resultsCount = $this->entityManager->getRepository(Results::class)
             ->createQueryBuilder('r')
             ->select('COUNT(r.id)')
@@ -55,11 +53,10 @@ class CrewsCrudController extends AbstractCrudController
     }
 
     public function __construct(
-               LoggerInterface $logger,
+        LoggerInterface $logger,
         RequestStack $requestStack,
         EntityManagerInterface $entityManager,
         UsersRepository $usersRepository,        
-        RouterInterface $router,
         Security $security,
         AdminUrlGenerator $adminUrlGenerator 
     ){
@@ -117,13 +114,13 @@ class CrewsCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        $fields = [];
-        
+        $fields = [];       
         $request = $this->requestStack->getCurrentRequest();
         $context = $this->requestStack->getCurrentRequest()->attributes->get('easyadmin_context');
 
         $competition = null;
         $users = [];
+        $fixSpeed = null;
 
         if ($pageName === Crud::PAGE_EDIT && $context) {
             $crew = $context->getEntity()->getInstance();
@@ -169,12 +166,13 @@ class CrewsCrudController extends AbstractCrudController
         if ($pageName === Crud::PAGE_INDEX) {
             // Use TextField to *display* the name of the competition
             $fields[] = TextField::new('competition', 'Epreuve');
-            $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type');
+            $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type de compétition');
         } elseif ($pageName === Crud::PAGE_EDIT) {
             // Use AssociationField to ensure entity binding works correctly
             $fields[] = AssociationField::new('competition', 'Epreuve')
                 ->setFormTypeOption('disabled', true); // Display only, not editable
-            $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type');
+            $fields[] = TextField::new('competition.typecompetition.typecomp', 'Type de compétition')
+                ->setFormTypeOption('disabled', true);
         }
         if ($competition) {
             $competitionAccommodations = $this->entityManager
@@ -247,15 +245,28 @@ class CrewsCrudController extends AbstractCrudController
         $fields[] = TextField::new('aircraftBrand','Marque de l\'avion')->hideOnIndex();
         $fields[] = TextField::new('aircraftType','Type d\'avion')->hideOnIndex();
         $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion')->hideOnIndex();
-        $fields[] = ChoiceField::new('aircraftSpeed','Vitesse')
-            ->setChoices(array_combine(
-                array_map(fn($case) => $case->value, SpeedList::cases()),
-                SpeedList::cases()
-            ))
-            ->renderExpanded(false) // dropdown
-            ->autocomplete(false)
-            ->allowMultipleChoices(false)
-            ->hideOnIndex();
+        
+        $typeCompet = $competition->getTypecompetition();
+        $fixSpeed = $typeCompet->getFixSpeed(); 
+      
+        if ($fixSpeed) {
+            $fields[] = ChoiceField::new('aircraftSpeed', 'Vitesse')
+                ->setChoices([$fixSpeed->value => $fixSpeed])
+                ->setDisabled(true)
+                ->hideOnIndex();
+
+        } else {
+            $fields[] = ChoiceField::new('aircraftSpeed', 'Vitesse')
+                ->setChoices(array_combine(
+                    array_map(fn($case) => $case->value, SpeedList::cases()),
+                    SpeedList::cases()
+                ))
+                ->renderExpanded(false)
+                ->autocomplete(false)
+                ->allowMultipleChoices(false)
+                ->hideOnIndex();
+        }
+
         $fields[] = TextField::new('aircraftOaci','Code OACI de départ')->hideOnIndex();
         $fields[] = BooleanField::new('aircraftSharing','Avion partagé ?')->hideOnIndex();
         $fields[] = TextField::new('pilotShared','Pilote de partage')->hideOnIndex();

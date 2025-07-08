@@ -129,6 +129,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $fields[] = FormField::addColumn(8);
         $fields[] = TextField::new('name','Désignation')
             ->setSortable(false);
+        $fields[] = TextField::new('location','Lieu de la compétition');
         $fields[] = DateField::new('startRegistration', 'Date de début d\'enrégistrement')
             ->setSortable(false)            
             ->setFormat('dd/MM/yy')
@@ -469,7 +470,7 @@ class CompetitionsCrudController extends AbstractCrudController
         } else {
             if (!is_array($finalList)) {
                 $this->logger->error('Cannot sort accommodations: $finalList is not an array.', [
-                    'type' => gettype($finalList)
+                    'type' => getType($finalList)
                 ]);
                 $finalList = []; // or handle gracefully
             }
