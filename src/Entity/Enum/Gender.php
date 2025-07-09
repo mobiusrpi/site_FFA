@@ -13,8 +13,8 @@ enum Gender: string
 
     public function getLabel(): string {
         return match ($this) {
-            self::Male  => 'Masculin',
-            self::Female  => 'Féminin',
+            self::Male  => 'M',
+            self::Female  => 'F',
       };
     }
 };

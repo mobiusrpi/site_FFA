@@ -332,11 +332,6 @@ class Crews
 
         return $this;
     }    
-    
-    public function __toString(): string
-    {
-       return 'test_crew';
-    }
 
     public function getAircraftOaci(): ?string
     {
@@ -409,5 +404,9 @@ class Crews
         return $this;
     }
     
+    public function __toString(): string
+    {
+       return 'crew_inconnu';
+    }
 }
 

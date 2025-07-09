@@ -168,7 +168,12 @@
                     {% for result in item.elite|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
-                        {{ result.crew }} – {{ result.total }} pts
+                        {% set pilot = attribute(result.crew, 'pilot') ?? null %}
+                        {% if pilot %}
+                          {{result.crew.pilot.lastname }} {{result.crew.pilot.firstname }} / {{ result.crew.navigator.lastname }} {{ result.crew.navigator.firstname }}
+                        {% else %}
+                          {{ result.crew }}
+                        {% endif %} – {{ result.total }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>

@@ -114,4 +114,16 @@ class CrewsRepository extends ServiceEntityRepository
 
         return (bool) $qb->getQuery()->getOneOrNullResult();
     }
+
+    public function findWithPilotNavigator(int $crewId): ?Crews
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.pilot', 'p')->addSelect('p')
+            ->leftJoin('c.navigator', 'n')->addSelect('n')
+            ->where('c.id = :id')
+            ->setParameter('id', $crewId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

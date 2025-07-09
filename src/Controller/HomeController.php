@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\CompetitionsRepository;
 use App\Service\CompetitionScoringService;
+use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;

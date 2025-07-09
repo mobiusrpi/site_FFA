@@ -122,6 +122,12 @@ class CompetitionsRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->innerJoin('c.tests', 'r')
             ->addSelect('r')
+            ->leftJoin('c.crew', 'cr') // charger les crews
+            ->addSelect('cr')
+            ->leftJoin('cr.pilot', 'p') // charger les users liés
+            ->addSelect('p')
+            ->leftJoin('cr.navigator', 'n')
+            ->addSelect('n')
             ->where('c.startDate BETWEEN :start AND :end')
             ->setParameter('start', $start)
             ->setParameter('end', $end)
@@ -175,5 +181,32 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->orderBy('compet.startDate', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function findWithCrewsAndUsersById(int $competitionId): ?Competitions
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.crew', 'w')
+            ->addSelect('w')
+            ->leftJoin('w.pilot', 'p')
+            ->addSelect('p')
+            ->leftJoin('w.navigator', 'n')
+            ->addSelect('n')
+            ->where('c.id = :id')
+            ->setParameter('id', $competitionId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findWithCrewsPilotsNavigators(int $competitionId): ?Competitions
+    {
+        return $this->createQueryBuilder('comp')
+            ->leftJoin('comp.crew', 'crew')->addSelect('crew')
+            ->leftJoin('crew.pilot', 'pilot')->addSelect('pilot')
+            ->leftJoin('crew.navigator', 'navigator')->addSelect('navigator')
+            ->where('comp.id = :id')
+            ->setParameter('id', $competitionId)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

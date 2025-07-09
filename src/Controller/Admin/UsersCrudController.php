@@ -120,6 +120,7 @@ class UsersCrudController extends AbstractCrudController
             TextField::new('firstname','Prénom')
                 ->setSortable(false),
             EmailField::new('email','Email')
+                ->setDisabled(true)
                 ->setSortable(false), 
             $password,      
             BooleanField::new('isCompetitor','Compétiteur')
@@ -127,6 +128,7 @@ class UsersCrudController extends AbstractCrudController
             TextField::new('phone','Téléphone')
                 ->setSortable(false),            
             TextField::new('licenseFfa','Licence FFA')
+                ->setDisabled(true)
                 ->setSortable(true),            
             ChoiceField::new('roles')
                 ->setChoices($availableRoles)
@@ -134,7 +136,9 @@ class UsersCrudController extends AbstractCrudController
                 ->setSortable(false)
                 ->renderExpanded(true), // or false for a dropdown
 
-            DateField::new('dateBirth','Date de naissance')->hideOnIndex(),                      
+            DateField::new('dateBirth','Date de naissance')
+                ->setDisabled(true)
+                ->hideOnIndex(),                      
       
             ChoiceField::new('committee','CRA')
                 ->setChoices(array_combine(
@@ -167,10 +171,11 @@ class UsersCrudController extends AbstractCrudController
             DateField::new('endValidity','Date licence')
                 ->setFormTypeOption('widget', 'single_text')
                 ->setFormTypeOption('html5', true)
+                ->setDisabled(true)
                 ->setRequired(false),   
             
             DateField::new('archivedAt','Date archivage')
-
+                ->setDisabled(true)
                 ->hideOnIndex(),   
         ];
     }  

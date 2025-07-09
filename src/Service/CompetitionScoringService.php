@@ -20,44 +20,72 @@ class CompetitionScoringService
         foreach ($competition->getTests() as $test) {
             $testId = $test->getId();
 
+            // Pour chaque résultat lié à ce test
             foreach ($test->getTestResults() as $result) {
                 $category = $result->getCategory();
-                if (!in_array($category, ['Elite', 'Honneur'])) continue;
-
-                // Calculate score
-                if ($typeId === 2) {
-                    $nav = ($result->getNavigation() ?? 0) + ($result->getObservation() ?? 0) + ($result->getFlightPlanning() ?? 0);
-                    $att = $result->getLanding() ?? 0;
-                    $sum = $nav + $att;
-                } else {
-                    $nav = ($result->getNavigation() ?? 0) + ($result->getObservation() ?? 0) + ($result->getLanding() ?? 0) + ($result->getFlightPlanning() ?? 0);
-                    $att = $result->getLanding() ?? 0;
-                    $sum = $nav;
+                if (!in_array($category, ['Elite', 'Honneur'])) {
+                    continue; // on ignore les autres catégories
                 }
 
-                // Group by real crew or literal
-            if ($result->getCrew()) {
-                $key = $result->getCrew()->getId();
-                $crewValue = $result->getCrew();
-            } else {
-                $key = $result->getLiteralCrew();
-                $crewValue = $result->getLiteralCrew();
-            }
+                // === Étape 1 : On extrait les différentes composantes du score ===
+                // Pour le type "Précision"
+                if ($typeId === 2) {
+                    $navParts = [
+                        $result->getNavigation(),
+                        $result->getObservation(),
+                        $result->getFlightPlanning(),
+                    ];
+                    $attPart = $result->getLanding();
 
+                    $hasNav = array_filter($navParts, fn($val) => $val !== null);
+                    $hasAtt = $attPart !== null;
+
+                    $nav = !empty($hasNav) ? array_sum(array_map(fn($v) => $v ?? 0, $navParts)) : null;
+                    $att = $hasAtt ? $attPart : null;
+                    $sum = ($nav ?? 0) + ($att ?? 0);
+
+                } else { // Pour les autres types (ex: Rallye, ANR)
+                    $parts = [
+                        $result->getNavigation(),
+                        $result->getObservation(),
+                        $result->getLanding(),
+                    ];
+                    $hasValues = array_filter($parts, fn($val) => $val !== null);
+
+                    $nav = !empty($hasValues) ? array_sum(array_map(fn($v) => $v ?? 0, $parts)) : null;
+                    $att = $result->getLanding() ?? null;
+                    $sum = $nav ?? 0;
+                }
+
+                // === Étape 2 : Identifier l’équipage ===
+                if ($result->getCrew()) {
+                    $key = $result->getCrew()->getId();     // identifiant unique de l’équipage
+                    $crewValue = $result->getCrew();        // entité complète
+                } else {
+                    $key = $result->getLiteralCrew();       // nom texte si pas d’entité
+                    $crewValue = $result->getLiteralCrew();
+                }
+
+                // === Étape 3 : Initialisation de l’équipage dans la catégorie ===
                 if (!isset($scoreByCategory[$category][$key])) {
                     $scoreByCategory[$category][$key] = [
                         'crew' => $crewValue,
                         'tests' => [],
                         'total' => 0,
-                ];
+                    ];
                 }
 
+                // === Étape 4 : Enregistrement du score du test ===
                 $scoreByCategory[$category][$key]['tests'][$testId] = [
                     'nav' => $nav,
                     'att' => $att,
-                    'total' => $sum,
+                    'total' => ($nav !== null || $att !== null) ? $sum : null,
                 ];
-                $scoreByCategory[$category][$key]['total'] += $sum;
+
+                // === Étape 5 : Ajout au total général (si test réellement couru) ===
+                if ($nav !== null || $att !== null) {
+                    $scoreByCategory[$category][$key]['total'] += $sum;
+                }
             }
         }
 

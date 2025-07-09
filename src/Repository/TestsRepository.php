@@ -49,4 +49,16 @@ class TestsRepository extends ServiceEntityRepository
         return $this->findByCompetitionAndType($competitionId, TestCompet::LANDING);
     }
 
+    public function findByTest(string $test): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.competition', 'c')             
+            ->leftJoin('App\Entity\Crews', 'w','WITH',' w.competition = c.id')              
+            ->select('w')
+            ->where('t.code = :test')
+            ->setParameter('test', $test)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

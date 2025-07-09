@@ -3,82 +3,94 @@
 {% block title %}Résultats {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="text-center"><strong>Compétition {{ competition.name }}</strong> -
-          {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
-          {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}  - 
-          <strong>{{ test }}</strong>
-          </h5>
-      <a href="javascript:history.back()" class="btn btn-secondary mb-3">← Retour</a>
-  </div>
-  <div class="row gx-4">
-    {% for category, results in rankingByCategory %}    
-      <div class="col-md-6 mb-4">
-        <div class="text-center">
-          <h5><strong>Catégorie {{ category }}</strong></h5>
-        </div>          
-
-        <table class="table table-bordered table-sm">
-          <thead>
-            <tr>
-              <th>Class.</th>
-              <th>Équipage</th>
-              <th>Nav</th>
-              <th>Obs</th>
-              <th>    
-                {% if competition.typecompetition.id == 2 %}
-                  Théo
-                {% else %}
-                  Att
-                {% endif %}
-              </th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% set lastScore = null %}
-            {% set rank = 0 %}
-            {% set actualRank = 0 %}    
-            {% for row in results %}
-              {% set actualRank = actualRank + 1 %}
-              {% if row.total != lastScore %}
-                {% set rank = actualRank %}
-              {% endif %}
-              <tr>
-                <td class="text-center">{{ rank }}</td>
-                <td style="white-space: nowrap;">
-                  <small>
-                    {% if crewData.crew.pilot is defined %}  
-                      {% if row.crew == 2 %}
-                        {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
-                      {% else %}
-                        {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
-                        {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
-                      {% endif %}
-                    {% else %}
-                      {{ row.crew }}
+  <div class="container-fluid mt-4">
+      <div class="row align-items-center mb-3">
+          <div class="col-12 col-md-8">
+              <h5 class="text-center text-md-start">
+                  <strong>Compétition {{ competition.name }}</strong> -
+                      {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+                      {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}  - 
+                  <strong>{{ test }}</strong>
+              </h5>
+          </div>
+          <div class="col-12 col-md-4 text-center text-md-end mt-2 mt-md-0">
+              <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                  <i class="fa-solid fa-arrow-left me-1"></i> Retour
+              </a>
+          </div>
+      </div>    
+      <div class="row g-0">
+        {% for category, results in rankingByCategory %}    
+          <div class="col-12 col-lg-6 px-1 mb-4">
+            <div class="text-center">
+              <h5><strong>Catégorie {{ category }}</strong></h5>
+            </div>          
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm">
+                <thead>
+                  <tr>
+                    <th>Class.</th>
+                    <th>Équipage</th>
+                    <th class='text-center'>Nav</th>
+                    {% if competition.typecompetition.id != 3 %}
+                      <th>Obs</th>
                     {% endif %}
-                  </small>
-                </td>
-                <td>{{ row.navigation }}</td>
-                <td>{{ row.observation }}</td>              
-                <td>
-                  {% if competition.typecompetition.id == 2 %}
-                    {{ row.flightPlanning }}
-                  {% else %}
-                    {{ row.landing }}
-                  {% endif %}                 
-                </td>  
-                <td>{{ row.total }}</td>
-              </tr>
-              {% set lastScore = row.total %}
-            {% endfor %}
-          </tbody>
-        </table>
+                    <th class='text-center'>    
+                      {% if competition.typecompetition.id == 2 %}
+                        Théo
+                      {% else %}
+                        Att
+                      {% endif %}
+                    </th>
+                    <th class='text-center'>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% set lastScore = null %}
+                  {% set rank = 0 %}
+                  {% set actualRank = 0 %}    
+                  {% for row in results %}
+                    {% set actualRank = actualRank + 1 %}
+                    {% if row.total != lastScore %}
+                      {% set rank = actualRank %}
+                    {% endif %}
+                    <tr>
+                      <td class="text-center">{{ rank }}</td>
+                      <td style="white-space: nowrap;">
+                        <small>
+                          {% if row.crew.pilot is defined %}  
+                            {% if competition.typecompetition.id  == 2 %}
+                              {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                            {% else %}
+                              {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                              {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
+                            {% endif %}
+                          {% else %}
+                            {{ row.crew }}
+                          {% endif %}
+                        </small>
+                      </td>
+                      <td class='text-center'>{{ row.navigation }}</td>
+                                        
+                      {% if competition.typecompetition.id != 3 %}
+                        <td>{{ row.observation }}</td>              
+                      {% endif %}
+                      <td class='text-center'>
+                        {% if competition.typecompetition.id == 2 %}
+                          {{ row.flightPlanning }}
+                        {% else %}
+                          {{ row.landing }}
+                        {% endif %}                 
+                      </td>  
+                      <td class='text-center'>{{ row.total }}</td>
+                    </tr>
+                    {% set lastScore = row.total %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endfor %}
       </div>
-    {% endfor %}
   </div>
-
-</div>
 {% endblock %}
