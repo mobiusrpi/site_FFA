@@ -95,7 +95,7 @@ class RegistrationController extends AbstractController
             $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
 
             $mail->send(
-                'no-reply@monsite.net',
+                'no-reply@sports.ff-aero.fr',
                 $user->getEmail(),'activation de votre compte sur le site sport-ffa-aero',
                 'register',
                 compact('user','token')
@@ -285,7 +285,7 @@ class RegistrationController extends AbstractController
         $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
 
         $mail->send(
-            'no-reply@monsite.net',
+            'no-reply@sports.ff-aero.fr',
             $user->getEmail(),'activation de votre compte sur le site sport-ffa-aero',
             'register',
             compact('user','token')
