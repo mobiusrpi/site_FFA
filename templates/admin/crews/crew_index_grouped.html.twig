@@ -33,7 +33,14 @@
                 </tr>
             </thead>
             <tbody>
+                {% set immatriculations = {} %}
                 {% for crew in crews %}
+                    {% set immat = crew.callsign() %}
+                    {% set immatriculations = immatriculations|merge({ (immat): (immatriculations[immat]|default(0)) + 1 }) %}
+                {% endfor %}
+
+                {% for crew in crews %}>
+                    {% set immat = crew.callsign() %}
                     <tr>
                         <td>{{ crew.Id }}</td>                        
                         <td>{{ crew.category.value }}</td>                        
@@ -42,10 +49,10 @@
                             <td>{{ crew.navigator.getLastname() }} {{ crew.navigator.firstname }}</td>
                         {% endif %}   
                        
-                        {% if crew.aircraftSharing == true %}
-                                <td class='text-warning'>{{ crew.callsign() }}</td>
+                        {% if immatriculations[immat] > 1 %} 
+                            <td class='text-warning'>{{ crew.callsign() }}</td>
                         {% else %}
-                             <td>{{ crew.callsign() }}</td>                          
+                            <td>{{ crew.callsign() }}</td>                          
                         {% endif %}
                      
                         <td>
