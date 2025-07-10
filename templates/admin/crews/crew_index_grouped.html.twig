@@ -39,7 +39,7 @@
                     {% set immatriculations = immatriculations|merge({ (immat): (immatriculations[immat]|default(0)) + 1 }) %}
                 {% endfor %}
 
-                {% for crew in crews %}>
+                {% for crew in crews %}
                     {% set immat = crew.callsign() %}
                     <tr>
                         <td>{{ crew.Id }}</td>                        

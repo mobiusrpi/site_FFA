@@ -88,7 +88,7 @@ class RegistrationCrewType extends AbstractType
                     'for' => 'exampleSelect1',                          
                     'class' => 'form-label fw-bold',                
                 ],
-                'placeholder' => 'Selelectionner dans la liste'
+                'placeholder' => 'Sélectionner dans la liste'
             ])
 
             // additionnal navigator field according to type event
@@ -111,7 +111,7 @@ class RegistrationCrewType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],               
-                'placeholder'=>'Selectionner une catégorie'
+                'placeholder'=>'Sélectionner une catégorie'
             ])
             ->add('callsign', TextType::class, [
                 'label' => 'Immatriculation',

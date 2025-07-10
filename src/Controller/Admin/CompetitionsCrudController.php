@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -36,7 +37,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -71,7 +74,25 @@ class CompetitionsCrudController extends AbstractCrudController
     {
         if (!$entityInstance instanceof Competitions) return;
         $entityInstance->setCreatedAt(new \DateTimeImmutable);
+        $this->handlePdfUpload($entityInstance);
         parent::persistEntity($em,$entityInstance);
+    }
+
+    public function updateEntity(EntityManagerInterface $em, $entityInstance): void
+    {
+        $this->handlePdfUpload($entityInstance);
+        parent::updateEntity($em, $entityInstance);
+    }
+
+    private function handlePdfUpload($competition): void
+    {
+        $pdf = $this->getContext()->getRequest()->files->get('Competitions')['programmePdf'] ?? null;
+
+        if ($pdf && $pdf instanceof UploadedFile) {
+            $filename = uniqid().'.'.$pdf->guessExtension();
+            $pdf->move($this->getParameter('programmes_directory'), $filename);
+            $competition->setProgrammePdf($filename);
+        }
     }
 
     private function DateFormated(?\DateTimeInterface $date): string {
@@ -145,6 +166,13 @@ class CompetitionsCrudController extends AbstractCrudController
         $fields[] = BooleanField::new('selectable','Sélection')
             ->setSortable(false) 
             ->renderAsSwitch()->onlyOnForms();
+        $fields[] = Field::new('programmePdf')
+            ->setFormType(FileType::class)
+            ->setFormTypeOptions([
+                'mapped' => false,
+                'required' => false,
+                'label' => 'Fichier PDF du programme',
+            ]);
         $fields[] = DateField::new('createdAt')
             ->onlyOnDetail();
         $fields[] = TextareaField::new('paymentInfo','Informations de réglement')

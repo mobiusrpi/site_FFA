@@ -36,7 +36,7 @@ class CompetitionsUsersType extends AbstractType
                 'choices' => CompetitionRole::choices(),
                 'multiple' => true,
                 'expanded' => false,
-                'placeholder' => 'Selection le profil',
+                'placeholder' => 'Sélectionner le profil',
                 'required' => false,
                 'label' => 'Rôle dans la compétition',
                 'choice_value' => fn (?CompetitionRole $role) => $role?->value,

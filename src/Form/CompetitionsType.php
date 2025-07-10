@@ -63,7 +63,7 @@ class CompetitionsType extends AbstractType
                     'role' => 'switch',
                 ],                
                 'required' => false,
-                'label'    => 'Selection pour le championnat de France',
+                'label'    => 'Sélection pour le championnat de France',
                 'label_attr' => [
                     'class' => 'form-check-label'
                 ],

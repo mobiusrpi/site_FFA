@@ -44,6 +44,10 @@ class Competitions
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
+    
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $programmePdf = null;
+   
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $information = null;
 
@@ -198,6 +202,17 @@ class Competitions
         return $this;
     }
 
+    public function getProgrammePdf(): ?string
+    {
+        return $this->programmePdf;
+    }
+
+    public function setProgrammePdf(?string $programmePdf): self
+    {
+        $this->programmePdf = $programmePdf;
+        return $this;
+    }
+    
     public function getTypecompetition(): ?TypeCompetition
     {
         return $this->typecompetition;

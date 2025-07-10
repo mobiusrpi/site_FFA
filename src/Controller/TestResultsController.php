@@ -463,4 +463,11 @@ final class TestResultsController extends AbstractController
             'scoreByCategory' => $scoreByCategory,
         ]);
     }
+    
+    #[Route('/kiosk', name: 'public_results_kiosk')]
+    public function displayResults(): Response
+    {
+        return $this->render('pages/kiosk.html.twig');
+    }
+
 }

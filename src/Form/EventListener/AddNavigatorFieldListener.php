@@ -77,7 +77,7 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
                 'for' => 'exampleSelect1',                         
                 'class' => 'form-label fw-bold'
             ],
-            'placeholder' => 'Selelectionner dans la liste'
+            'placeholder' => 'Sélectionner dans la liste'
         ]);
     }      
 }

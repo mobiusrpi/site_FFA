@@ -154,7 +154,7 @@ class EditProfilType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-                'placeholder' => 'Selelectionner dans la liste'
+                'placeholder' => 'Sélectionner dans la liste'
              ])
             ->add('committee',EnumType::class,[
                 'class' => CRAList::class,                
@@ -171,7 +171,7 @@ class EditProfilType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-                'placeholder' => 'Selelectionner dans la liste'
+                'placeholder' => 'Sélectionner dans la liste'
             ])
             ->add('poloSize',EnumType::class,[
                 'class' => Polosize::class,
@@ -188,7 +188,7 @@ class EditProfilType extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-                'placeholder' => 'Selelectionner dans la liste' 
+                'placeholder' => 'Sélectionner dans la liste' 
             ])
 
         ;
