@@ -304,13 +304,18 @@
                     // Met à jour les autres champs
                     if (brandInput) brandInput.value = option.dataset.brand || '';
                     if (typeInput) typeInput.value = option.dataset.type || '';
-                    if (speedInput) speedInput.value = option.dataset.speed || '';
+                    if (speedInput && !speedInput.disabled) {
+                        speedInput.value = option ? (option.dataset.speed || '') : '';
+                    }
                     if (flyingClubInput) flyingClubInput.value = option.dataset.flyingclub || '';
                     if (oaciInput) oaciInput.value = option.dataset.oaci || '';
                 } else {
                     // Si aucune correspondance, vide les champs
                     if (brandInput) brandInput.value = '';
                     if (typeInput) typeInput.value = '';
+                    if (speedInput && !speedInput.disabled) {
+                        speedInput.value = '';
+                    }
                     if (speedInput) speedInput.value = '';
                     if (flyingClubInput) flyingClubInput.value = '';
                     if (oaciInput) oaciInput.value = '';
