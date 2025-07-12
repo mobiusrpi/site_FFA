@@ -222,7 +222,11 @@ class RegistrationCrewType extends AbstractType
                 'class' => SpeedList::class,
                 'choices' => [$fixSpeed], // only one value
                 'choice_label' => fn(SpeedList $value) => $value->getLabel(),
-                'attr' => ['class' => 'form-control', 'readonly' => true],
+                'attr' => [
+                    'class' => 'form-control',
+                    'readonly' => true,
+                    'data-fixed' => '1'
+                ],
                 'disabled' => true, // no change
                 'label' => 'Vitesse imposée',
                 'label_attr' => ['class' => 'form-label'],
