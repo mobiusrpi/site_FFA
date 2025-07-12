@@ -42,7 +42,6 @@ final class TestResultsController extends AbstractController
             'competition' => $test->getCompetition(),
         ]);        
 
-//    dd($test,$competition,$crews); 
         if (!$competition) {
             throw $this->createNotFoundException('Compétition non trouvée');
         }        
@@ -293,7 +292,7 @@ final class TestResultsController extends AbstractController
                     if ($result->getCategory() !== $category) {
                         continue;
                     }
-//dd($result,$crew);
+
                     if (!isset($ranking[$crewId])) {
                         if ($competition->getTypecompetition()->getId() == 1) {
                             $ranking[$crewId] = [
@@ -428,7 +427,7 @@ final class TestResultsController extends AbstractController
             throw $this->createNotFoundException('Compétition non trouvée');
         }
         $crews = $competition->getCrew();
- //   dd($competition,$crews);
+
         foreach ($crews as $crew) {
             $crewId = $crew->getId();
             $category = $crew->getCategory()->value;

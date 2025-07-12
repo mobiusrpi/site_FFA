@@ -52,7 +52,7 @@ class ResultsCrudController extends AbstractCrudController
         if (!is_array($selectedResultIds)) {
             $selectedResultIds = [];
         }
-    dd($selectedResultIds);  
+ 
         if (empty($selectedResultIds)) {
             $this->addFlash('warning', 'Aucun équipage sélectionné.');
             return $this->redirectToRoute('admin_results_selection',[

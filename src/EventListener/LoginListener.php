@@ -71,7 +71,7 @@ class LoginListener
             }
             return;
         }
- //dd($result);
+        
         if ($result['isExist']) //jtremblet@gmail.com
         {
             if ($result['isValid']) {

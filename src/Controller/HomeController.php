@@ -37,7 +37,7 @@ final class HomeController extends AbstractController
         
         $competitionsFinished = $competitionRepository->resultCompetitions($start, $end);
         $liveTests = $testRepository->liveTests( $today);
-//    dd($liveTests);
+
         $nextCompetitions = $competitionRepository->nextCompetition();
         $groupedCompetitions = [];
 
