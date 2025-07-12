@@ -3,12 +3,12 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Crews;
+use App\Entity\Tests;
 use App\Entity\Users;
 use App\Entity\Results;
 use App\Entity\Competitions;
 use App\Entity\Accommodations;
 use App\Entity\TypeCompetition;
-use App\Repository\CrewsRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
@@ -76,6 +76,7 @@ class DashboardController extends AbstractDashboardController
                 MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
                 MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
                 MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
+                MenuItem::linkToCrud('Epreuves', 'fas fa-id-card', Tests::class),
                 MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
         ]);   
     }

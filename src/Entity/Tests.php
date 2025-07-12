@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\TestsRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TestsRepository::class)]
@@ -26,8 +27,11 @@ class Tests
     private ?string $code = null;
 
     #[ORM\Column(type: 'test_compet', nullable: true)]
-    private ?TestCompet $type = null;
+    private ?TestCompet $type = null;    
     
+    #[ORM\Column(nullable: true)]
+    private ?bool $inProgress = false;
+
     #[ORM\ManyToOne(inversedBy: 'tests')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Competitions $competition = null;
@@ -65,6 +69,7 @@ class Tests
 
     public function setType(?TestCompet $type): static
     {
+            dd($type);
         $this->type = $type;
         return $this;
     }
@@ -77,6 +82,18 @@ class Tests
     public function setCode(?string $code): static
     {
         $this->code = $code;
+        return $this;
+    }
+        
+    public function isInProgress(): bool
+    {
+        return $this->inProgress;
+    }
+
+    public function setInProgress(bool $inProgress): static
+    {
+        $this->inProgress = $inProgress;
+
         return $this;
     }
 

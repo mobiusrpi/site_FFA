@@ -13,10 +13,10 @@ enum TestCompet: string
     public function label(): string
     {
         return match ($this) {
-            self::NAVIGATION => 'Nav',
-            self::LANDING => 'Att',
-            self::NAV_ATT => 'Nav & Att',          
-            self::NAV_TG => 'Nav & TG',          
+            self::NAVIGATION => 'Navigation seul',
+            self::LANDING => 'Atterrissage seul',
+            self::NAV_ATT => 'Navigation avec atterrissage',          
+            self::NAV_TG => 'Navigation avec Touch & Go (2att)',          
         };
     }
 }

@@ -61,7 +61,7 @@ class TestsRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function liveTests($today): array
+    public function liveTests1($today): array
     {
         return $this->createQueryBuilder('t')
             ->select('t')
@@ -70,6 +70,16 @@ class TestsRepository extends ServiceEntityRepository
             ->join('t.testResults', 'r')
             ->where('c.startDate = :today')
             ->setParameter('today', $today->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function liveTests(): array
+    {
+        return $this->createQueryBuilder('t')
+
+            ->where('t.inProgress = true')
+
             ->getQuery()
             ->getResult();
     }

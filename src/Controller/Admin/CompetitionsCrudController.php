@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Crews;
 use App\Entity\Users;
+use TestsCompactType;
 use App\Form\TestsType;
 use App\Service\PdfService;
 use App\Entity\Competitions;
@@ -194,7 +195,8 @@ class CompetitionsCrudController extends AbstractCrudController
             ->allowDelete()
             ->onlyOnForms()
             ->setFormTypeOptions(['by_reference' => false])
-            ->setLabel('Epreuve');
+            ->setLabel('Epreuves');
+
         $fields[] = TextField::new('testCodes', 'Codes')
             ->onlyOnIndex();
 

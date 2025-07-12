@@ -227,6 +227,7 @@ class RegistrationCrewType extends AbstractType
                 'label' => 'Vitesse imposée',
                 'label_attr' => ['class' => 'form-label'],
                 'required' => true,
+                'data' => $fixSpeed,
             ]);
         } else {
             $builder->add('aircraftSpeed', EnumType::class, [

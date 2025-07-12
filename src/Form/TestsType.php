@@ -8,9 +8,10 @@ use App\Entity\Enum\TestCompet;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class TestsType extends AbstractType
 {
@@ -33,6 +34,10 @@ class TestsType extends AbstractType
                     'label' => 'Code auto-généré',
                     'disabled' => true,
                     'required' => false,
+                ])
+                ->add('inProgress', CheckboxType::class, [
+                    'required' => false,
+                    'label' => 'Épreuve en cours',
                 ]);
     }
 
