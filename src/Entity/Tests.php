@@ -39,8 +39,6 @@ class Tests
     #[ORM\OneToMany(mappedBy: 'test', targetEntity: TestResults::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $testResults;
 
-
-
     public function __construct()
     {
         $this->testResults = new ArrayCollection();

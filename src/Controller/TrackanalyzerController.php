@@ -242,8 +242,9 @@ class TrackanalyzerController extends AbstractController
             $crew = $repositoryCrew->find($crewData['CrewId']);
             if (!$crew) {
                 $logger->warning('Concurrent non trouvé', ['CrewId' => $crewData['CrewId']]);
+                $invalidCrew[] = $crewData['CrewId'];
                 continue;
-            }
+            }           
             $existingResults = $em->getRepository(TestResults::class)->findBy([
                 'test' => $test,
                 'crew' => $crew->getId()
@@ -266,13 +267,15 @@ class TrackanalyzerController extends AbstractController
 
             $em->persist($testResult);
             $results[] = $testResult;
+
         }
 
         $em->flush();
-
+ 
         return new JsonResponse([
             'status' => 'ok',
             'imported' => count($results),
+            'invalidCrew' => $invalidCrew,
         ]);
     }
 }
