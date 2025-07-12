@@ -15,6 +15,7 @@ use App\Service\CompetitionScoringService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class TestResultsController extends AbstractController
@@ -464,10 +465,90 @@ final class TestResultsController extends AbstractController
         ]);
     }
     
-    #[Route('/kiosk', name: 'public_results_kiosk')]
-    public function displayResults(): Response
+    #[Route('/kiosk/{testId}', name: 'public_results_kiosk')]
+    public function displayResults(
+        int $testId,
+        TestsRepository $testRepository,
+        CompetitionScoringService $scoringService
+    ): Response {
+        $test = $testRepository->find($testId);
+        $competition = $test->getCompetition();
+
+        $scores = $scoringService->calculateLiveScores($testId);
+
+        $rankingByCategory = [];
+
+        $rankingByCategory = [
+            'elite' => array_values($scores['Elite']),
+            'honneur' => array_values($scores['Honneur']),
+        ];
+
+        return $this->render('pages/results/kiosk.html.twig', [
+            'competition' => $test->getCompetition(),            
+            'testName' => $test->getName(),
+            'testId' => $testId,
+        ]);
+    }
+
+    private function assignRanksAndFormat(array $rows): array
     {
-        return $this->render('pages/kiosk.html.twig');
+        $formatted = [];
+        $lastScore = null;
+        $actualRank = 0;
+        $rank = 0;
+
+        foreach ($rows as $row) {
+            $actualRank++;
+
+            // Nouveau rang si score différent
+            if ($row['total'] !== $lastScore) {
+                $rank = $actualRank;
+                $lastScore = $row['total'];
+            }
+
+            // Ajouter le rang au tableau
+            $row['rank'] = $rank;
+
+            // Formatter le résultat final
+            $formatted[] = $this->formatCrewResult($row);
+        }
+
+        return $formatted;
+    }
+    
+    #[Route('/results/data/{testId}', name: 'results_data_json', methods: ['GET'])]
+    public function resultsData(
+        int $testId,
+        TestsRepository $testRepository,
+        CompetitionScoringService $scoringService
+    ): JsonResponse {
+
+        $test = $testRepository->find($testId);
+
+        if (!$test) {
+            return $this->json(['error' => 'Test not found'], 404);
+        }
+
+        $scores = $scoringService->calculateLiveScores($testId);
+
+        $formatted = [
+            'elite' => $this->assignRanksAndFormat($scores['Elite']),
+            'honneur' => $this->assignRanksAndFormat($scores['Honneur']),
+        ];
+
+        return $this->json($formatted);
+    }
+
+    private function formatCrewResult(array $row): array
+    {
+        $crew = $row['crew'];
+
+        return [
+            'rank' => $row['rank'],
+            'total' => $row['total'],
+            'pilot' => $crew->getPilot()?->getLastname() . ' ' . $crew->getPilot()?->getFirstname(),
+            'navigator' => $crew->getNavigator()?->getLastname() . ' ' . $crew->getNavigator()?->getFirstname(),
+        ];
     }
 
 }

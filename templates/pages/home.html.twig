@@ -131,11 +131,11 @@
           {% if live is not empty %}
           <div class="mt-4">
             <strong>Direct</strong>
-              {% for compet in live %}
+              {% for test in live %}
                 <div class="mt-2">
-                  <a href="{{ path('test_results_live', { id: compet.id }) }}"
-                    class="btn btn-sm {{ compet ? 'btn-warning' : 'btn-outline-warning' }}  w-100 text-centered">
-                    {{ compet.typecompetition.typecomp }}
+                  <a href="{{ path('public_results_kiosk', { testId: test.id }) }}"
+                    class="btn btn-sm {{ test ? 'btn-warning' : 'btn-outline-warning' }}  w-100 text-centered">
+                    {{ test.name }}
                   </a>            
                 </div>
               {% endfor %}

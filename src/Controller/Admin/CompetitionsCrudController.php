@@ -131,9 +131,8 @@ class CompetitionsCrudController extends AbstractCrudController
         }
 
         // Basic fields
-        $fields[] = TextField::new('name', 'Nom')
-            ->setSortable(true) ;
-
+        $fields[] = TextField::new('name','Désignation')
+            ->setSortable(false);
         // Conditionally disable typecompetition if crews exist
         if ($pageName === Crud::PAGE_INDEX) {
             $typeField = TextField::new('typecompetition', 'Type de compétition')
@@ -148,9 +147,9 @@ class CompetitionsCrudController extends AbstractCrudController
 
         $fields[] = $typeField;
         $fields[] = FormField::addColumn(8);
-        $fields[] = TextField::new('name','Désignation')
-            ->setSortable(false);
-        $fields[] = TextField::new('location','Lieu de la compétition');
+
+        $fields[] = TextField::new('location','Lieu de la compétition')            
+            ->onlyOnForms();
         $fields[] = DateField::new('startRegistration', 'Date de début d\'enrégistrement')
             ->setSortable(false)            
             ->setFormat('dd/MM/yy')
@@ -168,6 +167,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->renderAsSwitch()->onlyOnForms();
         $fields[] = Field::new('programmePdf')
             ->setFormType(FileType::class)
+            ->onlyOnForms()
             ->setFormTypeOptions([
                 'mapped' => false,
                 'required' => false,

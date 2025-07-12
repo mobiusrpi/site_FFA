@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Tests;
 use App\Entity\Competitions;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -132,15 +133,6 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->setParameter('start', $start)
             ->setParameter('end', $end)
             ->orderBy('c.startDate', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function liveCompetitions($today): array
-    {
-        return $this->createQueryBuilder('c')
-            ->where('c.startDate = :today')
-            ->setParameter('today',  $today->format('Y-m-d'))
             ->getQuery()
             ->getResult();
     }

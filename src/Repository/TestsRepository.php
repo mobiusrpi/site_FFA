@@ -61,4 +61,16 @@ class TestsRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function liveTests($today): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t')
+            ->distinct()
+            ->join('t.competition', 'c')
+            ->join('t.testResults', 'r')
+            ->where('c.startDate = :today')
+            ->setParameter('today', $today->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
 }

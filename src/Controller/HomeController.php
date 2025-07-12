@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Repository\TestsRepository;
 use App\Repository\CompetitionsRepository;
 use App\Service\CompetitionScoringService;
-use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -25,6 +26,7 @@ final class HomeController extends AbstractController
     public function index(
         Request $request, 
         CompetitionsRepository $competitionRepository,
+        TestsRepository $testRepository,
         CompetitionScoringService $scoringService
     ): Response {
         $selectedYear = $request->query->get('year') ?? (new \DateTime())->format('Y');
@@ -34,7 +36,8 @@ final class HomeController extends AbstractController
         $today = new \DateTimeImmutable();
         
         $competitionsFinished = $competitionRepository->resultCompetitions($start, $end);
-        $liveCompetitions = $competitionRepository->liveCompetitions( $today);
+        $liveTests = $testRepository->liveTests( $today);
+//    dd($liveTests);
         $nextCompetitions = $competitionRepository->nextCompetition();
         $groupedCompetitions = [];
 
@@ -43,7 +46,7 @@ final class HomeController extends AbstractController
 
             if (empty($scores['Elite']) && empty($scores['Honneur'])) {
                 continue;
-            }
+            } 
 
             $groupedCompetitions[] = [
                 'competition' => $competition,
@@ -52,11 +55,18 @@ final class HomeController extends AbstractController
             ];
         }
         $years = $competitionRepository->findDistinctYears();
+        $testWithResults = [];
+        foreach ($liveTests as $test) {
+            $results = $test->getTestResults();
+            if ($results){
+                $testWithResults[] = $test;
+            }
+        }
 
         return $this->render('pages/home.html.twig', [
             'groupedCompetitions' => $groupedCompetitions,
             'years' => $years,
-            'live' => $liveCompetitions,            
+            'live' => $testWithResults,            
             'selectedYear' => $selectedYear,
             'nextCompetitions' => $nextCompetitions,
         ]);
