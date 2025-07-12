@@ -69,7 +69,6 @@ class Tests
 
     public function setType(?TestCompet $type): static
     {
-            dd($type);
         $this->type = $type;
         return $this;
     }
