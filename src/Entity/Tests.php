@@ -39,9 +39,16 @@ class Tests
     #[ORM\OneToMany(mappedBy: 'test', targetEntity: TestResults::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $testResults;
 
+    /**
+     * @var Collection<int, TestStartOrder>
+     */
+    #[ORM\OneToMany(targetEntity: TestStartOrder::class, mappedBy: 'test')]
+    private Collection $testStartOrders;
+
     public function __construct()
     {
         $this->testResults = new ArrayCollection();
+        $this->testStartOrders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -134,8 +141,16 @@ class Tests
         return $this;
     }
 
+    /**
+     * @return Collection<int, TestStartOrder>
+     */
+    public function getTestStartOrders(): Collection
+    {
+        return $this->testStartOrders;
+    }    
+    
     public function __toString(): string
     {
         return sprintf('%s (%s)', $this->name ?? 'Test', $this->code ?? 'n/a');
-    }   
+    }
 }

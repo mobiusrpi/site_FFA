@@ -3,16 +3,15 @@
 
 namespace App\Service;
 
-use App\Entity\Tests;
-use App\Enum\TestCompet;
 use App\Entity\Competitions;
 use App\Repository\TestsRepository;
+;
 
 class CompetitionScoringService
 {
     public function __construct(
-       private TestsRepository $testRepository
-    ) {}
+        private TestsRepository $testsRepository,
+    ) { }
 
 
     public function calculateScores(Competitions $competition): array
@@ -111,7 +110,7 @@ class CompetitionScoringService
             'Elite' => [],
             'Honneur' => [],
         ];
-        $test = $this->testRepository->find($testId);
+        $test = $this->testsRepository->find($testId);
         $competition = $test->getCompetition();
         $typeId = $competition->getTypecompetition()?->getId();
 
@@ -189,4 +188,5 @@ class CompetitionScoringService
 
         return $scoreByCategory;
     }
+
 }

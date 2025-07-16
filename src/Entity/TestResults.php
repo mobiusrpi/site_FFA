@@ -67,14 +67,14 @@ class TestResults
         return $this->observation;
     }
 
-    public function setObservation(?int $observation): static
+    public function setObservation(?int $observation): self
     {
         $this->observation = $observation;
 
         return $this;
     }
 
-    public function getLanding(): int
+    public function getLanding(): ?int
     {
         return $this->landing  ?? 0;
     }
@@ -88,7 +88,7 @@ class TestResults
 
     public function getFlightPlanning(): ?int
     {
-        return $this->flightPlanning;
+        return $this->flightPlanning ?? 0;
     }
 
     public function setFlightPlanning(?int $flightPlanning): static

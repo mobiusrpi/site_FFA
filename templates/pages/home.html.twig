@@ -170,7 +170,11 @@
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
                         {% set pilot = attribute(result.crew, 'pilot') ?? null %}
                         {% if pilot %}
-                          {{result.crew.pilot.lastname }} {{result.crew.pilot.firstname }} / {{ result.crew.navigator.lastname }} {{ result.crew.navigator.firstname }}
+                          {% if competition.typecompetition.id == 2 %}
+                            {{result.crew.pilot.fullname }} 
+                          {% else %}
+                            {{result.crew.pilot.fullname }} / {{ result.crew.navigator.fullname }} 
+                          {% endif %}
                         {% else %}
                           {{ result.crew }}
                         {% endif %} – {{ result.total }} pts

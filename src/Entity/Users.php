@@ -223,6 +223,11 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getFullname(): ?string
+    {
+        return $this->getLastname() . ' ' . $this->getFirstname();
+    }
     
    /**
      * A visual identifier that represents this user.

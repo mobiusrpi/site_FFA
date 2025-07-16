@@ -126,4 +126,17 @@ class CrewsRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findCrewsByTestCode(string $testCode): array
+    {
+        return $this->createQueryBuilder('c')
+            ->join('c.competition', 'comp')
+            ->join('App\Entity\Tests', 't', 'WITH', 't.competition = comp.id')
+            ->leftJoin('c.pilot', 'p')
+            ->leftJoin('c.navigator', 'n')
+            ->addSelect('p', 'n')
+            ->where('t.code = :code')
+            ->setParameter('code', $testCode)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -40,10 +40,11 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
     public function authenticate(Request $request): Passport
     {
         $authHeader = $request->headers->get('Authorization');
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            throw new AuthenticationException('No Bearer token found');
+        }
         $token = substr($authHeader, 7);
         
-        $this->logger->error('Authentication failed: invalid or missing token.');
-
         $cacheItem = $this->cache->getItem('trackanalyzer_token_' . $token);
         if (!$cacheItem->isHit()) {
             throw new AuthenticationException('Token invalid');
