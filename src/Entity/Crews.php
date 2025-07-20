@@ -95,15 +95,15 @@ class Crews
     /**
      * @var Collection<int, TestStartOrder>
      */
-    #[ORM\OneToMany(targetEntity: TestStartOrder::class, mappedBy: 'crew')]
-    private Collection $testStartOrders;
+    #[ORM\OneToMany(mappedBy: 'crew', targetEntity: TestStartOrder::class)]
+    private Collection $startOrders;
 
     public function __construct()
     {
         $this->competitionAccommodation = new ArrayCollection();
         $this->results = new ArrayCollection();
         $this->testResults = new ArrayCollection();
-        $this->testStartOrders = new ArrayCollection();
+        $this->startOrders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -416,7 +416,7 @@ class Crews
      */
     public function getTestStartOrders(): Collection
     {
-        return $this->testStartOrders;
+        return $this->startOrders;
     }    
 
     public function __toString(): string

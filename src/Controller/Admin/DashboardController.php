@@ -8,10 +8,14 @@ use App\Entity\Users;
 use App\Entity\Results;
 use App\Entity\Competitions;
 use App\Entity\Accommodations;
+use App\Entity\TestStartOrder;
 use App\Entity\TypeCompetition;
+use App\Repository\CrewsRepository;
+use App\Repository\TestsRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
+use App\Repository\TestStartOrderRepository;
 use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
@@ -30,8 +34,8 @@ class DashboardController extends AbstractDashboardController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private TypeCompetitionRepository $typeCompetitionRepository,
-        private UrlGeneratorInterface $urlGenerator
-
+        private UrlGeneratorInterface $urlGenerator,
+        private AdminUrlGenerator $adminUrlGenerator,
     ) {}
  
     #[Route('/admin', name: 'admin')]
@@ -59,6 +63,27 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
         yield MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
+        yield MenuItem::section('Ordres de départ');
+
+        $competitions = $this->entityManager->getRepository(Competitions::class)->findAll();
+
+        foreach ($competitions as $competition) {
+            $subItems = [];
+
+            if ($competition->getTypecompetition()->getId() == 3) {        
+
+                foreach ($competition->getTests() as $test) {
+                    $url = $this->urlGenerator->generate('admin_start_order', [
+                        'id' => $competition->getId(),
+                        'code' => $test->getCode(),
+                    ]);
+//    dd($url);
+                    $subItems[] = MenuItem::linkToUrl($test->getName(), 'fa fa-list-ol', $url);
+                }
+
+                yield MenuItem::subMenu($competition->getName(), 'fa fa-flag-checkered')->setSubItems($subItems);
+            }
+        }
         yield MenuItem::section('Administration')
             ->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page')
@@ -252,5 +277,102 @@ class DashboardController extends AbstractDashboardController
         $result->setLanding(is_numeric($row[24]) ? (int)$row[24] : 0);
 
         return $result;
+    }
+
+    #[Route('/admin/competitions/{id}/tests/{code}/start-order', name: 'admin_start_order')]
+    public function startOrder(
+        int $id,
+        string $code,
+        CompetitionsRepository $competitionsRepo,
+        TestsRepository $testsRepo,
+        TestStartOrderRepository $repo,
+        EntityManagerInterface $em
+    ): Response
+    {
+        $em->clear();
+        $competition = $competitionsRepo->findWithCrews($id);
+        $test = $testsRepo->findOneBy(['code' => $code]); 
+       
+        if (!$competition || !$test) {
+            throw $this->createNotFoundException('Compétition ou test introuvable.');
+        }
+
+        if ($test->getCompetition()->getId() !== $competition->getId()) {
+            throw $this->createNotFoundException('Ce test n\'appartient pas à cette compétition.');
+        }
+        $orders = $repo->findBy(['test' => $test], ['startOrder' => 'ASC']);
+
+        // Si aucun ordre existant, on initialise (1 à X)
+        if (count($orders) === 0) {
+            $orders = [];
+            $startOrderValue = 1;
+            foreach ($competition->getCrew() as $crew) {
+                $order = new TestStartOrder();
+                $order->setTest($test);
+                $order->setCrew($crew);
+                $order->setStartOrder($startOrderValue++);
+                $order->setCrewGroup((int) 1);
+                $em->persist($order);
+                $orders[] = $order;
+            }
+            $em->flush();
+        }
+
+        return $this->render('admin/start_order.html.twig', [
+            'competition' => $competition,
+            'test' => $test,
+            'orders' => $orders,
+        ]);
+    }
+
+    #[Route('/admin/competitions/{id}/tests/{code}/start-order/save', name:'admin_save_start_order', methods:["POST"])]
+    public function saveStartOrder(
+        int $id,
+        string $code,
+        Request $request,
+        TestsRepository $testsRepo,
+        TestStartOrderRepository $testStartOrderRepo,
+        CrewsRepository $crewRepo,
+        EntityManagerInterface $em
+    ): Response {
+        $test = $testsRepo->findOneBy(['code' => $code]); 
+        if (!$test) {
+            throw $this->createNotFoundException('Test inconnu.');
+        }
+
+        $orders = $request->request->all('orders'); // ['1' => 17, '2' => 14, ...]
+        if (!is_array($orders)) {
+            throw new \RuntimeException('Format de données invalide');
+        }
+
+        // Supprimer tous les anciens ordres du test
+        $oldOrders = $testStartOrderRepo->findBy(['test' => $test]);
+        foreach ($oldOrders as $entry) {
+            $em->remove($entry);
+        }
+        $em->flush();
+$group = 1;
+
+
+        // Recréer les ordres avec les nouvelles positions
+        foreach ($orders as $startOrder => $crewId) {
+            $crew = $crewRepo->find($crewId);
+            if (!$crew) {
+                continue;
+            }
+
+            $entry = new TestStartOrder();
+            $entry->setTest($test);
+            $entry->setCrew($crew);
+            $entry->setStartOrder((int) $startOrder);
+            $entry->setCrewGroup( (int) $group);
+            $em->persist($entry);
+        }
+
+        $em->flush();
+        return $this->redirectToRoute('admin_start_order', [
+            'id' => $id,
+            'code' => $test->getCode(),
+        ]);
     }
 }

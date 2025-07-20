@@ -1,0 +1,41 @@
+<nav class="navbar navbar-expand-md bg-dark" data-bs-theme="dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="https://www.ffa-aero.fr/">
+      <img src="{{ asset('images/logo_ffa_T100.png') }}" alt="FFA" width="100" height="37">
+    </a>
+
+    <!-- Toggler only for small screens -->
+    <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMobileDropdown"
+      aria-controls="navbarMobileDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Desktop full navbar -->
+    <div class="d-none d-md-flex justify-content-between  align-items-cente w-100 px-3" id="navbarMain">
+      <div class="flex-grow-1"></div>   <!-- empty div -->   
+        <ul class="navbar-nav mb-2 mb-lg-0 mx-auto">
+          {% if is_granted('ROLE_MANAGER') %}
+            <li class="nav-item">
+              <a class="nav-link {% if app.request.attributes.get('_route') == 'user.list' %}active{% endif %}"
+                href="{{ path('admin') }}">Retour</a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Mobile dropdown below toggler -->
+    <div class="collapse d-lg-none bg-dark shadow rounded"
+         id="navbarMobileDropdown"
+         style="position: absolute; top: 100%; right: 0; z-index: 1050; min-width: 220px;">
+      <ul class="navbar-nav flex-column p-2">
+        {% if is_granted('ROLE_MANAGER') %}
+          <li class="nav-item">
+            <a class="nav-link text-white {% if app.request.attributes.get('_route') == 'user.list' %}active{% endif %}"
+               href="{{ path('admin') }}">Retour</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

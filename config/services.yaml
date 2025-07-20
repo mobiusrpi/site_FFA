@@ -60,3 +60,4 @@ services:
     App\Security\BearerTokenAuthenticator:
         arguments:
             $cache: '@cache.app'
+        

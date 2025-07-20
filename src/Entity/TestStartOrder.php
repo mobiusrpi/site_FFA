@@ -6,6 +6,8 @@ use App\Repository\TestStartOrderRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TestStartOrderRepository::class)]
+#[ORM\Table(name: 'test_start_order')]
+#[ORM\UniqueConstraint(name: 'unique_test_crew', columns: ['test_id', 'crew_id'])]
 class TestStartOrder
 {
     #[ORM\Id]
@@ -13,17 +15,20 @@ class TestStartOrder
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $startOrder = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $crewGroup = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $takeOffTime = null;
 
-    #[ORM\ManyToOne(inversedBy: 'Crews::class')]
+    #[ORM\ManyToOne(targetEntity: Crews::class, inversedBy: 'startOrders')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Crews $crew = null;
 
-    #[ORM\ManyToOne(inversedBy: 'Tests::class')]
+    #[ORM\ManyToOne(targetEntity: Tests::class, inversedBy: 'startOrders')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Tests $test = null;
 
@@ -44,6 +49,17 @@ class TestStartOrder
         return $this;
     }
 
+    public function getCrewGroup(): ?int
+    {
+        return $this->crewGroup;
+    }
+
+    public function setCrewGroup(?int $crewGroup): static
+    {
+        $this->crewGroup = $crewGroup;
+
+        return $this;
+    }
     public function getTakeOffTime(): ?\DateTimeImmutable
     {
         return $this->takeOffTime;

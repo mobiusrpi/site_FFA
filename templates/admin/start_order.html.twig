@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier ordre de départ{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h5 class="mb-4">Competition : {{ competition.name }}</h5>
+    <h6 class="mb-4">Ordre de départ - Epreuve {{ test.name }}</h6>
+    {% for label, messages in app.flashes %}
+        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+            {{ messages|first }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+    <form method="post" action="{{ path('admin_save_start_order', {'id': competition.id, 'code': test.code}) }}">
+        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th  style="width: 50px">Ordre</th>
+                        <th>Équipage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in 1..orders|length %}
+                        <tr>
+                            <td  style="width: 50px">{{ i }}</td>
+                            <td>
+                                <select name="orders[{{ i }}]" class="form-select">
+                                    {% for crew in competition.crew %}
+                                        {% set selected = orders[i-1].crew.id == crew.id ? 'selected' : '' %}
+                                        <option value="{{ crew.id }}" {{ selected }}>
+                                            {{ crew.pilot.fullname }}/{{ crew.navigator.fullname }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{{ path('admin_start_order', {'id': competition.id, 'code': test.code}) }}" class="btn btn-secondary ms-2">Annuler</a>
+    </form>
+</div>
+
+{% endblock %}

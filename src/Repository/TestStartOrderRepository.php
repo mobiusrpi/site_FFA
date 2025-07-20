@@ -16,28 +16,23 @@ class TestStartOrderRepository extends ServiceEntityRepository
         parent::__construct($registry, TestStartOrder::class);
     }
 
-    //    /**
-    //     * @return TestStartOrder[] Returns an array of TestStartOrder objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?TestStartOrder
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findOneByCrewId(int $crewId): ?TestStartOrder
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.crew = :crewId')
+            ->setParameter('crewId', $crewId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+    
+    public function findOneTestByTestcode(string $testCode): ?TestStartOrder
+    {
+        return $this->createQueryBuilder('s')
+            ->join('s.tests', 't')
+            ->select('t')
+            ->where('s.code = :testCode')
+            ->setParameter('testCode', $testCode)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

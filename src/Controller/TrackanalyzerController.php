@@ -4,11 +4,13 @@ namespace App\Controller;
 
 use App\Entity\TestResults;
 use Psr\Log\LoggerInterface;
+use App\Entity\TestStartOrder;
 use App\Repository\CrewsRepository;
 use App\Repository\TestsRepository;
 use Psr\Cache\CacheItemPoolInterface;
 use App\Service\TrackAnalyzerImporter;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\TestStartOrderRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,6 +28,16 @@ class TrackanalyzerController extends AbstractController
         $this->logger = $logger;
     }
 
+/**
+ * Import scores live results function
+ *
+ * @param Request $request
+ * @param CacheItemPoolInterface $cache
+ * @param EntityManagerInterface $em
+ * @param TestsRepository $repositoryTest
+ * @param CrewsRepository $repositoryCrew
+ * @return JsonResponse
+ */
     #[Route('/3rdparty/trackanalyzer/import-live-data', name: 'import_trackanalyzer_live_data', methods: ['POST'])]
     public function importLiveData(
         Request $request,
@@ -106,6 +118,15 @@ class TrackanalyzerController extends AbstractController
         ]);
     }
 
+/**
+ * Imports results from Pipper function
+ *
+ * @param Request $request
+ * @param EntityManagerInterface $em
+ * @param TestsRepository $testsRepository
+ * @param CrewsRepository $crewsRepository
+ * @return JsonResponse
+ */
     #[Route('/3rdparty/trackanalyzer/import-results-data', name: 'import_trackanalyzer_results_data', methods: ['POST'])]
     public function importResultsData(
         Request $request,
@@ -201,6 +222,12 @@ class TrackanalyzerController extends AbstractController
         ]);
     }
 
+/**
+ * Import test results scores ANR function
+ *
+ * @param Request $request
+ * @return JsonResponse
+ */
     #[Route('/3rdparty/trackanalyzer/import-ANR-scores', name: 'import_trackanalyzer_ANR_scores', methods: ['POST'])]
     public function importResultsANRScores(Request $request): JsonResponse
     {
@@ -225,6 +252,12 @@ class TrackanalyzerController extends AbstractController
         return new JsonResponse($result);
     }
     
+/**
+ * Import test results scores function
+ *
+ * @param Request $request
+ * @return JsonResponse
+ */
     #[Route('/3rdparty/trackanalyzer/import-test-scores', name: 'import_trackanalyzer_test_scores', methods: ['POST'])]
     public function importResultsScores(Request $request): JsonResponse
     {
@@ -253,46 +286,120 @@ class TrackanalyzerController extends AbstractController
         return new JsonResponse($result);
     }
 
-    #[Route('/3rdparty/trackanalyzer/test/{testCode}/crews', name: 'trackanalyzer_test_crews', methods: ['GET'])]
-    public function getTestCrews(
-        string $testCode,
-        Request $request,
-        CrewsRepository $crewsRepository,
-        Security $security
-    ): JsonResponse {
-        $user = $security->getUser();
 
-        if (!$user) {
-            throw new AccessDeniedException('Utilisateur nom authorisé');
+ /**
+ * Get test competitors function
+ *
+ * @param string $testCode
+ * @param Request $request
+ * @param CrewsRepository $crewsRepository
+ * @param Security $security
+ * @return JsonResponse
+ */
+   #[Route('/3rdparty/trackanalyzer/test/{testCode}/crews', name: 'trackanalyzer_test_crews', methods: ['GET'])]
+    public function getOrCreateStartOrder(
+        string $testCode,
+        TestsRepository $testsRepository,
+        TestStartOrderRepository $startOrderRepository,
+        CrewsRepository $crewsRepository,
+        EntityManagerInterface $em,
+    ): JsonResponse {
+        // 1. Récupération de l'épreuve
+        $test = $testsRepository->findOneBy(['code' => $testCode]);
+
+        if (!$test) {
+            throw $this->createNotFoundException("Épreuve non trouvée pour le code $testCode");
         }
 
-        if (!$this->isGranted('ROLE_MANAGER')) {
-            throw new AccessDeniedException('Droits insuffisants');
+        // 2. Récupération des ordres de départ existants
+        $existingOrders = $startOrderRepository->findBy(['test' => $test], ['startOrder' => 'ASC']);
+
+        if (count($existingOrders) > 0) {
+            // 3. Retourner les ordres existants
+            $data = array_map(function (TestStartOrder $order) {
+                $crew = $order->getCrew();
+                return [
+                    'id' => $order->getCrew()->getId(),
+                    'startOrder' => $order->getStartOrder(),
+                    'group' => $order->getCrewGroup(),
+                    'pilot' => $crew->getPilot()?->getFullName(),
+                    'navigator' => $crew->getNavigator()?->getFullName(),
+                    'category' => $crew->getCategory()?->value,
+                    'callsign' => $crew->getCallsign(),
+                    'speed' => $crew->getAircraftSpeed()?->value,
+                    'takeOffTime' => $order->getTakeOffTime()?->format('H:i'),
+                ];
+            }, $existingOrders);
+
+            return $this->json(['crews' => $data]);
         }
 
         $crews = $crewsRepository->findCrewsByTestCode($testCode);
-        $this->logger->info('Requête findCrewsByTest', [
-            'crews' => array_map(fn($c) => [
-                'id' => $c->getId(),
-                'callsign' => $c->getCallsign(),
-                'speed' => $c->getAircraftSpeed()->value,
-                'pilot' => $c->getPilot()?->getFullName(),
-                'navigator' => $c->getNavigator()?->getFullName(),               
-                'category' => $c->getCategory()->value,
-            ], $crews) 
-        ]);
-        $data = [];
+
+        $orders = [];
+        $index = 1;
+
         foreach ($crews as $crew) {
-            $data[] = [
-                'id' => $crew->getId(),
-                'pilot' => $crew->getPilot()?->getFullName(),
-                'navigator' => $crew->getNavigator()?->getFullName(),
-                'callsign' => $crew->getCallsign(),
-                'speed' => $crew->getAircraftSpeed()->value,
-                'category' => $crew->getCategory()->value,
-            ];
+            $order = new TestStartOrder();
+            $order->setTest($test);
+            $order->setCrew($crew);
+            $order->setStartOrder($index++);
+            $em->persist($order);
+            $orders[] = $order;
         }
 
+        $em->flush();
+
+        // Retourner les nouveaux ordres
+        $data = array_map(function (TestStartOrder $order) {
+            return [
+                'id' => $order->getCrew()->getId(),
+                'order' => $order->getStartOrder(),
+                'takeOffTime' => null,
+            ];
+        }, $orders);
+
         return $this->json(['crews' => $data]);
+    }
+
+/**
+ * update the start order function
+ *
+ * @param Request $request
+ * @param EntityManagerInterface $em
+ * @return JsonResponse
+ */
+    #[Route('/3rdparty/trackanalyzer/update-start-order', name: 'trackanalyzer_update_start_order', methods: ['POST'])]
+    public function updateStartOrder(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $rawJson = $request->getContent();
+        $this->logger->debug('JSON received: ' , ['raw' => $rawJson]);
+        $data = json_decode($request->getContent(), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
+            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+        }
+        foreach ($data as $item) {        
+            $testStartOrder = $em->getRepository(TestStartOrder::class)->findOneByCrewId($item['id']);            
+            $this->logger->debug('Looking for crew id ' . $item['id']);
+            if ($testStartOrder) {
+                if ($testStartOrder) {
+                    $this->logger->debug('Found TestStartOrder for crew id ' . $item['id']);
+                }
+                $testStartOrder->setStartOrder($item['order']);                
+                $testStartOrder->setCrewGroup($item['group']);
+
+                if (!empty($item['takeOffTime'])) {
+                    $date = new \DateTimeImmutable('today');
+                    [$hour, $minute] = explode(':', $item['takeOffTime']);
+                    $takeOffTime = $date->setTime((int)$hour, (int)$minute);
+                    $testStartOrder->setTakeOffTime($takeOffTime);
+                }
+            }        
+        }
+
+        $em->flush();
+
+        return $this->json(['status' => 'ok']);
     }
 }

@@ -42,13 +42,13 @@ class Tests
     /**
      * @var Collection<int, TestStartOrder>
      */
-    #[ORM\OneToMany(targetEntity: TestStartOrder::class, mappedBy: 'test')]
-    private Collection $testStartOrders;
+    #[ORM\OneToMany(mappedBy: 'test', targetEntity: TestStartOrder::class)]
+    private Collection $startOrders;
 
     public function __construct()
     {
         $this->testResults = new ArrayCollection();
-        $this->testStartOrders = new ArrayCollection();
+        $this->startOrders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -146,7 +146,7 @@ class Tests
      */
     public function getTestStartOrders(): Collection
     {
-        return $this->testStartOrders;
+        return $this->startOrders;
     }    
     
     public function __toString(): string
