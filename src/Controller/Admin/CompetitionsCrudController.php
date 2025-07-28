@@ -692,34 +692,59 @@ class CompetitionsCrudController extends AbstractCrudController
                 'action' => 'index',
             ]));
         }
-    
-        $competName = $crews[0]->getCompetition()->getName();
+        $competition = $crews[0]->getCompetition();
+
+        $competType = $competition->getTypecompetition();    
+        $competName = $competition->getName();
         $filename = 'ExportPipper_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $competName) . '.csv';
-            
-        $data = [];        
+                   
         $row = [];
                 
         foreach ($crews as $crew) {
-            $row = [
-                'registration_number' => (string) $crew->getId(),
-                'category' => $crew->getCategory()?->value ?? '',   
-                'pilot_lastname' => $crew->getPilot()->getLastname(),
-                'pilot_firstname' =>  $crew->getPilot()->getFirstname() ,
-                'pilot_sex' => $crew->getPilot()->getGender()?->value[0] ?? '',
-                'pilot_club' =>  (string) $crew->getPilot()->getFlyingclub() ?? '',
-                'pilot_cra' =>  $crew->getPilot()->getCommittee()->getCode() ?? '',  
-                'copilot_lastname' => '' ,
-                'copilot_firstname' => '',
-                'copilot_sex' => '',
-                'copilot_club' => '',
-                'copilot_cra' => '', 
-                'aircraft_brand' => (string) $crew->getAircraftBrand() ? $crew->getAircraftBrand() : '',
-                'aircraft_type' => (string) $crew->getAircraftType() ? $crew->getAircraftType() : '',
-                'aircraft_matriculation' => (string) $crew->getCallsign() ? $crew->getCallSign() : '', 
-                'aircraft_colors' => '', 
-                'aircraft_oaci' => (string) $crew->getAircraftOaci() ? $crew->getAircraftOaci() : '', 
-                'aircraft_speed' => $crew->getAircraftSpeed() ?->value ?? '', 
-            ];
+            if ($competType->getId() == 2) {
+                $row = [
+                    'registration_number' => (string) $crew->getId(),
+                    'category' => $crew->getCategory()?->value ?? '',   
+                    'pilot_lastname' => $crew->getPilot()?->getLastname(),
+                    'pilot_firstname' =>  $crew->getPilot()?->getFirstname() ,
+                    'pilot_sex' => $crew->getPilot()->getGender()?->value[0] ?? '',
+                    'pilot_club' =>  (string) $crew->getPilot()?->getFlyingclub() ?? '',
+                    'pilot_cra' => $crew->getPilot()->getCommittee()?->getCode() ?? '', 
+                    'copilot_lastname' => '' ,
+                    'copilot_firstname' => '',
+                    'copilot_sex' => '',
+                    'copilot_club' => '',
+                    'copilot_cra' => '', 
+                    'aircraft_brand' => (string) $crew->getAircraftBrand() ? $crew->getAircraftBrand() : '',
+                    'aircraft_type' => (string) $crew->getAircraftType() ? $crew->getAircraftType() : '',
+                    'aircraft_matriculation' => (string) $crew->getCallsign() ? $crew->getCallSign() : '', 
+                    'aircraft_colors' => '', 
+                    'aircraft_oaci' => (string) $crew->getAircraftOaci() ? $crew->getAircraftOaci() : '', 
+                    'aircraft_speed' => $crew->getAircraftSpeed() ?->value ?? '', 
+                ];
+            } else{
+               $row = [
+                    'registration_number' => (string) $crew->getId(),
+                    'category' => $crew->getCategory()?->value ?? '',   
+                    'pilot_lastname' => $crew->getPilot()?->getLastname(),
+                    'pilot_firstname' =>  $crew->getPilot()?->getFirstname() ,
+                    'pilot_sex' => $crew->getPilot()->getGender()?->value[0] ?? '',
+                    'pilot_club' =>  (string) $crew->getPilot()?->getFlyingclub() ?? '',
+                    'pilot_cra' =>  $crew->getPilot()->getCommittee()?->getCode() ?? '',  
+                    'copilot_lastname' => $crew->getNavigator()?->getLastname(),
+                    'copilot_firstname' =>  $crew->getNavigator()?->getFirstname() ,
+                    'copilot_sex' => $crew->getNavigator()->getGender()?->value[0] ?? '',
+                    'copilot_club' => $crew->getNavigator()?->getFlyingclub() ?? '',
+                    'copilot_cra' => $crew->getNavigator()->getCommittee()?->getCode() ?? '',  
+                    'aircraft_brand' => (string) $crew->getAircraftBrand() ? $crew->getAircraftBrand() : '',
+                    'aircraft_type' => (string) $crew->getAircraftType() ? $crew->getAircraftType() : '',
+                    'aircraft_matriculation' => (string) $crew->getCallsign() ? $crew->getCallSign() : '', 
+                    'aircraft_colors' => '', 
+                    'aircraft_oaci' => (string) $crew->getAircraftOaci() ? $crew->getAircraftOaci() : '', 
+                    'aircraft_speed' => $crew->getAircraftSpeed() ?->value ?? '', 
+                ];
+            }
+
 
             // Encodage CP1252 pour chaque ligne
             $encodedData[] = array_map(

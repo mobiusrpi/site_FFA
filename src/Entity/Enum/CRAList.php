@@ -50,6 +50,6 @@ enum CRAList: string
 
     public function getCode(): string
     {
-        return explode(' ', $this->getLabel())[0]; // returns the number before first space
+        return explode(' ', $this->value)[0]; // returns the number before first space
     }
 }; 
