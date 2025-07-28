@@ -2,9 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\Tests;
 use App\Entity\TestStartOrder;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<TestStartOrder>
@@ -34,5 +35,14 @@ class TestStartOrderRepository extends ServiceEntityRepository
             ->setParameter('testCode', $testCode)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+    public function countByTest(Tests $test): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->where('s.test = :test')
+            ->setParameter('test', $test)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

@@ -63,27 +63,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class);
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
         yield MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
-        yield MenuItem::section('Ordres de départ');
 
-        $competitions = $this->entityManager->getRepository(Competitions::class)->findAll();
-
-        foreach ($competitions as $competition) {
-            $subItems = [];
-
-            if ($competition->getTypecompetition()->getId() == 3) {        
-
-                foreach ($competition->getTests() as $test) {
-                    $url = $this->urlGenerator->generate('admin_start_order', [
-                        'id' => $competition->getId(),
-                        'code' => $test->getCode(),
-                    ]);
-//    dd($url);
-                    $subItems[] = MenuItem::linkToUrl($test->getName(), 'fa fa-list-ol', $url);
-                }
-
-                yield MenuItem::subMenu($competition->getName(), 'fa fa-flag-checkered')->setSubItems($subItems);
-            }
-        }
         yield MenuItem::section('Administration')
             ->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page')
@@ -104,6 +84,29 @@ class DashboardController extends AbstractDashboardController
                 MenuItem::linkToCrud('Epreuves', 'fas fa-id-card', Tests::class),
                 MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
         ]);   
+        yield MenuItem::section('Ordres de départ')            
+            ->setPermission('ROLE_ADMIN');
+
+        $competitions = $this->entityManager->getRepository(Competitions::class)->findAll();
+
+        foreach ($competitions as $competition) {
+            $subItems = [];
+
+            if ($competition->getTypecompetition()->getId() == 3) {        
+
+                foreach ($competition->getTests() as $test) {
+                    $url = $this->urlGenerator->generate('admin_start_order', [
+                        'id' => $competition->getId(),
+                        'code' => $test->getCode(),
+                    ]);
+                    $subItems[] = MenuItem::linkToUrl($test->getName(), 'fa fa-list-ol', $url);
+                }
+
+                yield MenuItem::subMenu($competition->getName(), 'fa fa-flag-checkered')
+                    ->setSubItems($subItems)
+                    ->setPermission('ROLE_ADMIN');
+            }
+        }
     }
 
     #[Route('/results-import', name: 'admin_results_import_page')]

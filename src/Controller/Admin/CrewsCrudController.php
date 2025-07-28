@@ -6,10 +6,10 @@ use App\Entity\Crews;
 use App\Entity\Users;
 use App\Entity\Results;
 use App\Entity\Competitions;
+use Psr\Log\LoggerInterface;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use App\Repository\UsersRepository;
-use Psr\Log\LoggerInterface;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -26,6 +26,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 error_log("CrewsCrudController loaded from: " . __FILE__);
@@ -85,7 +86,12 @@ class CrewsCrudController extends AbstractCrudController
             $competition = $this->entityManager->getRepository(Competitions::class)->find($competitionId);
             if ($competition) {
                 $crew->setCompetition($competition);
+                        
+                if ($competition->getTypecompetition()->getFixedSpeed()) {
+                    $crew->setAircraftSpeed($competition->getFixedSpeed());
+                }
             }
+
         }
 
         // Set the current date/time for registered_at
@@ -246,12 +252,12 @@ class CrewsCrudController extends AbstractCrudController
         $fields[] = TextField::new('aircraftType','Type d\'avion')->hideOnIndex();
         $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion')->hideOnIndex();
         
-        $typeCompet = $competition->getTypecompetition();
-        $fixSpeed = $typeCompet->getFixSpeed(); 
+        $fixSpeed = $competition->getTypecompetition()->getFixSpeed(); 
       
         if ($fixSpeed) {
             $fields[] = ChoiceField::new('aircraftSpeed', 'Vitesse')
                 ->setChoices([$fixSpeed->value => $fixSpeed])
+                ->setFormTypeOption('data', $fixSpeed) // force la valeur même si elle est null
                 ->setDisabled(true)
                 ->hideOnIndex();
 
@@ -324,8 +330,8 @@ class CrewsCrudController extends AbstractCrudController
                     ->setIcon('fa fa-plus')
             )                   
             ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
-                $action->displayIf(function ($entity) {
-                    return $entity->getResults()->isEmpty();
+                $action->displayIf(function (Crews $entity) {
+                    return $entity->getResults()->isEmpty() && $entity->getTestStartOrders()->isEmpty();
                 });
 
                 return $action;
@@ -333,6 +339,34 @@ class CrewsCrudController extends AbstractCrudController
         ;
     }
     
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Crews) return;
+
+        $competition = $entityInstance->getCompetition();
+        $fixSpeed = $competition?->getTypecompetition()?->getFixSpeed();
+
+        if ($fixSpeed instanceof SpeedList) {
+            $entityInstance->setAircraftSpeed($fixSpeed);
+        }
+
+        parent::persistEntity($entityManager, $entityInstance);
+    }
+
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Crews) return;
+
+        $competition = $entityInstance->getCompetition();
+        $fixSpeed = $competition?->getTypecompetition()?->getFixSpeed();
+
+        if ($fixSpeed instanceof SpeedList) {
+            $entityInstance->setAircraftSpeed($fixSpeed);
+        }
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
     public function index(AdminContext $context): Response
     {
         $crews = $this->entityManager->getRepository(Crews::class)->findOrderedByCategoryAndPilotLastname();
@@ -369,17 +403,20 @@ class CrewsCrudController extends AbstractCrudController
         try {
             $this->entityManager->remove($crew);
             $this->entityManager->flush();
-            if ($crew->getCompetition()->getTypeCompetition()->getId() !== 2){
+            if ($crew->getCompetition()->getTypecompetition()->getId() !== 2){
                 $this->addFlash('success', 'Équipage supprimé avec succès.');               
             } else {
                 $this->addFlash('success', 'Concurrent supprimé avec succès.');
             }
-        } catch (\Exception $e) {
+        } catch (ForeignKeyConstraintViolationException $e) {
+            $this->logger->error('Suppression impossible : contrainte étrangère - ' . $e->getMessage());
+            $this->addFlash('danger', 'Cet équipage ne peut pas être supprimé car il est référencé dans une épreuve (ordre de départ).');
+        }catch (\Exception $e) {
         // Log the exception details for debugging
             $this->logger->error('Exception on delete: ' . $e->getMessage());
 
             // Display a generic error message to the user
-            $this->addFlash('error', 'Une erreur est survenue lors de la suppression.');
+            $this->addFlash('danger', 'Une erreur est survenue lors de la suppression.');
         }
         return $this->redirect($this->adminUrlGenerator->setController(self::class)->setAction('index')->generateUrl());
     }

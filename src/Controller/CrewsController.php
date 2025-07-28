@@ -6,6 +6,7 @@ use App\Entity\Crews;
 use App\Entity\Users;
 use App\Entity\Aircrafts;
 use App\Entity\Competitions;
+use App\Entity\Enum\SpeedList;
 use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
 use App\Repository\AircraftsRepository;
@@ -138,6 +139,7 @@ final class CrewsController extends AbstractController
        };        
        
         $compet = $repositoryCompetition->find($competId);     
+        $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
        //Checkif the user is alreadu registered
         $isAlreadyRegistered = $repositoryCrew->userIsRegistered($user->getId(),$compet->getId());
@@ -157,8 +159,8 @@ final class CrewsController extends AbstractController
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
             'compet' => $compet,
+            'fix_speed' => $fixSpeed,
         ]);
-
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) 
@@ -187,6 +189,10 @@ final class CrewsController extends AbstractController
                 $entityManager->persist($aircraft);
             }
             $entityManager->persist($crew);
+
+            if ($fixSpeed instanceof SpeedList) {
+                $crew->setAircraftSpeed($fixSpeed);
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
@@ -281,12 +287,14 @@ final class CrewsController extends AbstractController
         };
     
         $compet = $repositoryCompetition->find($competId);  
+        $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
         $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
                     'compet' => $compet,
-                ]);       
+                    'fix_speed' => $fixSpeed,
+        ]);       
 
         $form->handleRequest($request);
 
@@ -316,6 +324,11 @@ final class CrewsController extends AbstractController
                 $entityManager->persist($aircraft);
             }
             $entityManager->persist($crew);
+            
+            if ($fixSpeed instanceof SpeedList) {
+                $crew->setAircraftSpeed($fixSpeed);
+            }
+
             $entityManager->flush();
             return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
        }

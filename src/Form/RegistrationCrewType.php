@@ -46,7 +46,9 @@ class RegistrationCrewType extends AbstractType
         // Only include the pilotId if it's an edit (i.e., pilot is already set)
         $pilotId = $crew && $crew->getPilot() ? $crew->getPilot()->getId() : null;
         $navigatorId = $crew && $crew->getNavigator() ? $crew->getNavigator()->getId() : null;
-        $fixSpeed = $competition?->getTypeCompetition()?->getFixSpeed();
+
+        /** @var SpeedList|null $fixSpeed */
+        $fixSpeed = $options['fix_speed'] ?? null;
 
         $includedUserIds = [];
         if ($pilotId !== null) {
@@ -215,22 +217,31 @@ class RegistrationCrewType extends AbstractType
             ])                
             ->addEventListener(FormEvents::PRE_SUBMIT, 
                 [$this->preSubmitSubscriber, 'onPreSubmit'])
-        ; 
 
-        if ($fixSpeed instanceof SpeedList) {
-            $builder->add('aircraftSpeed', EnumType::class, [
+            ->add('aircraftSpeed', EnumType::class, [
                 'class' => SpeedList::class,
-                'choices' => [$fixSpeed], // only one value
+                'choices' => $fixSpeed ? [$fixSpeed] : SpeedList::cases(),
                 'choice_label' => fn(SpeedList $value) => $value->getLabel(),
-                'attr' => [
-                    'class' => 'form-control',
-                    'readonly' => true,
-                    'data-fixed' => '1'
-                ],
-                'disabled' => true, // no change
-                'label' => 'Vitesse imposée',
-                'label_attr' => ['class' => 'form-label'],
+                'disabled' => (bool) $fixSpeed,
                 'required' => true,
+                'label' => 'Vitesse',
+                'label_attr' => ['class' => 'form-label'],
+                'attr' => ['class' => 'form-control'],
+                'placeholder' => $fixSpeed ? false : 'Choisir sa vitesse',
+                'data' => $fixSpeed ?? null, // facultatif si pas de donnée initiale
+            ]);
+
+/*
+        if ($fixSpeed instanceof SpeedList) {
+            $builder->add('aircraftSpeedDisplay', EnumType::class, [
+                'class' => SpeedList::class,
+                'choices' => [$fixSpeed],
+                'choice_label' => fn(SpeedList $value) => $value->getLabel(),
+                'attr' => ['class' => 'form-control'],
+                'mapped' => false,
+                'disabled' => true,
+                'label' => 'Vitesse imposée',
+                'required' => false,
                 'data' => $fixSpeed,
             ]);
         } else {
@@ -242,8 +253,9 @@ class RegistrationCrewType extends AbstractType
                 'label' => 'Vitesse',
                 'label_attr' => ['class' => 'form-label'],
                 'placeholder' => 'Choisir sa vitesse',
-            ]);
-        }
+                'data' => $fixSpeed ?? null
+            ]);                                 
+        }*/
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -251,8 +263,10 @@ class RegistrationCrewType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Crews::class,
             'compet' => null, 
-            'user' => null,          
+            'user' => null,   
+              
         ]);
         $resolver->setAllowedTypes('compet', 'object');
+        $resolver->setDefined('fix_speed');
     }
 }

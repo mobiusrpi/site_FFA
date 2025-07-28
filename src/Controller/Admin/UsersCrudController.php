@@ -91,8 +91,6 @@ class UsersCrudController extends AbstractCrudController
             $password->setHelp('Laissez vide pour conserver le mot de passe actuel');
         }
 
-        $user = $this->security->getUser();
-
         $availableRoles = [];
 
         // Only allow assigning roles that are equal or lower in privilege
@@ -121,7 +119,7 @@ class UsersCrudController extends AbstractCrudController
                 ->setSortable(false),
             EmailField::new('email','Email')
                 ->setDisabled(true)
-                ->setSortable(false), 
+                ->setSortable(true), 
             $password,      
             BooleanField::new('isCompetitor','Compétiteur')
                 ->hideOnIndex(),            

@@ -751,7 +751,7 @@ class CompetitionsCrudController extends AbstractCrudController
         }
 
         $fileName = $crews[0]->getCompetition()->getName(); 
-        if  ($compet->getTypeCompetition()->getId() == 2) {
+        if  ($compet->getTypecompetition()->getId() == 2) {
             $html = $this->render('admin/competitions/printPilots.html.twig',['crews' => $crews]);             
         }
         else{

@@ -260,7 +260,7 @@
         document.getElementById('okBtn').addEventListener('click', () => {
             document.getElementById('infoModal').style.display = 'none';
         });
-        //script to fill aircraft fields
+//script to fill aircraft fields
         document.addEventListener('DOMContentLoaded', () => {
             const callsignInput = document.querySelector('input[name="{{ form.callsign.vars.full_name }}"]');
 
@@ -273,23 +273,32 @@
             const datalist = document.getElementById('aircraft-callsigns');
 
             callsignInput.addEventListener('input', () => {
-                const val = callsignInput.value;
+                const val = callsignInput.value.trim();
 
-                // Trouver l'option correspondant au callsign
+                // Trouver l'option correspondant au callsign exact
                 const option = Array.from(datalist.options).find(opt => opt.value === val);
 
                 if (option) {
-                    // Met à jour les autres champs
                     if (brandInput) brandInput.value = option.dataset.brand || '';
                     if (typeInput) typeInput.value = option.dataset.type || '';
-                    if (speedInput) speedInput.value = option.dataset.speed || '';
+
+                    // Met à jour la vitesse seulement si le champ est modifiable
+                    if (speedInput && !speedInput.disabled && speedInput.dataset.fixed !== '1') {
+                        speedInput.value = option.dataset.speed || '';
+                    }
+
                     if (flyingClubInput) flyingClubInput.value = option.dataset.flyingclub || '';
                     if (oaciInput) oaciInput.value = option.dataset.oaci || '';
                 } else {
-                    // Si aucune correspondance, vide les champs
+                    // Si aucune correspondance, on NE VIDE PAS speedInput si désactivé ou vitesse imposée
+
                     if (brandInput) brandInput.value = '';
                     if (typeInput) typeInput.value = '';
-                    if (speedInput) speedInput.value = '';
+
+                    if (speedInput && !speedInput.disabled && speedInput.dataset.fixed !== '1') {
+                        speedInput.value = '';
+                    }
+
                     if (flyingClubInput) flyingClubInput.value = '';
                     if (oaciInput) oaciInput.value = '';
                 }

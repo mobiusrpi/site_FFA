@@ -44,7 +44,7 @@ class AddNavigatorFieldListener implements EventSubscriberInterface
         if (!$competition) {
             return; // No competition set (probably a bug in form setup)
         }
-        $typeCompetition = $competition->getTypeCompetition();
+        $typeCompetition = $competition->getTypecompetition();
         
         if (!$typeCompetition || $typeCompetition->getId() === 2) {
             return; // No competition set (probably a bug in form setup)

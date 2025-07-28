@@ -304,18 +304,16 @@ class TrackanalyzerController extends AbstractController
         CrewsRepository $crewsRepository,
         EntityManagerInterface $em,
     ): JsonResponse {
-        // 1. Récupération de l'épreuve
+
         $test = $testsRepository->findOneBy(['code' => $testCode]);
 
         if (!$test) {
             throw $this->createNotFoundException("Épreuve non trouvée pour le code $testCode");
         }
 
-        // 2. Récupération des ordres de départ existants
         $existingOrders = $startOrderRepository->findBy(['test' => $test], ['startOrder' => 'ASC']);
 
         if (count($existingOrders) > 0) {
-            // 3. Retourner les ordres existants
             $data = array_map(function (TestStartOrder $order) {
                 $crew = $order->getCrew();
                 return [
@@ -351,11 +349,18 @@ class TrackanalyzerController extends AbstractController
         $em->flush();
 
         // Retourner les nouveaux ordres
-        $data = array_map(function (TestStartOrder $order) {
+        $data = array_map(function (TestStartOrder $order) {                      
+            $crew = $order->getCrew();          
             return [
                 'id' => $order->getCrew()->getId(),
-                'order' => $order->getStartOrder(),
-                'takeOffTime' => null,
+                'startOrder' => $order->getStartOrder(),
+                'group' => $order->getCrewGroup(),
+                'pilot' => $crew->getPilot()?->getFullName(),
+                'navigator' => $crew->getNavigator()?->getFullName(),
+                'category' => $crew->getCategory()?->value,
+                'callsign' => $crew->getCallsign(),
+                'speed' => $crew->getAircraftSpeed()?->value,
+                'takeOffTime' => $order->getTakeOffTime()?->format('H:i'),
             ];
         }, $orders);
 
@@ -402,4 +407,27 @@ class TrackanalyzerController extends AbstractController
 
         return $this->json(['status' => 'ok']);
     }
-}
+
+   #[Route('/3rdparty/trackanalyzer/getCompetition/{testCode}/tests', name: 'trackanalyzer_get_competition', methods: ['GET'])]
+    public function getCompetitionAndActiveTest(
+        string $testCode,
+        TestsRepository $testsRepository,
+        TestStartOrderRepository $startOrderRepository,
+    ): JsonResponse {
+        $test = $testsRepository->findOneBy(['code' => $testCode]);
+        if (!$test) {
+            throw $this->createNotFoundException("Épreuve non trouvée pour le code $testCode");
+        }
+        $orderCount = $startOrderRepository->countByTest($test);
+        $competition = $test->getCompetition();
+
+        return $this->json([
+            'competition' => [
+                'id' => $competition->getId(),
+                'name' => $competition->getName(),                
+                'test' => $test->getName(),                
+                'orderCount' => $orderCount,
+            ]
+        ]);
+    }
+};

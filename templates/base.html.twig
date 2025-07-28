@@ -71,5 +71,13 @@
           {% include '_partials/_footer.html.twig' %}
         {% endblock %}
       </div>
+      <script>
+          document.addEventListener('DOMContentLoaded', function () {
+              const alert = document.querySelector('.alert');
+              if (alert) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+          });
+      </script>
     </body>
 </html>
