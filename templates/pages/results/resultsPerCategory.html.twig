@@ -1,9 +1,58 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Résultats {% endblock %}
+{% block title %}{{ category }} {% endblock %}
 
 {% block body %}
   <style>
+      @media print {
+          .page-break {
+              page-break-after: always;
+          }
+          .no-print {
+              display: none !important;
+          }
+          .print-only {
+              display: block !important;
+          }   
+
+      /* Bordures plus foncées / épaisses pour impression */
+          table.print-table th,
+          table.print-table td {
+              border: 2px solid #000 !important;   /* 2px = plus épais */
+              padding: 4px;                        /* ajuster l'espacement */
+              background-color: white !important;  /* garantir fond blanc si besoin */
+          }
+          table.print-table thead th {
+              background-color: silver !important; /* si tu veux en-tête gris */
+          }
+          /* Supprimer marges/paddings Bootstrap */
+          body, .container, .row, .col-12, .col-md-8, .mx-auto {
+              margin: 0 !important;
+              padding: 0 !important;
+              max-width: 100% !important;
+          }
+
+          /* Forcer table à prendre toute la largeur */
+          table {
+              width: 100% !important;
+              table-layout: auto;
+          }
+
+          /* Réduire police pour éviter troncature */
+          table th, table td {
+              font-size: 12px;
+              word-wrap: break-word;
+          }
+      }      
+
+      /* Règles générales */
+      table.print-table {
+          border-collapse: collapse;
+          width: 100%;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+      }
+
       .sort-column {
           cursor: pointer;
           user-select: none;
@@ -30,8 +79,10 @@
                   {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
               </h5>
             <div>
-            <div class="col-12 text-center text-md-end mt-2 mt-md-0">
-                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+         
+            <div class="col-12 text-center text-md-end mt-2 mt-md-0 no-print">
+                        <button onclick="window.print()">🖨️ Imprimer</button>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm no-print">
                     <i class="fa-solid fa-arrow-left me-1"></i> Retour
                 </a>
             </div>
@@ -47,7 +98,7 @@
                 {% endif %}
             {% endif %}
         {% endfor %}
-        <table class="table table-bordered table-sm mt-4">
+        <table class="table table-bordered table-sm mt-4 print-table">
           <thead>
             <tr>
               <th class="text-center">Class.</th>

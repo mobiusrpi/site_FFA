@@ -190,7 +190,16 @@
                     {% for result in item.honneur|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {{ result.crew }} – {{ result.total }} pts
+                        {% set pilot = attribute(result.crew, 'pilot') ?? null %}
+                        {% if pilot %}
+                          {% if competition.typecompetition.id == 2 %}
+                            {{result.crew.pilot.fullname }} 
+                          {% else %}
+                            {{result.crew.pilot.fullname }} / {{ result.crew.navigator.fullname }} 
+                          {% endif %}
+                        {% else %}
+                          {{ result.crew }}
+                        {% endif %} – {{ result.total }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>

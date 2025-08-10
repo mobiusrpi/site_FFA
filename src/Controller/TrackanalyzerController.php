@@ -310,49 +310,45 @@ class TrackanalyzerController extends AbstractController
         if (!$test) {
             throw $this->createNotFoundException("Épreuve non trouvée pour le code $testCode");
         }
-
+        
+        // 1️⃣ Récupérer les ordres existants
         $existingOrders = $startOrderRepository->findBy(['test' => $test], ['startOrder' => 'ASC']);
+        $existingCrewIds = array_map(fn(TestStartOrder $o) => $o->getCrew()->getId(), $existingOrders);
 
-        if (count($existingOrders) > 0) {
-            $data = array_map(function (TestStartOrder $order) {
-                $crew = $order->getCrew();
-                return [
-                    'id' => $order->getCrew()->getId(),
-                    'startOrder' => $order->getStartOrder(),
-                    'group' => $order->getCrewGroup(),
-                    'pilot' => $crew->getPilot()?->getFullName(),
-                    'navigator' => $crew->getNavigator()?->getFullName(),
-                    'category' => $crew->getCategory()?->value,
-                    'callsign' => $crew->getCallsign(),
-                    'speed' => $crew->getAircraftSpeed()?->value,
-                    'takeOffTime' => $order->getTakeOffTime()?->format('H:i'),
-                ];
-            }, $existingOrders);
+        // 2️⃣ Récupérer tous les crews actuels pour ce test
+        $currentCrews = $crewsRepository->findCrewsByTestCode($testCode);
+        $currentCrewIds = array_map(fn($crew) => $crew->getId(), $currentCrews);
 
-            return $this->json(['crews' => $data]);
+        // 3️⃣ Supprimer les crews qui ne sont plus là
+        foreach ($existingOrders as $order) {
+            if (!in_array($order->getCrew()->getId(), $currentCrewIds, true)) {
+                $em->remove($order);
+            }
         }
 
-        $crews = $crewsRepository->findCrewsByTestCode($testCode);
-
-        $orders = [];
-        $index = 1;
-
-        foreach ($crews as $crew) {
-            $order = new TestStartOrder();
-            $order->setTest($test);
-            $order->setCrew($crew);
-            $order->setStartOrder($index++);
-            $em->persist($order);
-            $orders[] = $order;
+        // 4️⃣ Ajouter les nouveaux crews
+        $nextOrder = count($existingOrders) + 1;
+        foreach ($currentCrews as $crew) {
+            if (!in_array($crew->getId(), $existingCrewIds, true)) {
+                $order = new TestStartOrder();
+                $order->setTest($test);
+                $order->setCrew($crew);
+                $order->setStartOrder($nextOrder++);
+                $em->persist($order);
+                $existingOrders[] = $order;
+            }
         }
 
         $em->flush();
 
-        // Retourner les nouveaux ordres
-        $data = array_map(function (TestStartOrder $order) {                      
-            $crew = $order->getCrew();          
+        // 5️⃣ Rafraîchir la liste après ajout/suppression
+        $updatedOrders = $startOrderRepository->findBy(['test' => $test], ['startOrder' => 'ASC']);
+
+        // 6️⃣ Retour des données
+        $data = array_map(function (TestStartOrder $order) {
+            $crew = $order->getCrew();
             return [
-                'id' => $order->getCrew()->getId(),
+                'id' => $crew->getId(),
                 'startOrder' => $order->getStartOrder(),
                 'group' => $order->getCrewGroup(),
                 'pilot' => $crew->getPilot()?->getFullName(),
@@ -362,7 +358,7 @@ class TrackanalyzerController extends AbstractController
                 'speed' => $crew->getAircraftSpeed()?->value,
                 'takeOffTime' => $order->getTakeOffTime()?->format('H:i'),
             ];
-        }, $orders);
+        }, $updatedOrders);
 
         return $this->json(['crews' => $data]);
     }

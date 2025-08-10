@@ -1,9 +1,54 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Classement de {{ competition.name }}{% endblock %}
+{% block title %}          
+    Classement
+{% endblock %}
 
 {% block body %}
-    <style>
+  <style>
+        @media print {
+            .page-break {
+                page-break-after: always;
+            }
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }   
+        @media screen {
+            .print-only {
+                display: none;
+            }
+        }
+        /* Règles générales */
+        table.print-table {
+            border-collapse: collapse;
+            width: 100%;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Bordures plus foncées / épaisses pour impression */
+        @media print {
+            table.print-table th,
+            table.print-table td {
+                border: 2px solid #000 !important;   /* 2px = plus épais */
+                padding: 4px;                        /* ajuster l'espacement */
+                background-color: white !important;  /* garantir fond blanc si besoin */
+            }
+            table.print-table thead th {
+                background-color: silver !important; /* si tu veux en-tête gris */
+            }
+            /* cacher éléments non imprimables */
+            .no-print { 
+                display: none !important; 
+            }
+        }
+
         .sort-column {
             cursor: pointer;
             user-select: none;
@@ -22,7 +67,7 @@
         }
     </style>
     <div class="container-fluid mt-4">
-        <div class="row align-items-center mb-3">
+        <div class="row align-items-center mb-3 no-print">
             <div class="col-12 col-md-8 mx-auto">
                 <h5 class="text-center">
                     <strong>Compétition {{ competition.name }}</strong></br>
@@ -31,14 +76,24 @@
                 </h5>
             </div>
             <div class="col-12 col-md-4 text-center text-md-end mt-2 mt-md-0">
-                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <button onclick="window.print()">🖨️ Imprimer</button>
+                <a  href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                     <i class="fa-solid fa-arrow-left me-1"></i> Retour
                 </a>
             </div>
         </div>    
         <div class="row g-0"> 
             {% for category, crews in scoreByCategory %}
-                <div class="col-12 col-lg-6 mt-4">
+                <div class="row align-items-center mb-3 print-only">      
+                    <div class="col-12 col-md-8 mx-auto">
+                        <h5 class="text-center">
+                            <strong>Compétition {{ competition.name }}</strong></br>
+                                {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+                                {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}  - 
+                        </h5>
+                    </div>
+                </div> 
+                <div class="col-12 col-lg-6 mt-4 page-break">
                     <h5 class="text-center">
                         <strong>
                             Catégorie
@@ -51,7 +106,7 @@
                        </strong>
                     </h5>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm mt-4">
+                        <table class="table table-bordered table-sm mt-4 print-table">
                             <thead>
                                 <tr>
                                     <th>Class.</th>
