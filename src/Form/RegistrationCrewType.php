@@ -98,7 +98,8 @@ class RegistrationCrewType extends AbstractType
                 [$this->addNavigatorFieldListener, 'onPreSetData'])
 
            ->add('category',EnumType::class,[
-                'class' => Category::class,                   
+                'class' => Category::class,    
+                'choices' => $options['available_categories'],               
                 'choice_label' => function (
                     mixed $value
                 ): TranslatableMessage|string {
@@ -229,33 +230,8 @@ class RegistrationCrewType extends AbstractType
                 'attr' => ['class' => 'form-control'],
                 'placeholder' => $fixSpeed ? false : 'Choisir sa vitesse',
                 'data' => $fixSpeed ?? null, // facultatif si pas de donnée initiale
-            ]);
-
-/*
-        if ($fixSpeed instanceof SpeedList) {
-            $builder->add('aircraftSpeedDisplay', EnumType::class, [
-                'class' => SpeedList::class,
-                'choices' => [$fixSpeed],
-                'choice_label' => fn(SpeedList $value) => $value->getLabel(),
-                'attr' => ['class' => 'form-control'],
-                'mapped' => false,
-                'disabled' => true,
-                'label' => 'Vitesse imposée',
-                'required' => false,
-                'data' => $fixSpeed,
-            ]);
-        } else {
-            $builder->add('aircraftSpeed', EnumType::class, [
-                'class' => SpeedList::class,
-                'choice_label' => fn(SpeedList $value) => $value->getLabel(),
-                'attr' => ['class' => 'form-control'],
-                'required' => true,
-                'label' => 'Vitesse',
-                'label_attr' => ['class' => 'form-label'],
-                'placeholder' => 'Choisir sa vitesse',
-                'data' => $fixSpeed ?? null
-            ]);                                 
-        }*/
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -264,7 +240,7 @@ class RegistrationCrewType extends AbstractType
             'data_class' => Crews::class,
             'compet' => null, 
             'user' => null,   
-              
+            'available_categories' => Category::cases(), // par défaut toutes
         ]);
         $resolver->setAllowedTypes('compet', 'object');
         $resolver->setDefined('fix_speed');

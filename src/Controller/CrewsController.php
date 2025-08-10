@@ -6,6 +6,7 @@ use App\Entity\Crews;
 use App\Entity\Users;
 use App\Entity\Aircrafts;
 use App\Entity\Competitions;
+use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
 use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
@@ -106,9 +107,9 @@ final class CrewsController extends AbstractController
     public function registration(
         $competId,
         Request $request,
-        CompetitionsRepository $repositoryCompetition,    
-        CrewsRepository $repositoryCrew,            
-        AircraftsRepository $repositoryAircraft,    
+        CompetitionsRepository $competitionsRepository,    
+        CrewsRepository $crewsRepository,            
+        AircraftsRepository $aircraftsRepository,    
         EntityManagerInterface $entityManager,
         Security $security    
     ): Response
@@ -138,11 +139,11 @@ final class CrewsController extends AbstractController
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
        };        
        
-        $compet = $repositoryCompetition->find($competId);     
+        $compet = $competitionsRepository->find($competId);     
         $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
        //Checkif the user is alreadu registered
-        $isAlreadyRegistered = $repositoryCrew->userIsRegistered($user->getId(),$compet->getId());
+        $isAlreadyRegistered = $crewsRepository->userIsRegistered($user->getId(),$compet->getId());
 
         if ( $isAlreadyRegistered ) 
         {
@@ -150,7 +151,26 @@ final class CrewsController extends AbstractController
 
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         };
+    
+        $countElite = $crewsRepository->countByCompetitionAndCategory($compet, Category::Elite);
+        $countHonor = $crewsRepository->countByCompetitionAndCategory($compet, Category::Honneur);
 
+        $quotaElite = $compet->getEliteMax();
+        $quotaHonor = $compet->getHonorMax();
+
+        $availableCategories = [];
+
+        if ($countElite < $quotaElite) {
+            $availableCategories[] = Category::Elite;
+        }
+        if ($countHonor < $quotaHonor) {
+            $availableCategories[] = Category::Honneur;
+        }
+
+        if (empty($availableCategories)) {
+            $this->addFlash('danger', 'Les quotas pour toutes les catégories sont atteints. L\'inscription est fermée.');
+            return $this->redirectToRoute('competitions_list'); 
+        }
         $crew = new Crews();      
         $crew->setRegisteredAt(new \DateTimeImmutable());        
         $crew->setRegisteredby($user);
@@ -159,6 +179,7 @@ final class CrewsController extends AbstractController
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
             'compet' => $compet,
+            'available_categories' => $availableCategories,
             'fix_speed' => $fixSpeed,
         ]);
         $form->handleRequest($request);
@@ -172,7 +193,7 @@ final class CrewsController extends AbstractController
                 $callsign = $form->get('callsign')->getData();
                 $speed = $form->get('aircraftSpeed')->getData(); // Enum SpeedList
 
-                if ($repositoryAircraft->isDuplicate($user, $callsign, $speed)) {
+                if ($aircraftsRepository->isDuplicate($user, $callsign, $speed)) {
                     $this->addFlash('danger', 'Cet avion avec cette vitesse est déjà enregistré.');
                     return $this->redirectToRoute('crews_registration');
                 }
