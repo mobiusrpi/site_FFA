@@ -3,11 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Competitions;
-use App\Form\CompetitionsType;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\TestResultsRepository;
+use App\Repository\CrewsRepository;
 use App\Repository\CompetitionsRepository;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,14 +21,22 @@ final class CompetitionsController extends AbstractController
  */
     #[Route(path: '/competitions', name: 'competitions_list', methods:['GET'])]
     public function list(
-        CompetitionsRepository $repository, 
+        CompetitionsRepository $competitionsRepository, 
+        CrewsRepository $crewsRepository, 
     ): Response 
     {
         $today = (new \DateTime())->setTime(0, 0, 0);
-        $sortList = $repository->getQueryCompetitionSorted($today);
+        $sortList = $competitionsRepository->getQueryCompetitionSorted($today);
+        
+        $inscriptionsByCompetition = [];
+
+        foreach ($sortList as $competition) {
+            $inscriptionsByCompetition[$competition->getId()] = $crewsRepository->countCrewsByCompetitionGroupedByCategory($competition);
+        }
 
         return $this->render('pages/competitions/list.html.twig', [
-            'competition_list' => $sortList,            
+            'competition_list' => $sortList,  
+            'inscriptionsByCompetition' => $inscriptionsByCompetition,          
         ]);
     }
     

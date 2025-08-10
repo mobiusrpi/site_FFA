@@ -222,7 +222,7 @@ final class CrewsController extends AbstractController
         $user = $security->getUser();
 
         if (!$user instanceof Users) {       
-            $this->addFlash('warning', 'a non authentifié.');
+            $this->addFlash('warning', 'Non authentifié.');
 
             // ✅ Redirect to EasyAdmin Competitions index page
             return $this->redirect($this->generateUrl('admin', [

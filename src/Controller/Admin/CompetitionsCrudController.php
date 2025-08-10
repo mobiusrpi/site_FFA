@@ -133,11 +133,14 @@ class CompetitionsCrudController extends AbstractCrudController
 
         // Basic fields
         $fields[] = TextField::new('name','Désignation')
-            ->setSortable(false);
+            ->setSortable(false)                
+            ->setFormTypeOptions([
+                'attr' => ['maxlength' => 50]
+            ]);
         // Conditionally disable typecompetition if crews exist
         if ($pageName === Crud::PAGE_INDEX) {
             $typeField = TextField::new('typecompetition', 'Type de compétition')
-                ->setSortable(true); 
+                ->setSortable(true);
         } else {
              $typeField = AssociationField::new('typecompetition', 'Type de compétition');
         }

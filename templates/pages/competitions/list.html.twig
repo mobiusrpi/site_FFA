@@ -40,8 +40,16 @@
                                     {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au
                                 {% endif %}
                                 {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
-                            </p>
-
+                            </p> 
+                            <p><strong>Inscrits par catégorie:</strong></p>
+                            <ul>
+                                {% set counts = inscriptionsByCompetition[compet.id] ?? [] %}
+                                {% for item in counts %}
+                                    <li>{{ item.category.getLabel() }} : {{ item.nb }}</li>
+                                {% else %}
+                                    <li>Aucun inscrit</li>
+                                {% endfor %}
+                            </ul>
                             {% if is_granted('ROLE_USER') %}
                               <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
                                   <div style="text-align: center; margin: 20px 0;">

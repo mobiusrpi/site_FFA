@@ -139,4 +139,14 @@ class CrewsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function countCrewsByCompetitionGroupedByCategory(Competitions $competition): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c.category, COUNT(c.id) AS nb')
+            ->where('c.competition = :competition')
+            ->setParameter('competition', $competition)
+            ->groupBy('c.category');
+
+        return $qb->getQuery()->getResult();
+    }
 }
