@@ -45,7 +45,11 @@
                             <ul>
                                 {% set counts = inscriptionsByCompetition[compet.id] ?? [] %}
                                 {% for item in counts %}
-                                    <li>{{ item.category.getLabel() }} : {{ item.nb }}</li>
+                                    {% if item.category.getLabel() == 'Elite' %}
+                                        <li>{{ item.category.getLabel() }} (maxi, {{ compet.eliteMax }} ) : {{ item.nb }}</li>
+                                    {% else %}
+                                        <li>{{ item.category.getLabel() }} (maxi, {{ compet.honorMax }} ) : {{ item.nb }}</li>
+                                    {% endif %}
                                 {% else %}
                                     <li>Aucun inscrit</li>
                                 {% endfor %}

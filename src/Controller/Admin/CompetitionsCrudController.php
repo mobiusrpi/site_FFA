@@ -38,6 +38,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use App\Repository\CompetitionAccommodationRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -169,6 +170,9 @@ class CompetitionsCrudController extends AbstractCrudController
         $fields[] = BooleanField::new('selectable','Sélection')
             ->setSortable(false) 
             ->renderAsSwitch()->onlyOnForms();
+        $fields[] = IntegerField::new('eliteMax', 'Nombre maxi élite');
+        $fields[] = IntegerField::new('honorMax', 'Nombre maxi honneur');
+
         $fields[] = Field::new('programmePdf')
             ->setFormType(FileType::class)
             ->onlyOnForms()
