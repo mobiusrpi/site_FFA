@@ -42,6 +42,12 @@ class Competitions
     #[ORM\Column(nullable: true)]
     private ?bool $selectable = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $eliteMax = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $honorMax = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
     
@@ -166,6 +172,30 @@ class Competitions
         return $this;
     }
 
+    public function getEliteMax(): ?int
+    {
+        return $this->eliteMax;
+    }
+
+    public function setEliteMax(int $eliteMax): ?static
+    {
+        $this->eliteMax = $eliteMax;
+
+        return $this;
+    }
+    
+    public function getHonorMax(): ?int
+    {
+        return $this->honorMax;
+    }
+
+    public function setHonorMax(int $honorMax): ?static
+    {
+        $this->honorMax = $honorMax;
+
+        return $this;
+    }
+    
     public function getStartRegistration(): ?\DateTimeImmutable
     {
         return $this->startRegistration;
