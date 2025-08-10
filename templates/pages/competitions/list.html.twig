@@ -41,25 +41,26 @@
                                 {% endif %}
                                 {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                             </p> 
-                            <p><strong>Inscrits par catégorie:</strong></p>
-                            <ul>
-                                {% set counts = inscriptionsByCompetition[compet.id] ?? [] %}
-                                {% for item in counts %}
-                                    {% if ( (icompet.eliteMax | default(0)) + (compet.honorMax | default(0)) ) != 0 %}                                      
-                                        {% if item.category.getLabel() == 'Elite'  %}
-                                            <li>{{ item.category.getLabel() }} (maxi, {{ compet.eliteMax }} ) : {{ item.nb }}</li>
+
+                            {% if is_granted('ROLE_USER') %}
+                                <p><strong>Inscrits par catégorie:</strong></p>
+                                <ul>
+                                    {% set counts = inscriptionsByCompetition[compet.id] ?? [] %}
+                                    {% for item in counts %}
+                                        {% if ( (icompet.eliteMax | default(0)) + (compet.honorMax | default(0)) ) != 0 %}                                      
+                                            {% if item.category.getLabel() == 'Elite'  %}
+                                                <li>{{ item.category.getLabel() }} (maxi, {{ compet.eliteMax }} ) : {{ item.nb }}</li>
+                                            {% else %}
+                                                <li>{{ item.category.getLabel() }} (maxi, {{ compet.honorMax }} ) : {{ item.nb }}</li>
+                                            {% endif %}
                                         {% else %}
-                                            <li>{{ item.category.getLabel() }} (maxi, {{ compet.honorMax }} ) : {{ item.nb }}</li>
+                                                <li>{{ item.category.getLabel() }} : {{ item.nb }}</li>
                                         {% endif %}
                                     {% else %}
-                                            <li>{{ item.category.getLabel() }} : {{ item.nb }}</li>
-                                    {% endif %}
-                                {% else %}
-                                    <li>Aucun inscrit</li>
-                                {% endfor %}
-                            </ul>
-                            {% if is_granted('ROLE_USER') %}
-                              <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
+                                        <li>Aucun inscrit</li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
                                   <div style="text-align: center; margin: 20px 0;">
                                       {% if compet.startRegistration|date('Y-m-d') <= date('now')|date('Y-m-d')
                                             and date('now')|date('Y-m-d') <= compet.endRegistration|date('Y-m-d') %}
