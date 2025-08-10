@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Crews;
 use App\Entity\Competitions;
+use App\Entity\Enum\Category;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
@@ -148,5 +149,17 @@ class CrewsRepository extends ServiceEntityRepository
             ->groupBy('c.category');
 
         return $qb->getQuery()->getResult();
+    }
+    
+    public function countByCompetitionAndCategory(Competitions $competition, Category $category): int
+    {
+        return $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.competition = :competition')
+            ->andWhere('c.category = :category')
+            ->setParameter('competition', $competition)
+            ->setParameter('category', $category->value) // 👈 le .value renvoie 'Elite'
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

@@ -170,8 +170,10 @@ class CompetitionsCrudController extends AbstractCrudController
         $fields[] = BooleanField::new('selectable','Sélection')
             ->setSortable(false) 
             ->renderAsSwitch()->onlyOnForms();
-        $fields[] = IntegerField::new('eliteMax', 'Nombre maxi élite');
-        $fields[] = IntegerField::new('honorMax', 'Nombre maxi honneur');
+        $fields[] = IntegerField::new('eliteMax', 'Nombre maxi élite')
+            ->onlyOnForms();
+        $fields[] = IntegerField::new('honorMax', 'Nombre maxi honneur')            
+            ->onlyOnForms();
 
         $fields[] = Field::new('programmePdf')
             ->setFormType(FileType::class)

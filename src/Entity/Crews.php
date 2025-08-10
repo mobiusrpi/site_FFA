@@ -23,7 +23,7 @@ class Crews
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(enumType: Category::class, nullable: true)]
+    #[ORM\Column(enumType: Category::class, nullable: false)]
     #[Assert\NotBlank()]
     private ?Category $category = null;
 
