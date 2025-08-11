@@ -17,11 +17,13 @@ class TestStartOrderRepository extends ServiceEntityRepository
         parent::__construct($registry, TestStartOrder::class);
     }
 
-    public function findOneByCrewId(int $crewId): ?TestStartOrder
+    public function findOneByTestCodeAndCrewId(int $testId,$crewId): ?TestStartOrder
     {
         return $this->createQueryBuilder('s')
             ->where('s.crew = :crewId')
+            ->andWhere('test',$testId)
             ->setParameter('crewId', $crewId)
+            ->setParameter('testId', $testId)
             ->getQuery()
             ->getOneOrNullResult();
     }

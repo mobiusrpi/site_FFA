@@ -2,6 +2,8 @@
 // src/Controller/TrackAnalyzerController.php
 namespace App\Controller;
 
+use App\Entity\Crews;
+use App\Entity\Tests;
 use App\Entity\TestResults;
 use Psr\Log\LoggerInterface;
 use App\Entity\TestStartOrder;
@@ -320,9 +322,11 @@ class TrackanalyzerController extends AbstractController
         $currentCrewIds = array_map(fn($crew) => $crew->getId(), $currentCrews);
 
         // 3️⃣ Supprimer les crews qui ne sont plus là
+        $orderNeedsReview = false;
         foreach ($existingOrders as $order) {
             if (!in_array($order->getCrew()->getId(), $currentCrewIds, true)) {
                 $em->remove($order);
+                $orderNeedsReview = true; // On a supprimé → ordre à revoir
             }
         }
 
@@ -360,7 +364,10 @@ class TrackanalyzerController extends AbstractController
             ];
         }, $updatedOrders);
 
-        return $this->json(['crews' => $data]);
+        return $this->json([
+            'crews' => $data,
+            'orderNeedsReview' => $orderNeedsReview
+        ]);
     }
 
 /**
@@ -371,8 +378,10 @@ class TrackanalyzerController extends AbstractController
  * @return JsonResponse
  */
     #[Route('/3rdparty/trackanalyzer/update-start-order', name: 'trackanalyzer_update_start_order', methods: ['POST'])]
-    public function updateStartOrder(Request $request, EntityManagerInterface $em): JsonResponse
-    {
+    public function updateStartOrder(
+        Request $request, 
+        EntityManagerInterface $em
+    ): JsonResponse  {
         $rawJson = $request->getContent();
         $this->logger->debug('JSON received: ' , ['raw' => $rawJson]);
         $data = json_decode($request->getContent(), true);
@@ -380,23 +389,57 @@ class TrackanalyzerController extends AbstractController
             $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
             return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
         }
-        foreach ($data as $item) {        
-            $testStartOrder = $em->getRepository(TestStartOrder::class)->findOneByCrewId($item['id']);            
-            $this->logger->debug('Looking for crew id ' . $item['id']);
-            if ($testStartOrder) {
-                if ($testStartOrder) {
-                    $this->logger->debug('Found TestStartOrder for crew id ' . $item['id']);
-                }
-                $testStartOrder->setStartOrder($item['order']);                
-                $testStartOrder->setCrewGroup($item['group']);
+        $testCode = $data['testCode'] ?? null;
+        if (!$testCode) {
+            $this->logger->error('From update-start-order : TestCode not found ');
+            return $this->json(['error' =>'Code' . $testCode . '  not found '],404);
+        }         
 
-                if (!empty($item['takeOffTime'])) {
-                    $date = new \DateTimeImmutable('today');
-                    [$hour, $minute] = explode(':', $item['takeOffTime']);
-                    $takeOffTime = $date->setTime((int)$hour, (int)$minute);
-                    $testStartOrder->setTakeOffTime($takeOffTime);
-                }
-            }        
+        $test = $em->getRepository(Tests::class)->findOneBy(['code' => $testCode]);
+        if (!$test) {
+            $this->logger->error('From update-start-order : Code' . $testCode . ' not found ');
+            return $this->json(['error' => 'Code' . $testCode . ' not found in DB'], 404);
+        }
+
+        $items = $data['data'] ?? [];
+
+        foreach ($items as $item) { 
+            $crewId = $item['crewId'] ?? null;       
+            if (!$test->getId() || !$crewId) {
+                return $this->json(['error' => 'Crew missing'], 400);
+            }
+            $crew = $em->getRepository(Crews::class)->find($crewId);
+            if (!$crew) {
+                return $this->json(['error' => "Crew $crewId not found"], 404);
+            }
+            
+            $testStartOrder = $em->getRepository(TestStartOrder::class)
+                ->findOneBy(['test' => $test, 'crew' => $crew]);     
+
+            // Create if not exist
+            if (!$testStartOrder) {
+                $testStartOrder = new TestStartOrder();
+                $testStartOrder->setTest($test);
+                $testStartOrder->setCrew($crew);
+                $em->persist($testStartOrder);
+                $this->logger->debug("Creating new TestStartOrder for crew $crewId");
+            } else {
+                $this->logger->debug("Updating existing TestStartOrder for crew $crewId");
+            }
+            // Update
+            $testStartOrder->setStartOrder($item['order']);
+            $testStartOrder->setCrewGroup($item['group'] ?? null);
+
+            if (!empty($item['takeOffTime'])) {
+                [$hour, $minute] = explode(':', $item['takeOffTime']);
+                $takeOffTime = (new \DateTimeImmutable())->setTime((int)$hour, (int)$minute);
+                $testStartOrder->setTakeOffTime($takeOffTime);
+                $this->logger->debug("Update TakeOffTime for crew $crewId");
+            } else {
+                //  NULL if not define
+                $this->logger->debug("Null TakeOffTime for crew $crewId");
+                $testStartOrder->setTakeOffTime(null);
+            }
         }
 
         $em->flush();

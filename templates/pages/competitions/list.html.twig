@@ -47,14 +47,27 @@
                                 <ul>
                                     {% set counts = inscriptionsByCompetition[compet.id] ?? [] %}
                                     {% for item in counts %}
-                                        {% if ( (icompet.eliteMax | default(0)) + (compet.honorMax | default(0)) ) != 0 %}                                      
-                                            {% if item.category.getLabel() == 'Elite'  %}
-                                                <li>{{ item.category.getLabel() }} (maxi, {{ compet.eliteMax }} ) : {{ item.nb }}</li>
-                                            {% else %}
-                                                <li>{{ item.category.getLabel() }} (maxi, {{ compet.honorMax }} ) : {{ item.nb }}</li>
-                                            {% endif %}
+                                        {% if ( (compet.eliteMax | default(0)) + (compet.honorMax | default(0)) ) != 0 %}                                      
+                                            <li>
+                                                <a href="{{ path('competition_category_crews_list', {
+                                                    id: compet.id,
+                                                    cat: item.category.getLabel()
+                                                }) }}"> {{ item.category.getLabel() }}</a>
+                                                {% if item.category.getLabel() == 'Elite'  %}
+                                                    (maxi, {{ compet.eliteMax }}) : {{ item.nb }}
+                                                {% else %}
+                                                    (maxi, {{ compet.honorMax }}) : {{ item.nb }}
+                                                {% endif %}
+                                            </li>
                                         {% else %}
-                                                <li>{{ item.category.getLabel() }} : {{ item.nb }}</li>
+                                            <li>
+                                                <a href="{{ path('competition_category_crews_list', {
+                                                    id: compet.id,
+                                                    cat: item.category.getLabel()
+                                                }) }}">
+                                                    {{ item.category.getLabel() }} : {{ item.nb }}
+                                                </a>
+                                            </li>
                                         {% endif %}
                                     {% else %}
                                         <li>Aucun inscrit</li>

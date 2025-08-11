@@ -31,7 +31,8 @@ final class CompetitionsController extends AbstractController
         $inscriptionsByCompetition = [];
 
         foreach ($sortList as $competition) {
-            $inscriptionsByCompetition[$competition->getId()] = $crewsRepository->countCrewsByCompetitionGroupedByCategory($competition);
+            $inscriptionsByCompetition[$competition->getId()] = 
+                $crewsRepository->countCrewsByCompetitionGroupedByCategory($competition);
         }
 
         return $this->render('pages/competitions/list.html.twig', [
@@ -61,4 +62,20 @@ final class CompetitionsController extends AbstractController
             'honneur' => $honneurResults,
         ]);
     } 
+
+    #[Route('/competition/{id}/categorieCrews/{cat}', name: 'competition_category_crews_list')]
+    public function listCategorie(Competitions $competition, string $cat, CrewsRepository $crewRepo): Response
+    {
+        $crews = $crewRepo->findBy([
+            'competition' => $competition,
+            'category' => $cat
+        ]);
+
+        return $this->render('pages/competitions/category_crews_list.html.twig', [
+            'competition' => $competition,
+            'category' => $cat,
+            'crews' => $crews
+        ]);
+    }
+
 }

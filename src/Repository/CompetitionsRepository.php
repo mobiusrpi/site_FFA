@@ -42,15 +42,17 @@ class CompetitionsRepository extends ServiceEntityRepository
         ->orderBy('u.name', 'ASC');             
         return $qb;
     }
-//            ->setParameter('oneYearAgo', (new \DateTime('-1 year')))  
+
     /**
-     * @return CompetitionList[]
+     * Undocumented function
+     *
+     * @param \DateTime $day
+     * @return array
      */
-    public function getQueryCompetitionSorted($day)
+    public function getQueryCompetitionSorted(\DateTime $day): array
     {    
         return $this->createQueryBuilder('compet')
             ->where('compet.startDate > :displayDate')                    
-//            ->orderBy('compet.startDate','ASC')
             ->setParameter('displayDate', $day)
             ->getQuery()
             ->getResult()

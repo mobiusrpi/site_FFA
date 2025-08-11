@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des compétiteurs par catégorie {% endblock %}
+
+
+
+{% block body %} 
+    <div class="container mt-4">
+            <div class="row align-items-center mb-3 no-print">
+            <div class="col-12 col-md-8 mx-auto">
+                <h5 class="text-center">
+                    <strong>Compétition {{ competition.name }}</strong></br>
+                    {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }}
+                    au {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                </h5>
+            </div>
+            <div class="col-12 col-md-4 text-center text-md-end mt-2 mt-md-0">
+                <a  href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Retour
+                </a>
+            </div>
+        </div> 
+        <p> Liste des concurents <strong>{{ category }}</strong> instrits </p>
+        <ul>
+            {% for crew in crews %}
+                {% if competition.typecompetition.id != 2 %}
+                    <li>{{ crew.pilot }} - {{ crew.navigator }} sur {{ crew.callsign }}</li>
+                {% else %}
+                    <li>{{ crew.pilot }} sur {{ crew.callsign }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %} 
