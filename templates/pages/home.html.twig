@@ -173,7 +173,7 @@
                           {% if competition.typecompetition.id == 2 %}
                             {{result.crew.pilot.fullname }} 
                           {% else %}
-                            {{result.crew.pilot.fullname }} / {{ result.crew.navigator.fullname }} 
+                            {{result.crew.pilot.fullname }}-{{ result.crew.navigator.fullname }} 
                           {% endif %}
                         {% else %}
                           {{ result.crew }}
@@ -195,7 +195,7 @@
                           {% if competition.typecompetition.id == 2 %}
                             {{result.crew.pilot.fullname }} 
                           {% else %}
-                            {{result.crew.pilot.fullname }} / {{ result.crew.navigator.fullname }} 
+                            {{result.crew.pilot.fullname }}-{{ result.crew.navigator.fullname }} 
                           {% endif %}
                         {% else %}
                           {{ result.crew }}

@@ -31,7 +31,7 @@
                                     {% for crew in competition.crew %}
                                         {% set selected = orders[i-1].crew.id == crew.id ? 'selected' : '' %}
                                         <option value="{{ crew.id }}" {{ selected }}>
-                                            {{ crew.pilot.fullname }}/{{ crew.navigator.fullname }}
+                                            {{ crew.pilot.fullname }}-{{ crew.navigator.fullname }}
                                         </option>
                                     {% endfor %}
                                 </select>

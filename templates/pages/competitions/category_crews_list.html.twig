@@ -24,7 +24,7 @@
         <ul>
             {% for crew in crews %}
                 {% if competition.typecompetition.id != 2 %}
-                    <li>{{ crew.pilot }} - {{ crew.navigator }} sur {{ crew.callsign }}</li>
+                    <li>{{ crew.pilot }}-{{ crew.navigator }} sur {{ crew.callsign }}</li>
                 {% else %}
                     <li>{{ crew.pilot }} sur {{ crew.callsign }}</li>
                 {% endif %}

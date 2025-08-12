@@ -70,7 +70,9 @@
             <div style='background-color: blue;'></div>
         {% endblock %}
         {% block footer %}
-          {% include '_partials/_footer.html.twig' %}
+          <div class="no-print">
+            {% include '_partials/_footer.html.twig' %}
+          </div>
         {% endblock %}
       </div>
       <script>
