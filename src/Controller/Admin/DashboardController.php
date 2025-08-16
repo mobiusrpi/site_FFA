@@ -318,13 +318,51 @@ class DashboardController extends AbstractDashboardController
                 $em->persist($order);
                 $orders[] = $order;
             }
-            $em->flush();
+//            $em->flush();
         }
 
         return $this->render('admin/start_order.html.twig', [
             'competition' => $competition,
             'test' => $test,
             'orders' => $orders,
+        ]);
+    }
+
+    #[Route('/admin/competitions/{id}/tests/{code}/start-order-delete', name: 'admin_start_order_delete')]
+    public function startOrderDelete(
+        int $id,
+        string $code,
+        CompetitionsRepository $competitionsRepo,
+        TestsRepository $testsRepo,
+        TestStartOrderRepository $repo,
+        EntityManagerInterface $em
+    ): Response {
+        $em->clear();
+        $competition = $competitionsRepo->findWithCrews($id);
+        $test = $testsRepo->findOneBy(['code' => $code]);
+
+        if (!$competition || !$test) {
+            throw $this->createNotFoundException('Compétition ou test introuvable.');
+        }
+
+        if ($test->getCompetition()->getId() !== $competition->getId()) {
+            throw $this->createNotFoundException('Ce test n\'appartient pas à cette compétition.');
+        }
+
+        // Récupérer tous les ordres de départ liés à ce test
+        $orders = $repo->findBy(['test' => $test]);
+
+        foreach ($orders as $order) {
+            $em->remove($order);
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', 'La liste de départ a bien été supprimée.');
+
+        return $this->redirectToRoute('admin_start_order', [
+            'id' => $competition->getId(),
+            'code' => $test->getCode(),
         ]);
     }
 
@@ -354,7 +392,7 @@ class DashboardController extends AbstractDashboardController
             $em->remove($entry);
         }
         $em->flush();
-$group = 1;
+        $group = 1;
 
 
         // Recréer les ordres avec les nouvelles positions

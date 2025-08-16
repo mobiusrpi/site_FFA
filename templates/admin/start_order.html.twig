@@ -43,6 +43,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{{ path('admin_start_order_delete', {'id': competition.id, 'code': test.code}) }}" class="btn btn-secondary ms-2">Supprimer</a>
         <a href="{{ path('admin_start_order', {'id': competition.id, 'code': test.code}) }}" class="btn btn-secondary ms-2">Annuler</a>
     </form>
 </div>
