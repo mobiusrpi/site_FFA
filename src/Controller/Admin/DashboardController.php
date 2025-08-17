@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Templates;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -37,7 +38,7 @@ class DashboardController extends AbstractDashboardController
         private UrlGeneratorInterface $urlGenerator,
         private AdminUrlGenerator $adminUrlGenerator,
     ) {}
- 
+
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
@@ -82,6 +83,7 @@ class DashboardController extends AbstractDashboardController
                 MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
                 MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
                 MenuItem::linkToCrud('Epreuves', 'fas fa-id-card', Tests::class),
+                MenuItem::linkToRoute('Export des emails', 'fas fa-id-card', 'admin_export_users_email'),
                 MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
         ]);   
     }

@@ -15,8 +15,16 @@
             padding: 4px;
         }
     </style>
-    <div>
-        <h3>Liste des inscrits - {{ crews[0].competition.name }}</h3>
+    <div>           
+        {% if crews|length > 0 %}
+            <h3 class="mx-auto text-center fw-bold">
+                Liste des inscrits - {{ crews[0].competition.name }}
+            </h3>
+        {% else %}
+            <h3 class="mx-auto text-center fw-bold">
+                Liste des inscrits
+            </h3>
+        {% endif %}   
     </div>
     <table>
         <thead>

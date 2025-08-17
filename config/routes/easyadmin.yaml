@@ -45,3 +45,9 @@ admin_anonymize_user:
 admin_archiving_users:
     path: /admin/archiving_users/
     controller: App\Controller\Admin\UsersCrudController::archivingUsersAction
+
+admin_export_users_email:
+    path: /admin/export_users_email/{competitionId}
+    controller: App\Controller\Admin\UsersCrudController::exportUsersEmailAction
+    defaults:
+        competitionId: 0

@@ -374,9 +374,24 @@ class CrewsCrudController extends AbstractCrudController
         $grouped = [];
 
         foreach ($crews as $crew) {
-            $compName = $crew->getCompetition()?->getName() ?? 'No Competition';
-            $grouped[$compName][] = $crew;
-        }
+            $competition = $crew->getCompetition();
+            if (!$competition) {
+                continue; 
+            }
+            $competitionId = $competition->getId();
+            // Force loading competition
+            $competitionName = $competition ? $competition->getName() : null;
+            
+            if (!isset($grouped[$competitionId])) {
+                $grouped[$competitionId] = [
+                    'competition' => $competition,
+                    'crews' => [],
+                ];
+            }
+            $grouped[$competitionId]['crews'][] = $crew;
+        }    
+        
+        ksort($grouped);
 
         return $this->render('admin/crews/crew_index_grouped.html.twig', [
             'grouped' => $grouped,

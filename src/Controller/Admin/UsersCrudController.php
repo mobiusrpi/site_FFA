@@ -5,18 +5,25 @@ namespace App\Controller\Admin;
 use App\Entity\Users;
 use App\Entity\Enum\Gender;
 use App\Entity\Enum\CRAList;
+use App\Service\CsvExporter;
 use App\Entity\Enum\Polosize;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Mime\Email;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Repository\CompetitionsRepository;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use App\Controller\Admin\CompetitionsCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
@@ -365,5 +372,139 @@ class UsersCrudController extends AbstractCrudController
         }
 
         return $qb;
+    }
+
+   //The route admin_export_users_email is redirected to this function in the file
+    //config/routes/easyadmin.yaml
+    public function exportUsersEmailAction(  
+        UsersRepository $usersRepository,
+        CompetitionsRepository $competitionsRepository,
+        CsvExporter $csvExporter,
+        int $competitionId = 0
+    ): Response {   
+        if ($competitionId > 0) {
+            $competition = $competitionsRepository->find($competitionId);
+
+            if (!$competition) {
+                $this->addFlash('warning', 'Compétition introuvable.');
+                return $this->redirectToRoute('admin', [
+                    'crudControllerFqcn' => CompetitionsCrudController::class,
+                    'action' => 'index',
+                ]);            
+            }   
+            
+            $users = [];
+            foreach ($competition->getCrew() as $crew) {
+                if ($crew->getPilot()) {
+                    $users[] = [
+                        'user' => $crew->getPilot(),
+                        'category' => $crew->getCategory()?->value ?? '',
+                    ];
+                }
+                if ($crew->getNavigator()) {
+                    $users[] = [
+                        'user' => $crew->getNavigator(),
+                        'category' => $crew->getCategory(),
+                    ];
+                }
+            }
+            $filename = sprintf('Sports_ff-aero_users_competition_%d.csv', $competitionId);
+        } else {
+            // cas "tous les users"
+            $allUsers = $usersRepository->findAll();
+            $users = [];
+            foreach ($allUsers as $u) {
+                $users[] = [
+                    'user' => $u,
+                    'category' => '', 
+                ];
+            }
+            $filename = 'Sports_ff-aero_users_all.csv';
+        }
+
+        if (empty($users)) {
+            $this->addFlash('warning', 'Aucun utilisateur trouvé.');
+            return $this->redirect($this->generateUrl('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]));   
+        }
+            
+        $data = [];
+
+        foreach ($users as $item) {
+            $user = $item['user'];
+            $category = $item['category'];
+
+            $data[] = [
+                'CONTACT_ID' => $user->getId(),
+                'EMAIL' => $user->getEmail() ,
+                'FIRSTNAME' => $user->getFirstname(),
+                'LASTNAME' => $user->getLastname(),
+                'SMS' => $user->getPhone(),
+                'LANDING_NUMBER' => $user->getPhone(),
+                'WHATSAPP' => $user->getPhone(),
+                'INTERESTS' => $category,
+            ];
+        }
+//          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
+      return $csvExporter->exportCsv($data, $filename);
+    }
+
+    #[Route('/admin/competitions/{id}/send-emails', name: 'admin_competition_send_emails')]
+    public function sendCompetitionEmails(
+        int $id,
+        CompetitionsRepository $competitionsRepository,
+        MailerInterface $mailer
+    ): Response {
+        $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
+
+        if (!$competition) {
+            $this->addFlash('warning', 'Compétition introuvable.');
+            return $this->redirectToRoute('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]);
+        }
+
+        $users = [];
+        foreach ($competition->getCrew() as $crew) {
+            if ($crew->getPilot()) {
+                $users[$crew->getPilot()->getEmail()] = $crew->getPilot();
+            }
+            if ($crew->getNavigator()) {
+                $users[$crew->getNavigator()->getEmail()] = $crew->getNavigator();
+            }
+        }
+
+        if (empty($users)) {
+            $this->addFlash('warning', 'Aucun utilisateur à contacter.');
+            return $this->redirectToRoute('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]);
+        }
+
+        foreach ($users as $user) {
+            $email = (new email())
+                ->from('no-reply@ff-aero.fr')
+                ->to($user->getEmail())
+                ->subject('Informations pour la compétition ' . $competition->getName())
+                ->html(sprintf(
+                    '<p>Bonjour %s %s,</p><p>Voici un test <strong>%s</strong>.</p>',
+                    $user->getFirstname(),
+                    $user->getLastname(),
+                    $competition->getName()
+                ));
+
+            $mailer->send($email);
+        }
+
+        $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
+
+        return $this->redirectToRoute('admin', [
+            'crudControllerFqcn' => CompetitionsCrudController::class,
+            'action' => 'index',
+        ]);
     }
 }

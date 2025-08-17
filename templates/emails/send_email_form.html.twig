@@ -1,0 +1,31 @@
+{# templates/admin/competitions/send_email_form.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Envoyer un email
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Envoyer un email à la compétition <strong>{{ competition.name }}</strong>
+        </div>
+        <div class="card-body">
+            {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.subject, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.subject, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.message, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.message, {'attr': {'class': 'form-control', 'rows': 8}}) }}
+                </div>
+                <button class="btn btn-success">
+                    <i class="fas fa-paper-plane"></i> Envoyer
+                </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

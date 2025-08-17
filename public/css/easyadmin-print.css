@@ -1,0 +1,21 @@
+@media print {
+  /* Masquer le menu latéral, header, footer et navbar-custom-menu */
+  .sidebar-wrapper,
+  .main-header,
+  .main-footer,
+  .content-top{
+    display: none !important;
+  }
+
+  /* Contenu principal plein écran */
+  .content-wrapper,
+  .content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  body, .content-wrapper {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+}

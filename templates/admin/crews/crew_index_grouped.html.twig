@@ -17,15 +17,21 @@
 
 {% block main %}
 
-    {% for competitionName, crews in grouped %}
-        <h5>{{ competitionName }}</h5>
+    {% for competitionId, groupData in grouped %}
+        <h5 class="d-flex justify-content-between align-items-center mb-2">
+            {{ groupData.competition.name}}
+            <a href="{{ path('admin_competition_send_custom_email', { id: groupData.competition.id }) }}"
+                class="btn btn-sm btn-success">
+                Envoyer email
+            </a>
+        </h5>
         <table class="table">
             <thead>
                 <tr>
                     <th>Id</th>                     
                     <th>Categorie</th>                    
                     <th class='text-center'>Pilote</th>
-                    {% if crews[0].competition.typecompetition.id != 2 %} 
+                    {% if groupData.crews[0].competition.typecompetition.id != 2 %} 
                         <th class='text-center'>Navigateur</th>
                     {% endif %} 
                     <th class='text-center'>Immatriculation</th>                    
@@ -34,12 +40,12 @@
             </thead>
             <tbody>
                 {% set immatriculations = {} %}
-                {% for crew in crews %}
+                {% for crew in groupData.crews %}
                     {% set immat = crew.callsign() %}
                     {% set immatriculations = immatriculations|merge({ (immat): (immatriculations[immat]|default(0)) + 1 }) %}
                 {% endfor %}
 
-                {% for crew in crews %}
+                {% for crew in groupData.crews %}
                     {% set immat = crew.callsign() %}
                     <tr>
                         <td>{{ crew.Id }}</td>                        

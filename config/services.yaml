@@ -60,4 +60,8 @@ services:
     App\Security\BearerTokenAuthenticator:
         arguments:
             $cache: '@cache.app'
+
+    App\EventListener\EasyAdminPrintCssListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.response }
         

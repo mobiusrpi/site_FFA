@@ -7,7 +7,15 @@
     <section class="container mt-4">
         <div class="row justify-content-center">
             <div class='col-10'>
-                <h3 class='mx-auto text-center fw-bold'>Liste des inscrits</h3>
+                {% if crews|length > 0 %}
+                    <h3 class="mx-auto text-center fw-bold">
+                        Liste des inscrits - {{ crews[0].competition.name }}
+                    </h3>
+                {% else %}
+                    <h3 class="mx-auto text-center fw-bold">
+                        Liste des inscrits
+                    </h3>
+                {% endif %}            
             </div>
         </div>
         {% for message in app.flashes('success') %}
