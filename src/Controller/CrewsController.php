@@ -400,11 +400,13 @@ final class CrewsController extends AbstractController
             }
 
             foreach ($users as $user) {
+                $personalizedMessage = str_replace('<Prénom>', $user->getFirstname(), $data['message']);
+
                 $email = (new Email())
                     ->from('jtremblet@gmail.com')
                     ->to($user->getEmail())
                     ->subject($data['subject'])
-                    ->html('<p>Bonjour ' . $user->getFirstname() . ',</p><p>' . nl2br($data['message']) . '</p>');
+                    ->html('<p>' . nl2br($personalizedMessage) . '</p>');
 
                 $mailer->send($email);
             }

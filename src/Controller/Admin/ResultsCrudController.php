@@ -71,7 +71,7 @@ class ResultsCrudController extends AbstractCrudController
 
             // Compose and send email
             $email = (new Email())
-                ->from('admin@example.com')   // Your sender address
+                ->from('jtremblet@gmail.com')   // Your sender address
                 ->to($crewEmail)
                 ->subject('Notification de Résultats')
                 ->text("Bonjour $crewName,\n\nVoici vos résultats...\nClassement: {$result->getRanking()}\nScore: {$result->getScore()}\n\nCordialement.");
