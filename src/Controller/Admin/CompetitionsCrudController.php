@@ -4,7 +4,6 @@ namespace App\Controller\Admin;
 
 use App\Entity\Crews;
 use App\Entity\Users;
-use TestsCompactType;
 use App\Form\TestsType;
 use App\Service\PdfService;
 use App\Entity\Competitions;
@@ -12,6 +11,8 @@ use App\Service\CsvExporter;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\QueryBuilder;
 use App\Entity\CompetitionsUsers;
+use Symfony\Component\Mime\Email;
+use App\Form\CompetitionEmailType;
 use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
 use App\Form\ManageCompetitionType;
@@ -21,10 +22,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
+use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\AccommodationsRepository;
 use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
@@ -822,6 +824,81 @@ class CompetitionsCrudController extends AbstractCrudController
             'typeCompetition' => $typeCompetition,
             'competitions' => $competitions,        
             'maxRanking' => $maxRanking, 
+        ]);
+    }
+    //The route admin_competition_send_custom_email is redirected to this function in the file
+    //config/routes/easyadmin.yaml
+    public function sendCustomEmailAction(
+        int $id,
+        Request $request,
+        CompetitionsRepository $competitionsRepository,
+        MailerInterface $mailer,
+        Security $security              
+    ): Response {
+        /** @var Users|null $user */
+        $user = $security->getUser();
+        $userEmail = $user?->getEmail(); 
+
+        $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
+        if (!$competition) {
+            $this->addFlash('warning', 'Compétition introuvable.');
+            return $this->redirectToRoute('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]);
+        }
+
+        $form = $this->createForm(CompetitionEmailType::class, null, [
+            'competitionName' => $competition->getName(),
+            'userEmail' => $userEmail,
+        ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();;
+            $attachment = $form->get('attachment')->getData();
+
+            $users = [];
+            foreach ($competition->getCrew() as $crew) {
+                if ($crew->getPilot()) {
+                    $users[$crew->getPilot()->getEmail()] = $crew->getPilot();
+                }
+                if ($crew->getNavigator()) {
+                    $users[$crew->getNavigator()->getEmail()] = $crew->getNavigator();
+                }
+            }
+
+            foreach ($users as $user) {
+                $personalizedMessage = str_replace('<Prénom>', $user->getFirstname(), $data['message']);
+
+                $email = (new Email())
+                    ->from('jtremblet@gmail.com')
+                    ->to($user->getEmail())
+                    ->subject($data['subject'])
+                    ->html('<p>' . nl2br($personalizedMessage) . '</p>')
+                    ->replyTo($userEmail);
+
+                if ($attachment) {
+                    $email->attachFromPath(
+                        $attachment->getPathname(), 
+                        $attachment->getClientOriginalName()
+                    );
+                }
+
+                $mailer->send($email);
+            }
+
+            $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
+            return $this->redirectToRoute('admin', [
+                'crudControllerFqcn' => CompetitionsCrudController::class,
+                'action' => 'index',
+            ]);
+        }
+
+        return $this->render('emails/send_email_form.html.twig', [
+            'competition' => $competition,
+            'form' => $form->createView(),
         ]);
     }
 }

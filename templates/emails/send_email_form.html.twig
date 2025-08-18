@@ -9,10 +9,10 @@
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            Envoyer un email à la compétition <strong>{{ competition.name }}</strong>
+            Envoyer un email au concurrents de la compétition <strong>{{ competition.name }}</strong>
         </div>
         <div class="card-body">
-            {{ form_start(form) }}
+            {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
                 <div class="mb-3">
                     {{ form_label(form.subject, null, {'label_attr': {'class': 'form-label'}}) }}
                     {{ form_widget(form.subject, {'attr': {'class': 'form-control'}}) }}
@@ -20,6 +20,14 @@
                 <div class="mb-3">
                     {{ form_label(form.message, null, {'label_attr': {'class': 'form-label'}}) }}
                     {{ form_widget(form.message, {'attr': {'class': 'form-control', 'rows': 8}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.attachment, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.attachment, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.replyTo, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.replyTo) }}
                 </div>
                 <button class="btn btn-success">
                     <i class="fas fa-paper-plane"></i> Envoyer

@@ -51,3 +51,7 @@ admin_export_users_email:
     controller: App\Controller\Admin\UsersCrudController::exportUsersEmailAction
     defaults:
         competitionId: 0
+
+admin_competition_send_custom_email:
+    path: /admin/competitions/{id}/send-custom-email
+    controller: App\Controller\Admin\CompetitionsCrudController::sendCustomEmailAction

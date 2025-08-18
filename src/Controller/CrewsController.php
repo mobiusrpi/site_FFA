@@ -8,8 +8,6 @@ use App\Entity\Aircrafts;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
-use Symfony\Component\Mime\Email;
-use App\Form\CompetitionEmailType;
 use App\Form\RegistrationCrewType;
 use App\Repository\CrewsRepository;
 use App\Repository\AircraftsRepository;
@@ -17,11 +15,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use App\Controller\Admin\CrewsCrudController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Controller\Admin\CompetitionsCrudController;
 use App\Form\EventListener\AddNavigatorFieldListener;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -364,63 +360,4 @@ final class CrewsController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/competitions/{id}/send-custom-email', name: 'admin_competition_send_custom_email')]
-    public function sendCustomEmail(
-        int $id,
-        Request $request,
-        CompetitionsRepository $competitionsRepository,
-        MailerInterface $mailer
-    ): Response
-    {
-        $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
-        if (!$competition) {
-            $this->addFlash('warning', 'Compétition introuvable.');
-            return $this->redirectToRoute('admin', [
-                'crudControllerFqcn' => CompetitionsCrudController::class,
-                'action' => 'index',
-            ]);
-        }
-
-        $form = $this->createForm(CompetitionEmailType::class, null, [
-            'competitionName' => $competition->getName(),
-        ]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-
-            $users = [];
-            foreach ($competition->getCrew() as $crew) {
-                if ($crew->getPilot()) {
-                    $users[$crew->getPilot()->getEmail()] = $crew->getPilot();
-                }
-                if ($crew->getNavigator()) {
-                    $users[$crew->getNavigator()->getEmail()] = $crew->getNavigator();
-                }
-            }
-
-            foreach ($users as $user) {
-                $personalizedMessage = str_replace('<Prénom>', $user->getFirstname(), $data['message']);
-
-                $email = (new Email())
-                    ->from('jtremblet@gmail.com')
-                    ->to($user->getEmail())
-                    ->subject($data['subject'])
-                    ->html('<p>' . nl2br($personalizedMessage) . '</p>');
-
-                $mailer->send($email);
-            }
-
-            $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
-            return $this->redirectToRoute('admin', [
-                'crudControllerFqcn' => CompetitionsCrudController::class,
-                'action' => 'index',
-            ]);
-        }
-
-        return $this->render('emails/send_email_form.html.twig', [
-            'competition' => $competition,
-            'form' => $form->createView(),
-        ]);
-    }
 }
