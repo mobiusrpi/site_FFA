@@ -17,25 +17,15 @@ class CompetitionsUsersRepository extends ServiceEntityRepository
         parent::__construct($registry, CompetitionsUsers::class);
     }
       
-    public function findCompetitionIdsForUserWithRoles(Users $user, array $roleNames): array
+    public function findCompetitionIdsForUserWithRoles(Users $user): array
     {
-        $cuEntries = $this->createQueryBuilder('cu')
-            ->andWhere('cu.user = :user')
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getResult();
-
-        $ids = [];
-
-        foreach ($cuEntries as $cu) {
-            foreach ($cu->getRole() as $role) {
-                if (in_array($role->name, $roleNames, true)) {
-                    $ids[] = $cu->getCompetition()->getId();
-                    break;
-                }
-            }
-        }
-
-        return $ids;
+    return $this->createQueryBuilder('cu')
+        ->select('DISTINCT c, cu') // DISTINCT pour éviter les doublons
+        ->join('cu.competition', 'c')
+        ->leftJoin('c.crew', 'crew') // Charge aussi les équipages
+        ->where('cu.user = :user')
+        ->setParameter('user', $user)
+        ->getQuery()
+        ->getResult();
     }
 }

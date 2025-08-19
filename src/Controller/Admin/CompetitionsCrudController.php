@@ -19,7 +19,6 @@ use App\Form\ManageCompetitionType;
 use App\Repository\CrewsRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -54,20 +53,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CompetitionsCrudController extends AbstractCrudController
-{          
-    private $security;
-    private EntityManagerInterface $entityManager;
-
-
+{            
     public function __construct(     
-        Security $security,
-        ManagerRegistry $registry,
+        private Security $security,
+        private EntityManagerInterface $entityManager,
+        private CompetitionsRepository $competitionsRepository,
         private AdminUrlGenerator $adminUrlGenerator,        
         private LoggerInterface $logger    
-    ) {       
-        $this->security = $security;
-        $this->entityManager = $registry->getManager();  
-    } 
+    ) {  } 
 
     public static function getEntityFqcn(): string
     {
@@ -195,6 +188,12 @@ class CompetitionsCrudController extends AbstractCrudController
         $fields[] = FormField::addFieldset('Organisateurs');
         $fields[] = CollectionField::new('competitionsUsers')
             ->setEntryType(CompetitionsUsersType::class)
+            ->setFormTypeOptions([
+                'by_reference' => false,
+                'entry_options' => [
+                    'competition' => $this->getContext()->getEntity()->getInstance(), // ✅ on passe la compétition
+                ],
+            ])
             ->onlyOnForms()
             ->allowAdd()
             ->allowDelete()
@@ -226,26 +225,17 @@ class CompetitionsCrudController extends AbstractCrudController
         // Get the current authenticated user
    
         $user = $this->security->getUser();
+        $userRoles = $user->getRoles();
         // Check if the user has a specific role and modify the query accordingly
-        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            // If the user is an admin, show all users   
-
-            return $qb;
+        $competitions = $this->competitionsRepository->findAccessibleCompetitionsForUser($user, $userRoles);
+        $competitionIds = array_map(fn($competition) => $competition->getId(), $competitions);
+                  
+        if (count($competitionIds) > 0) {
+            $qb->andWhere($qb->expr()->in('entity.id', ':allowedCompetitions'))
+            ->setParameter('allowedCompetitions', $competitionIds);
+        } else {
+            $qb->andWhere('1 = 0'); // No access
         }
-
-        if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
-
-            $competitionIds = $this->entityManager
-                ->getRepository(CompetitionsUsers::class)
-                ->findCompetitionIdsForUserWithRoles($user, ['ADMINISTRATOR','DIRECTOR','IT','ROUTER']);
-                        
-            if (count($competitionIds) > 0) {
-                        $qb->andWhere($qb->expr()->in('entity.id', ':allowedCompetitions'))
-                        ->setParameter('allowedCompetitions', $competitionIds);
-                    } else {
-                        $qb->andWhere('1 = 0'); // No access
-                    }
-                }
 
         return $qb;
     }

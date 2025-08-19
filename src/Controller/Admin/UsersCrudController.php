@@ -11,7 +11,6 @@ use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Mime\Email;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CompetitionsRepository;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Security\Core\Security;
@@ -54,12 +53,10 @@ class UsersCrudController extends AbstractCrudController
         public UserPasswordHasherInterface $userPasswordHasher,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private AdminUrlGenerator $adminUrlGenerator,          
-        private EntityManagerInterface $entityManager,
+        private EntityManagerInterface $entityManager,    
+        private CompetitionsRepository $competitionsRepository,
         private Security $security,
-        private ManagerRegistry $registry,
     ) {
-        $this->security = $security;
-        $this->entityManager = $registry->getManager();
         $this->createdAt = new \DateTimeImmutable();        
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -332,6 +329,18 @@ class UsersCrudController extends AbstractCrudController
         if ($entityInstance->getUpdatedAt() === null) {
             $entityInstance->setUpdatedAt(new \DateTimeImmutable());
         }
+
+        $currentUser = $this->getUser(); //  manager connected
+        $originalUser = $entityManager->getUnitOfWork()->getOriginalEntityData($entityInstance);
+
+        // Manager can't modify an admin
+        if (isset($originalUser['roles']) 
+            && in_array('ROLE_ADMIN', $originalUser['roles'], true) 
+            && in_array('ROLE_MANAGER', $currentUser->getRoles(), true)) {
+            $this->addFlash('warning', 'Vous ne pouvez pas modifier un administrateur.');   
+                 
+            return;
+        }        
 
         $this->handlePassword($entityInstance);
 

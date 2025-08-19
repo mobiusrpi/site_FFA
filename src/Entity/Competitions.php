@@ -342,15 +342,14 @@ class Competitions
     /**
      * @return CompetitionRole[]|null
      */
-    public function getRole(): ?array
+    public function getRole(): ?CompetitionRole
     {
         return $this->role;
     }
 
-    public function setRole(?array $role): static
+    public function setRole(?CompetitionRole $role): static
     {
         $this->role = $role;
-
         return $this;
     }
 

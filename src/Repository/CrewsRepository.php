@@ -158,8 +158,21 @@ class CrewsRepository extends ServiceEntityRepository
             ->where('c.competition = :competition')
             ->andWhere('c.category = :category')
             ->setParameter('competition', $competition)
-            ->setParameter('category', $category->value) // 👈 le .value renvoie 'Elite'
+            ->setParameter('category', $category->value)
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findByCompetitions(array $competitionIds): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.competition IN (:competitionIds)')
+            ->setParameter('competitionIds', $competitionIds)
+            ->orderBy('c.category', 'ASC')
+            ->addOrderBy('c.pilot', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+
 }

@@ -65,7 +65,5 @@ class PreSubmitSubscriber implements EventSubscriberInterface
                 };
             }
         }
-
-
     }
 }

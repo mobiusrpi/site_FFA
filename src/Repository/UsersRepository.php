@@ -112,17 +112,16 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
     }
 
     public function getVisibleToManagerQueryBuilder($user){
-    return $this->createQueryBuilder('u')
-        ->select('DISTINCT u')
-        ->leftJoin('u.pilot', 'pilotCrew')
-        ->leftJoin('u.navigator', 'navigatorCrew')
-        ->leftJoin(CompetitionsUsers::class, 'cu', 'WITH', 'cu.user = :manager')
-        ->leftJoin('pilotCrew.competition', 'comp1')
-        ->leftJoin('navigatorCrew.competition', 'comp2')
-        ->where('cu.competition = comp1 OR cu.competition = comp2')
-        ->andWhere('u.archivedAt IS NULL')
-        ->setParameter('manager', $user)
-        ->getQuery()
-        ->getResult();
+        return $this->createQueryBuilder('u')
+            ->select('DISTINCT u')
+            ->leftJoin('u.pilot', 'pilotCrew')
+            ->leftJoin('u.navigator', 'navigatorCrew')
+            ->leftJoin(CompetitionsUsers::class, 'cu', 'WITH', 'cu.user = :manager')
+            ->leftJoin('pilotCrew.competition', 'comp1')
+            ->leftJoin('navigatorCrew.competition', 'comp2')
+            ->where('cu.competition = comp1 OR cu.competition = comp2')
+            ->andWhere('u.archivedAt IS NULL')
+            ->setParameter('manager', $user);
     }
+
 }

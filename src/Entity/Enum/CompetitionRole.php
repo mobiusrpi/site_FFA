@@ -23,10 +23,11 @@ enum CompetitionRole: string {
         };
     }
 
-    public static function choices(): array {
+    public static function choices(): array
+    {
         return array_combine(
-            array_map(fn(self $role) => $role->label(), self::cases()),
-            self::cases()
+            array_map(fn(self $role) => $role->label(), self::cases()), 
+            array_map(fn(self $role) => $role->value, self::cases())     
         );
     }
 

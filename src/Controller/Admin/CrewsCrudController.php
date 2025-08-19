@@ -9,9 +9,11 @@ use App\Entity\Competitions;
 use Psr\Log\LoggerInterface;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
+use App\Repository\CrewsRepository;
 use App\Repository\UsersRepository;
 use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\CompetitionsRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -32,14 +34,18 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 error_log("CrewsCrudController loaded from: " . __FILE__);
 
 class CrewsCrudController extends AbstractCrudController
-{   
-    private LoggerInterface $logger;
-    private RequestStack $requestStack;    
-    private EntityManagerInterface $entityManager;
-    private Security $security;  
-    private UsersRepository $usersRepository;
-    private AdminUrlGenerator $adminUrlGenerator;
-
+{
+    public function __construct(
+    private LoggerInterface $logger,
+    private RequestStack $requestStack,
+    private EntityManagerInterface $entityManager,
+    private UsersRepository $usersRepository,      
+    private CompetitionsRepository $competitionsRepository,
+    private CrewsRepository $crewsRepository,
+    private Security $security,
+    private AdminUrlGenerator $adminUrlGenerator 
+    ){ }   
+    
     private function hasLinkedResults(Crews $crew): bool
     {
         $resultsCount = $this->entityManager->getRepository(Results::class)
@@ -53,21 +59,7 @@ class CrewsCrudController extends AbstractCrudController
         return $resultsCount > 0;
     }
 
-    public function __construct(
-        LoggerInterface $logger,
-        RequestStack $requestStack,
-        EntityManagerInterface $entityManager,
-        UsersRepository $usersRepository,        
-        Security $security,
-        AdminUrlGenerator $adminUrlGenerator 
-    ){
-        $this->logger = $logger;
-        $this->requestStack = $requestStack;
-        $this->entityManager = $entityManager;  
-        $this->security = $security;         
-        $this->usersRepository = $usersRepository;                
-        $this->adminUrlGenerator = $adminUrlGenerator;
-    }
+
 
     public static function getEntityFqcn(): string
     {
@@ -367,9 +359,31 @@ class CrewsCrudController extends AbstractCrudController
         parent::updateEntity($entityManager, $entityInstance);
     }
 
-    public function index(AdminContext $context): Response
-    {
-        $crews = $this->entityManager->getRepository(Crews::class)->findOrderedByCategoryAndPilotLastname();
+    public function index(
+        AdminContext $context,     
+    ): Response {
+        /** @var Users|null $user */
+        $user = $context->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException('Utilisateur non connecté.');
+        }
+        $userRoles = $user->getRoles();
+        $competitions = $this->competitionsRepository->findAccessibleCompetitionsForUser($user, $userRoles);
+
+        if (empty($competitions) && !in_array('ROLE_ADMIN', $userRoles, true)) {
+            $this->addFlash('danger', 'Vous n\'êtes pas autorisé à visualiser les compétiteurs');
+            return $this->redirectToRoute('home');
+        }
+
+        $competitionIds = array_map(fn($competition) => $competition->getId(), $competitions);
+            
+        if (count($competitionIds) === 0) {
+            //no user 
+            $this->addFlash('danger', 'Vous n’avez aucune compétition attribuée.');
+            return $this->redirectToRoute('Home admin');
+        }
+
+        $crews = $this->crewsRepository->findByCompetitions($competitionIds);
 
         $grouped = [];
 
@@ -378,6 +392,7 @@ class CrewsCrudController extends AbstractCrudController
             if (!$competition) {
                 continue; 
             }
+
             $competitionId = $competition->getId();
             // Force loading competition
             $competitionName = $competition ? $competition->getName() : null;

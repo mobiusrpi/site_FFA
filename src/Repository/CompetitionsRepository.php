@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Tests;
+use App\Entity\Users;
 use App\Entity\Competitions;
+use App\Entity\CompetitionsUsers;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
@@ -202,5 +204,33 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->setParameter('id', $competitionId)
             ->getQuery()
             ->getOneOrNullResult();
+    }    
+    
+    public function getCompetitionIdsWithCrews(): array
+    {
+    return $this->createQueryBuilder('c')
+        ->distinct()
+        ->join('c.crew', 'cr')
+        ->getQuery()
+        ->getResult();
+    }
+
+    // src/Repository/CompetitionsRepository.php
+    public function findAccessibleCompetitionsForUser(Users $user, array $userRoles): array
+    {
+        $qb = $this->createQueryBuilder('c');
+
+        if (in_array('ROLE_ADMIN', $userRoles, true)) {
+            // ADMIN : toutes les compétitions
+            return $qb->getQuery()->getResult();
+        } elseif (in_array('ROLE_MANAGER', $userRoles, true)) {
+            // MANAGER : seulement les compétitions autorisées
+            $qb->join('c.competitionsUsers', 'cu')
+                ->where('cu.user = :user')
+                ->setParameter('user', $user);
+            return $qb->getQuery()->getResult();
+        }
+
+        return [];
     }
 }

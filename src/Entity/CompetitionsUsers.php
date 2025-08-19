@@ -2,9 +2,8 @@
 
 namespace App\Entity;
 
-use APP\Entity\Enum\CompetitionRole;
+use App\Entity\Enum\CompetitionRole;
 use App\Repository\CompetitionsUsersRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CompetitionsUsersRepository::class)]
@@ -23,8 +22,13 @@ class CompetitionsUsers
     #[ORM\JoinColumn(nullable: false)]
     private Users $user;
 
-    #[ORM\Column(type: Types::JSON)]
-    private array $role = [];
+    #[ORM\Column(enumType: CompetitionRole::class)]
+    private CompetitionRole $role;
+    
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getCompetition(): ?Competitions
     {
@@ -50,33 +54,23 @@ class CompetitionsUsers
         return $this;
     }
 
-    /**
-     * @return CompetitionRole[]
-     */
-    public function getRole(): array
+    public function getRole(): CompetitionRole
     {
-        return array_map(
-            fn(string $value) => \App\Entity\Enum\CompetitionRole::from($value),
-            $this->role
-        );
+        return $this->role;
     }
 
-    public function setRole(array $roles): void
+    public function setRole(CompetitionRole $role): static
     {
-        $this->role = array_map(
-            fn($role) => $role instanceof \App\Entity\Enum\CompetitionRole ? $role->value : (string) $role,
-            $roles
-        );
+        $this->role = $role;
+        return $this;
     }
 
     public function __toString(): string
     {
         $user = $this->getUser();
-        $roles = array_map(fn($role) => $role instanceof \App\Entity\Enum\CompetitionRole ? $role->label() : (string) $role, $this->getRole() ?? []);
-
         $name = $user ? $user->getLastname() . ' ' . $user->getFirstname() : 'Nouvel organisateur';
-        $rolesText = count($roles) > 0 ? ' - ' . implode(', ', $roles) : '';
+        $roleText = $this->role ? $this->role->label() : '';
 
-        return "$name$rolesText";
+        return "$name - $roleText";
     }
 }
