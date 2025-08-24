@@ -7,17 +7,15 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class SmileService
 {
-    private LoggerInterface $logger;
+//    LoggerInterface $logger;
 
     public function __construct(
         private HttpClientInterface $httpClient,
         private string $apiUrl,
         private string $apiUsername,
         private string $apiPassword,
-        LoggerInterface $logger
-    ) {
-        $this->logger = $logger;
-    }
+        private LoggerInterface $logger
+    ) { }
 
     public function verifyLicense(string $license,$birthdate): array
     {
@@ -60,7 +58,7 @@ class SmileService
             }
             $this->logger->info('Résultat de Smile API', [
                 'License :' => $license,
-                'Birthdate :'=>  $formattedDate,
+                'Birthdate'=>  $formattedDate,
                 'raw_response :' => $dataSmile,
                 'isValid :' => $isValid,
                 'isExist :' => $isExist,

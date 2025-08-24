@@ -6,6 +6,7 @@ use App\Entity\Users;
 use DateTimeImmutable;
 use App\Service\JWTService;
 use App\Form\EditProfilType;
+use Psr\Log\LoggerInterface;
 use App\Service\SmileService;
 use App\Form\RegistrationForm;
 use App\Security\EmailVerifier;
@@ -25,7 +26,8 @@ class RegistrationController extends AbstractController
 {
     public function __construct(
         private EmailVerifier $emailVerifier,
-        private SmileService $smileService
+        private SmileService $smileService,
+        private LoggerInterface $logger
     ) {}
 
 /**
@@ -56,6 +58,7 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted()) {
             $license = $form->get('licenseFfa')->getData(); 
             $birthdate = $form->get('dateBirth')->getData(); 
+            $formattedDate = $birthdate->format('d/m/Y'); 
 
             if (!$license === null || !$birthdate === null){
             // Check if SmileService validates the user
@@ -63,14 +66,33 @@ class RegistrationController extends AbstractController
 
                 if (isset($dataSmile['error'])) {
                     $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
+                    $this->logger->error('License number don\'t match Smile', [
+                        'License :' => $license,
+                        'Birthdate'=>  $formattedDate,
+                    ]);
                 } elseif (!$dataSmile['isValid']) {
                     $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
+                    $this->logger->error('License invalid or expired', [
+                        'License :' => $license,
+                        'Birthdate :'=>  $formattedDate,
+                        'endValidity :'=> $dataSmile['endingDate'],
+                    ]);
                 } else {
                     $user = $form->getData();
                     $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
                     $user->setEndValidity($dateValidity);
+                    $this->logger->info('License, end of validity', [
+                        'License :' => $license,
+                        'Birthdate :'=>  $formattedDate,
+                        'endValidity :'=> $dataSmile['endingDate'],
+                    ]);
                 }
-            }      
+            } else {
+                $this->logger->error('Licence number or Birthdate missing', [
+                    'License :' => $license,
+                    'Birthdate'=>  $formattedDate,
+                ]);
+            }
         }
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var string $plainPassword */
@@ -126,7 +148,7 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher, 
         EntityManagerInterface $entityManager,
         SendMailService $mail,      
-        Security $security  ,
+        Security $security ,
         JWTService $jwt
     ): Response {
        
@@ -139,26 +161,43 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted()) {            
             $license = $form->get('licenseFfa')->getData(); 
             $birthdate = $form->get('dateBirth')->getData(); 
+            $formattedDate = $birthdate->format('d/m/Y'); 
 
             if (!$license === null || !$birthdate === null){
             // Check if SmileService validates the user
                 $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
 
-            if (isset($dataSmile['error'])) {
-                $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
-            } elseif (!$dataSmile['isValid'] ) {
-                if ($dataSmile['isExist'] ) {
-                    $form->addError(new FormError('Votre licence est expirée : ' . $dataSmile['endingDate']));
-                }else{
-                    $form->addError(new FormError('La licence est invalide'));
-                }
+                if (isset($dataSmile['error'])) {
+                    $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
+                    $this->logger->error('License number don\'t match Smile', [
+                        'License :' => $license,
+                        'Birthdate'=>  $formattedDate,
+                    ]);
+                } elseif (!$dataSmile['isValid']) {
+                    $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
+                    $this->logger->error('License invalid or expired', [
+                        'License :' => $license,
+                        'Birthdate :'=>  $formattedDate,
+                        'EndValidity :'=> $dataSmile['endingDate'],
+                    ]);
+                } else {
+                    $user = $form->getData();
+                    $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
+                    $user->setEndValidity($dateValidity);
+                    $this->logger->info('License updated', [
+                        'License :' => $license,
+                        'Birthdate :'=>  $formattedDate,
+                        'EndValidity :'=> $dataSmile['endingDate'],
+                    ]);
+                }   
+            
             } else {
-                $user = $form->getData();
-                $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
-                $user->setEndValidity($dateValidity);
-                }
-            }     
-        }
+                $this->logger->error('Licence number or Birthdate missing', [
+                    'License :' => $license,
+                    'Birthdate'=>  $formattedDate,
+                ]);
+            }    
+        }  
         if ($form->isSubmitted() && $form->isValid()) {        
             $license = $form->get('licenseFfa')->getData(); 
 
@@ -185,9 +224,8 @@ class RegistrationController extends AbstractController
         return $this->render('registration/edit.profil.html.twig', [
             'profilForm' => $form,
             'user' => $user,
-        ]);
+        ]); 
     }
-
 
 /**
  * Verification is the email come from autorized user function
@@ -205,7 +243,7 @@ class RegistrationController extends AbstractController
         UsersRepository $usersRepository,
         EntityManagerInterface $em
     ): Response{
-   if ($jwt->isValid($token) && !$jwt->isExpired($token) && $jwt->check($token, $this->getParameter('app.jwtsecret'))) {
+    if ($jwt->isValid($token) && !$jwt->isExpired($token) && $jwt->check($token, $this->getParameter('app.jwtsecret'))) {
         $payload = $jwt->getPayload($token);
         $user = $usersRepository->find($payload['user_id']);
 
