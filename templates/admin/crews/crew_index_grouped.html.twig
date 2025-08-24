@@ -20,10 +20,20 @@
     {% for competitionId, groupData in grouped %}
         <h5 class="d-flex justify-content-between align-items-center mb-2">
             {{ groupData.competition.name}}
-            <a href="{{ path('admin_competition_send_custom_email', { id: groupData.competition.id }) }}"
-                class="btn btn-sm btn-success">
-                Envoyer email
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ path('admin_competition_send_custom_email', { id: groupData.competition.id }) }}"
+                    class="btn btn-sm btn-primary">
+                    Envoyer email
+                </a>
+                <a href="{{ path('admin_export_pipper', { competitionId: groupData.competition.id }) }}"
+                    class="btn btn-sm btn-primary">
+                    Export Pipper
+                </a>
+                <a href="{{ path('admin_export_crews', { competitionId: groupData.competition.id }) }}"
+                    class="btn btn-sm btn-primary">
+                    Exporter tout
+                </a>
+            </div>
         </h5>
         <table class="table">
             <thead>
