@@ -156,7 +156,7 @@ class RegistrationController extends AbstractController
                 $user = $form->getData();
                 $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
                 $user->setEndValidity($dateValidity);
-                } 
+                }
             }     
         }
         if ($form->isSubmitted() && $form->isValid()) {        

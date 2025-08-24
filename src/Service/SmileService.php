@@ -59,10 +59,12 @@ class SmileService
                 $isExist = true;
             }
             $this->logger->info('Résultat de Smile API', [
-                'raw_response' => $dataSmile,
-                'isValid' => $isValid,
-                'isExist' => $isExist,
-                'endingDate' => $endingDate,
+                'License :' => $license,
+                'Birthdate :'=>  $formattedDate,
+                'raw_response :' => $dataSmile,
+                'isValid :' => $isValid,
+                'isExist :' => $isExist,
+                'endingDate :' => $endingDate,
             ]);
             return [
                 'isValid' => $isValid,
