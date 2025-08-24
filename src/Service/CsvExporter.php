@@ -18,10 +18,6 @@ class CsvExporter
             }
         }
 
-        foreach ($rows as $row) {
-            fputcsv($handle, array_map(fn($v) => (string) $v, $row), $delimiter);
-        }
-
         rewind($handle);
         $csvContent = stream_get_contents($handle);
         fclose($handle);
