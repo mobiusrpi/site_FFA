@@ -11,7 +11,7 @@ class PdfService
 {
     private $domPdf;
 
-    public function __construct() {
+    public function __construct() { 
 
         $this->domPdf = new DomPdf();
 
@@ -40,25 +40,5 @@ class PdfService
         ]);        
 
         exit;
-        
-/*         
- $output = $this->domPdf->output();
-        
-        return new Response(
-            $output,
-            Response::HTTP_OK,
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="'.$fileName.'.pdf"',
-            ]
-        );
-    }
-
-    public function generateBinaryPDF($html) {
-        $this->domPdf->loadHtml($html);
-        $this->domPdf->render();
-        $this->domPdf->output(); 
-        */
-    }
-       
+    }       
 }

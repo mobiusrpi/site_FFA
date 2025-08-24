@@ -24,6 +24,7 @@ use App\Form\Model\AccommodationCollection;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\AccommodationsRepository;
 use App\Repository\TypeCompetitionRepository;
+use Symfony\Component\HttpFoundation\StreamedResponse; 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -603,7 +604,7 @@ class CompetitionsCrudController extends AbstractCrudController
         int $competId,
         CrewsRepository $repositoryCrew,  
         CsvExporter $csvExporter,
-    ): Response
+    ):  Response
     {
         $crews = $repositoryCrew->getQueryCrews($competId);   
 
