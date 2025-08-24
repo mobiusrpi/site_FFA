@@ -357,20 +357,15 @@ class UsersCrudController extends AbstractCrudController
         // Get the current authenticated user
 
         $user = $this->security->getUser();
-        // Check if the user has a specific role and modify the query accordingly
-        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            // If the user is an admin, show all users exept archived 
-            $qb = $this->entityManager->createQueryBuilder()
-                ->select('DISTINCT entity')
-                ->from(Users::class, 'entity')
-                ->where('entity.archivedAt IS NULL')       
-                ->orderBy('entity.lastname', 'ASC')
-                ->addOrderBy('entity.firstname', 'ASC');
-            return $qb;
-        }
+
+        $qb = $this->entityManager->createQueryBuilder()
+            ->select('DISTINCT entity')
+            ->from(Users::class, 'entity')
+            ->where('entity.archivedAt IS NULL')       
+            ->orderBy('entity.lastname', 'ASC')
+            ->addOrderBy('entity.firstname', 'ASC');
 
         if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
-            $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
             // First: Get all user IDs linked via pilot or navigator roles in competitions managed by this user
             $subQb = $this->repositoryUser->getVisibleToManagerQueryBuilder($user);
 
