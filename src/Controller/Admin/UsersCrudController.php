@@ -353,25 +353,28 @@ class UsersCrudController extends AbstractCrudController
         FieldCollection $fields,
         FilterCollection $filters,
     ): QueryBuilder 
-    {   
-        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+    {  
         // Get the current authenticated user
-        $qb->select('DISTINCT entity');
 
         $user = $this->security->getUser();
         // Check if the user has a specific role and modify the query accordingly
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            // If the user is an admin, show all users exept archived
-            $qb->andWhere('entity.archivedAt IS NULL');
-
+            // If the user is an admin, show all users exept archived 
+            $qb = $this->entityManager->createQueryBuilder()
+                ->select('DISTINCT entity')
+                ->from(Users::class, 'entity')
+                ->where('entity.archivedAt IS NULL')       
+                ->orderBy('entity.lastname', 'ASC')
+                ->addOrderBy('entity.firstname', 'ASC');
             return $qb;
         }
 
         if (in_array('ROLE_MANAGER', $user->getRoles(), true)) {
+            $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
             // First: Get all user IDs linked via pilot or navigator roles in competitions managed by this user
             $subQb = $this->repositoryUser->getVisibleToManagerQueryBuilder($user);
 
-            $userIds = array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult());
+            $userIds = array_unique(array_map(fn($row) => $row['id'], $subQb->getQuery()->getArrayResult()));
 
             if (count($userIds) > 0) {
                 $qb->andWhere($qb->expr()->in('entity.id', ':userIds'))
@@ -457,8 +460,17 @@ class UsersCrudController extends AbstractCrudController
                 'INTERESTS' => $category,
             ];
         }
-//          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
-      return $csvExporter->exportCsv($data, $filename);
+        $csvContent = $csvExporter->exportCsv($data);
+
+        // Retour d’une Response normale avec headers CSV
+        return new Response(
+            $csvContent,
+            200,
+            [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename='.$filename,
+            ]
+        );
     }
 
     #[Route('/admin/competitions/{id}/send-emails', name: 'admin_competition_send_emails')]
