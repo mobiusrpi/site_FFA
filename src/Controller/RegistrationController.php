@@ -56,42 +56,45 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $license = $form->get('licenseFfa')->getData(); 
-            $birthdate = $form->get('dateBirth')->getData(); 
-            $formattedDate = $birthdate->format('d/m/Y'); 
+            if ($user->isCompetitor()) {
+                $license = $form->get('licenseFfa')->getData(); 
+                $birthdate = $form->get('dateBirth')->getData(); 
+                $formattedDate = $birthdate->format('d/m/Y'); 
 
-            if (!$license === null || !$birthdate === null){
-            // Check if SmileService validates the user
-                $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+                if (!$license === null || !$birthdate === null){
+                // Check if SmileService validates the user
+                    $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
 
-                if (isset($dataSmile['error'])) {
-                    $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
-                    $this->logger->error('License number don\'t match Smile', [
+                    if (isset($dataSmile['error'])) {
+                        $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
+                        $this->logger->error('License number don\'t match Smile', [
+                            'License :' => $license,
+                            'Birthdate'=>  $formattedDate,
+                        ]);
+                    } elseif (!$dataSmile['isValid']) {
+                        $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
+                        $this->logger->error('License invalid or expired', [
+                            'License :' => $license,
+                            'Birthdate :'=>  $formattedDate,
+                            'endValidity :'=> $dataSmile['endingDate'],
+                        ]);
+                    } else {
+                        $user = $form->getData();
+                        $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
+                        $user->setEndValidity($dateValidity);
+                        $this->logger->info('License, end of validity', [
+                            'License :' => $license,
+                            'Birthdate :'=>  $formattedDate,
+                            'endValidity :'=> $dataSmile['endingDate'],
+                        ]);
+                    }
+                } else {
+                    $this->logger->error('Licence number or Birthdate missing', [
                         'License :' => $license,
                         'Birthdate'=>  $formattedDate,
                     ]);
-                } elseif (!$dataSmile['isValid']) {
-                    $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
-                    $this->logger->error('License invalid or expired', [
-                        'License :' => $license,
-                        'Birthdate :'=>  $formattedDate,
-                        'endValidity :'=> $dataSmile['endingDate'],
-                    ]);
-                } else {
-                    $user = $form->getData();
-                    $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
-                    $user->setEndValidity($dateValidity);
-                    $this->logger->info('License, end of validity', [
-                        'License :' => $license,
-                        'Birthdate :'=>  $formattedDate,
-                        'endValidity :'=> $dataSmile['endingDate'],
-                    ]);
                 }
-            } else {
-                $this->logger->error('Licence number or Birthdate missing', [
-                    'License :' => $license,
-                    'Birthdate'=>  $formattedDate,
-                ]);
+
             }
         }
         if ($form->isSubmitted() && $form->isValid()) {
