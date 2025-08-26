@@ -10,7 +10,7 @@ use App\Entity\Competitions;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\QueryBuilder;
 use App\Entity\CompetitionsUsers;
-//use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Email;
 use App\Form\CompetitionEmailType;
 use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;
@@ -22,7 +22,6 @@ use App\Repository\CompetitionsRepository;
 use App\Form\Model\AccommodationCollection;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\AccommodationsRepository;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
@@ -41,12 +40,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\StreamedResponse; 
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
-use Symfony\Component\Mailer\Transport\TransportInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
@@ -660,7 +657,7 @@ class CompetitionsCrudController extends AbstractCrudController
         int $id,
         Request $request,
         CompetitionsRepository $competitionsRepository,
-        TransportInterface $transport,
+        MailerInterface $mailer,
         Security $security              
     ): Response {
         /** @var Users|null $user */
@@ -700,15 +697,11 @@ class CompetitionsCrudController extends AbstractCrudController
             foreach ($users as $user) {
                 $personalizedMessage = str_replace('<Prénom>', $user->getFirstname(), $data['message']);
 
-                $email = (new TemplatedEmail())
+                $email = (new Email())
                     ->from('jtremblet@gmail.com')
                     ->to($user->getEmail())
                     ->subject($data['subject'])
-                    ->htmlTemplate('emails/custom_email.html.twig')
-                    ->context([
-                        'firstname' => $user->getFirstname(),
-                        'message' => $personalizedMessage,
-                    ])
+                    ->html('<p>' . nl2br($personalizedMessage) . '</p>')
                     ->replyTo($userEmail);
 
                 if ($attachment) {
@@ -718,7 +711,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     );
                 }
 
-                $transport->send($email);
+                $mailer->send($email);
             }
 
             $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
