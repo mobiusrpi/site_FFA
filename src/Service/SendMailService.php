@@ -31,7 +31,7 @@ class SendMailService
             ->subject($subject)
             ->htmlTemplate("emails/$template.html.twig")
             ->context($context);
-    dd($email::class);
+            
         $this->logger->info("Envoi email async à {$to}");
         $this->mailer->send($email);
     }
