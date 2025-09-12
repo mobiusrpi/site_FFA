@@ -10,8 +10,8 @@ class CsvExporter
     {
         $handle = fopen('php://temp', 'w+'); 
 
-        if (!empty($rows)) {
-            fputcsv($handle, array_keys($rows[0]), $delimiter);
+        if (!empty($rows)) {         
+            fputcsv($handle, array_keys($rows[0]), $delimiter, '"', "\r\n");
             foreach ($rows as $row) {
                 // Ensure each field is casted to string to avoid Excel weirdness
                 fputcsv($handle, array_map(fn($v) => (string) $v, $row), $delimiter);
