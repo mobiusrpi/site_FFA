@@ -157,7 +157,7 @@ class RegistrationForm extends AbstractType
             ->add('flyingclub',TextType::class,[
                 'attr' => [
                     'class' => 'form-control',                    
-                    'maxlength' => '30'
+                    'maxlength' => '50'
                 ],                
                 'required' => false,
                 'label' => 'Aéroclub',

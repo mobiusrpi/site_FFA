@@ -227,7 +227,7 @@ final class CrewsController extends AbstractController
     }    
     
 /**
- * User's registrations function
+ * Crew's registrations list
  *
  * @param CrewsRepository $repositoryCrew
  * @param Security $security
