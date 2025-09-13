@@ -24,9 +24,10 @@ class CsvExporter
 
         // Conversion LF -> CRLF pour compatibilité Windows/Excel
         $csvContent = str_replace("\n", "\r\n", $csvContent);
-        // BOM pou Exel
-        $csvContent = "\xEF\xBB\xBF" . $csvContent;
         
+        // Conversion UTF-8 -> Windows-1252 (ANSI)
+        $csvContent = iconv("UTF-8", "Windows-1252//TRANSLIT", $csvContent);
+
         return $csvContent;
     }
 }
