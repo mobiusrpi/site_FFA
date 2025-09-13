@@ -22,12 +22,6 @@ class CsvExporter
         $csvContent = stream_get_contents($handle);
         fclose($handle);
 
-        // Conversion LF -> CRLF pour compatibilité Windows/Excel
-        $csvContent = str_replace("\n", "\r\n", $csvContent);
-        
-        // Conversion UTF-8 -> Windows-1252 (ANSI)
-        $csvContent = iconv("UTF-8", "Windows-1252//TRANSLIT", $csvContent);
-
         return $csvContent;
     }
 }

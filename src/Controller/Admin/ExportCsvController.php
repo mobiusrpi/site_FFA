@@ -74,12 +74,18 @@ class ExportCsvController extends AbstractController
         }
         $csvContent = $csvExporter->exportCsv($rows);
 
+        // Conversion LF -> CRLF pour compatibilité Windows/Excel
+        $csvContent = str_replace("\n", "\r\n", $csvContent);
+        
+        // Conversion UTF-8 -> Windows-1252 (ANSI)
+        $csvContent = iconv("UTF-8", "Windows-1252//TRANSLIT", $csvContent);
+
         // Retour d’une Response normale avec headers CSV
         return new Response(
             $csvContent,
             200,
             [
-                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Type'        => 'text/csv; charset=Windows-1252',
                 'Content-Disposition' => 'attachment; filename='.$filename,
             ]
         );
@@ -149,6 +155,13 @@ class ExportCsvController extends AbstractController
             ];
         }
         $csvContent = $csvExporter->exportCsv($rows);
+
+        // Forcer CRLF
+        $csvContent = str_replace("\n", "\r\n", $csvContent);
+
+        // Ajouter le BOM UTF-8 pour Excel
+        $csvContent = "\xEF\xBB\xBF" . $csvContent;
+
 
         // Retour d’une Response normale avec headers CSV
         return new Response(
