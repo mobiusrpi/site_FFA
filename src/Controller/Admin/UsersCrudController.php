@@ -131,7 +131,8 @@ class UsersCrudController extends AbstractCrudController
                 ->setSortable(false),            
             TextField::new('licenseFfa','Licence FFA')
                 ->setDisabled(true)
-                ->setSortable(true),            
+                ->setSortable(true)
+                ->setDisabled(!$this->isGranted('ROLE_ADMIN')),            
             ChoiceField::new('roles')
                 ->setChoices($availableRoles)
                 ->allowMultipleChoices(true)
@@ -140,7 +141,8 @@ class UsersCrudController extends AbstractCrudController
 
             DateField::new('dateBirth','Date de naissance')
                 ->setDisabled(true)
-                ->hideOnIndex(),                      
+                ->hideOnIndex()
+                ->setDisabled(!$this->isGranted('ROLE_ADMIN')),                      
       
             ChoiceField::new('committee','CRA')
                 ->setChoices(array_combine(
@@ -174,7 +176,8 @@ class UsersCrudController extends AbstractCrudController
                 ->setFormTypeOption('widget', 'single_text')
                 ->setFormTypeOption('html5', true)
                 ->setDisabled(true)
-                ->setRequired(false),   
+                ->setRequired(false)
+                ->setDisabled(!$this->isGranted('ROLE_ADMIN')),   
             
             DateField::new('archivedAt','Date archivage')
                 ->setDisabled(true)
