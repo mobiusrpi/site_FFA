@@ -12,6 +12,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class TestsCrudController extends AbstractCrudController
@@ -75,7 +76,7 @@ class TestsCrudController extends AbstractCrudController
 
         return [
             IdField::new('id')->hideOnForm(),
-            TextField::new('competition', 'Competition')
+            AssociationField::new('competition', 'Competition')
                 ->formatValue(fn ($value, $entity) => $entity->getCompetition()?->getName() ?? '')
                 ->setSortable(false),                
             TextField::new('name', 'Nom')

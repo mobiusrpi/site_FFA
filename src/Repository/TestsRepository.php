@@ -66,9 +66,7 @@ class TestsRepository extends ServiceEntityRepository
     public function liveTests(): array
     {
         return $this->createQueryBuilder('t')
-
             ->where('t.inProgress = true')
-
             ->getQuery()
             ->getResult();
     }
