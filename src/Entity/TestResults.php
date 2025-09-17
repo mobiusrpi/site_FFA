@@ -37,6 +37,9 @@ class TestResults
     #[ORM\Column(nullable: true)]
     private ?bool $status = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $dns = false;
+
     #[ORM\ManyToOne(inversedBy: 'testResults')]
     #[ORM\JoinColumn(nullable: false)]
     private Tests $test;
@@ -127,7 +130,18 @@ class TestResults
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function isDns(): ?bool
+    {
+        return $this->dns;
+    }
+
+    public function setDns(?bool $dns): static
+    {
+        $this->dns = $dns;
+        return $this;
+    }
+
+        public function getStatus(): ?string
     {
         return $this->status;
     }
