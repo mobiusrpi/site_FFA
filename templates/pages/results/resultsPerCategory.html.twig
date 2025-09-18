@@ -150,76 +150,104 @@
           <tbody>
             {% set lastScore = null %}
             {% set rank = 0 %}
-            {% set actualRank = 0 %}    
+            {% set actualRank = 0 %}
+
             {% for row in ranking %}
-              {% set actualRank = actualRank + 1 %}
-              {% if row.total != lastScore %}
-                {% set rank = actualRank %}
-              {% endif %}
-              <tr>
-                <td class="text-center">{{ rank }}</td>
-              
-                <td style="white-space: nowrap;">
-                  <small>
-                    {% if row.crew.pilot is defined %}  
-                      {% if competition.typecompetition.id  == 2 %}
-                        {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
-                      {% else %}
-                        {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
-                        {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
-                      {% endif %}
-                    {% else %}
-                      {{ row.crew }}
+                {% set actualRank = actualRank + 1 %}
+
+                {# Rang : DNS -> '-' #}
+                {% if not row.dns %}
+                    {% if row.total != lastScore %}
+                        {% set rank = actualRank %}
                     {% endif %}
-                  </small>
-                </td>
-                {% if row.crew.pilot is defined %}
-                  <td class="text-center">
-                  {% if (row.crew.pilot.gender is not null) and  (row.crew.navigator.gender is not null) %}
-                    {% if row.crew.pilot.gender == row.crew.navigator.gender %}
-                        {{ row.crew.pilot.gender.label }}
-                      {% else %}
-                        {{ row.crew.pilot.gender.label }}/{{ row.crew.navigator.gender.label }}
-                      {% endif %}
-                    {% endif %}
-                  </td>               
-                  <td>
-                    {% if row.crew.pilot.flyingclub == row.crew.navigator.flyingclub %}
-                      {{ row.crew.pilot.flyingclub }}
-                    {% else %}
-                      {{ row.crew.pilot.flyingclub }}</br>{{ row.crew.navigator.flyingclub }}
-                    {% endif %}
-                  </td>
-                  <td >
-                    {% if row.crew.pilot.committee == row.crew.navigator.committee %}
-                      {{ row.crew.pilot.committee.label }}
-                    {% else %}
-                      {{ row.crew.pilot.committee.label }}</br>{{ row.crew.navigator.committee.label }}
-                    {% endif %}
-                  </td>
-                {% endif %}
-                <td class="text-center" data-key="navigation" data-value="{{ row.navigation }}">{{ row.navigation }}</td>
-                              
-                {% if competition.typecompetition.id != 3 %}
-                  <td  class="text-center" data-key="observation" data-value="{{ row.observation }}">{{ row.observation }}</td>
-                {% endif %}
-                {% if competition.typecompetition.id == 2 %}
-                  <td class="text-center" data-key="flightPlanning" data-value="{{ row.flightPlanning }}">>                  
-                    {{ row.flightPlanning }}
-                  </td>  
                 {% else %}
-                  <td class="text-center" data-key="landing" data-value="{{ row.landing }}">                 
-                    {{ row.landing }}
-                  </td>  
-                {% endif %}             
-                <td class="text-center" data-key="total" data-value="{{ row.total }}">{{ row.total }}</td>   
-              </tr>
-              {% set lastScore = row.total %}
+                    {% set rank = '-' %}
+                {% endif %}
+
+                <tr>
+                    <td class="text-center">{{ rank }}</td>
+
+                    {# Équipage #}
+                    <td style="white-space: nowrap;">
+                        <small>
+                        {% if row.crew.pilot is defined %}
+                            {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                            {% if row.crew.navigator is defined %}
+                                {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
+                            {% endif %}
+                        {% else %}
+                            {{ row.crew }}
+                        {% endif %}
+                        </small>
+                    </td>
+
+                    {# Sexe #}
+                    <td class="text-center">
+                        {% if row.crew.pilot is defined and row.crew.navigator is defined %}
+                            {% if row.crew.pilot.gender == row.crew.navigator.gender %}
+                                {{ row.crew.pilot.gender.label }}
+                            {% else %}
+                                {{ row.crew.pilot.gender.label }}/{{ row.crew.navigator.gender.label }}
+                            {% endif %}
+                        {% elseif row.crew.pilot is defined %}
+                            {{ row.crew.pilot.gender.label ?? '-' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    {# Association / club #}
+                    <td>
+                        {% if row.crew.pilot is defined and row.crew.navigator is defined %}
+                            {% if row.crew.pilot.flyingclub == row.crew.navigator.flyingclub %}
+                                {{ row.crew.pilot.flyingclub }}
+                            {% else %}
+                                {{ row.crew.pilot.flyingclub }}<br>{{ row.crew.navigator.flyingclub }}
+                            {% endif %}
+                        {% elseif row.crew.pilot is defined %}
+                            {{ row.crew.pilot.flyingclub ?? '-' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    {# Comité / région #}
+                    <td>
+                        {% if row.crew.pilot is defined and row.crew.navigator is defined %}
+                            {% if row.crew.pilot.committee == row.crew.navigator.committee %}
+                                {{ row.crew.pilot.committee.label }}
+                            {% else %}
+                                {{ row.crew.pilot.committee.label }}<br>{{ row.crew.navigator.committee.label }}
+                            {% endif %}
+                        {% elseif row.crew.pilot is defined %}
+                            {{ row.crew.pilot.committee.label ?? '-' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    {# Scores #}
+                    <td class="text-center">{{ row.dns ? '-' : row.navigation }}</td>
+                    {% if competition.typecompetition.id != 3 %}
+                        <td class="text-center">{{ row.dns ? '-' : row.observation }}</td>
+                    {% endif %}
+                    {% if competition.typecompetition.id == 2 %}
+                        <td class="text-center">{{ row.dns ? '-' : row.flightPlanning }}</td>
+                    {% else %}
+                        <td class="text-center">{{ row.dns ? '-' : row.landing }}</td>
+                    {% endif %}
+
+                    {# Total #}
+                    <td class="text-center">{{ row.dns ? 'DNS' : row.total }}</td>
+                </tr>
+
+                {% set lastScore = row.total %}
             {% endfor %}
           </tbody>
+
+
         </table>
-
-
+      </div>
   </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {

@@ -106,13 +106,26 @@
                   {% set lastScore = null %}
                   {% set rank = 1 %}
                   {% set actualRank = 0 %}    
+
                   {% for row in results %}
                     {% set actualRank = actualRank + 1 %}
-                    {% if row.total != lastScore %}
-                      {% set rank = actualRank %}
+
+                    {# rang uniquement si pas DNS #}
+                    {% if not row.dns %}
+                      {% if row.total != lastScore %}
+                        {% set rank = actualRank %}
+                      {% endif %}
                     {% endif %}
+
                     <tr>
-                      <td class="text-center">{{ rank }}</td>
+                      <td class="text-center">
+                        {% if row.dns %}
+                          –
+                        {% else %}
+                          {{ rank }}
+                        {% endif %}
+                      </td>
+
                       <td style="white-space: nowrap;">
                         <small>
                           {% if row.crew.pilot is defined %}  
@@ -127,23 +140,46 @@
                           {% endif %}
                         </small>
                       </td>
-                      <td class='text-center'>{{ row.navigation }}</td>
-                                        
-                      {% if competition.typecompetition.id != 3 %}
-                        <td>{{ row.observation }}</td>              
-                      {% endif %}
+
+                      {# Colonnes de pénalités #}
                       <td class='text-center'>
-                        {% if competition.typecompetition.id == 2 %}
-                          {{ row.flightPlanning }}
+                        {% if row.dns %}--{% else %}{{ row.navigation }}{% endif %}
+                      </td>
+
+                      {% if competition.typecompetition.id != 3 %}
+                        <td class='text-center'>
+                          {% if row.dns %}--{% else %}{{ row.observation }}{% endif %}
+                        </td>
+                      {% endif %}
+
+                      <td class='text-center'>
+                        {% if row.dns %}
+                          --
                         {% else %}
-                          {{ row.landing }}
-                        {% endif %}                 
+                          {% if competition.typecompetition.id == 2 %}
+                            {{ row.flightPlanning }}
+                          {% else %}
+                            {{ row.landing }}
+                          {% endif %}
+                        {% endif %}
                       </td>  
-                      <td class='text-center'>{{ row.total }}</td>
+
+                      {# Colonne total #}
+                      <td class='text-center'>
+                        {% if row.dns %}
+                          DNS
+                        {% else %}
+                          {{ row.total }}
+                        {% endif %}
+                      </td>
                     </tr>
-                    {% set lastScore = row.total %}
+
+                    {% if not row.dns %}
+                      {% set lastScore = row.total %}
+                    {% endif %}
                   {% endfor %}
                 </tbody>
+
               </table>
             </div>
           </div>
