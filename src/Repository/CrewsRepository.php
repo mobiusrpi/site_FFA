@@ -166,10 +166,12 @@ class CrewsRepository extends ServiceEntityRepository
     public function findByCompetitions(array $competitionIds): array
     {
         return $this->createQueryBuilder('c')
+            ->leftJoin('c.pilot', 'p')              // jointure avec l'entité Pilot
+            ->addSelect('p')                        // optionnel mais recommandé
             ->where('c.competition IN (:competitionIds)')
             ->setParameter('competitionIds', $competitionIds)
-            ->orderBy('c.category', 'ASC')
-            ->addOrderBy('c.pilot', 'ASC')
+            ->orderBy('c.category', 'ASC')          // tri par catégorie
+            ->addOrderBy('p.lastname', 'ASC')           // tri par nom du pilote (pas par l'objet pilot)
             ->getQuery()
             ->getResult();
     }
