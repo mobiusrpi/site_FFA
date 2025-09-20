@@ -159,7 +159,6 @@ class TrackanalyzerController extends AbstractController
             'email' => $user?->getEmail() ?? 'unknown',
         ]);
 
-        $data = json_decode($request->getContent(), true);
         if (!$data || empty($data['TestId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
             return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
         }
@@ -212,9 +211,10 @@ class TrackanalyzerController extends AbstractController
             $testResult->setStatus($crewData['Status'] ?? false); 
 
             $em->persist($testResult);
-            $results[] = $testResult;
+            $results[] = $testResult;        
+            $importedCrew[] = $crewData['CrewId'];
         }
-        $importedCrew[] = $crewData['CrewId'];
+
         $em->flush();
 
         return new JsonResponse([
