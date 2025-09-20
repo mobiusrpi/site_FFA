@@ -157,7 +157,7 @@ class TestResults
         return $this->literalCrew;
     }
 
-    public function setLiteralCrew(string $literalCrew): static
+    public function setLiteralCrew(?string $literalCrew): static
     {
         $this->literalCrew = $literalCrew;
 
