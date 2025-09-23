@@ -141,83 +141,83 @@
                                     </th>                            
                                 </tr>
                             </thead>
-                <tbody> 
-    {% set lastScore = null %}
-    {% set rank = 1 %}
-    {% set actualRank = 0 %}  
+                            <tbody> 
+                                {% set lastScore = null %}
+                                {% set rank = 1 %}
+                                {% set actualRank = 0 %}  
 
-    {% for crewData in crews %}
-        {% set actualRank = actualRank + 1 %}
+                                {% for crewData in crews %}
+                                    {% set actualRank = actualRank + 1 %}
 
-        {# Si DNS global, on ne touche pas le rang #}
-        {% if not crewData.dns %}
-            {% if crewData.total != lastScore %}
-                {% set rank = actualRank %}
-            {% endif %}
-        {% endif %}
+                                    {# Si DNS global, on ne touche pas le rang #}
+                                    {% if not crewData.dns %}
+                                        {% if crewData.total != lastScore %}
+                                            {% set rank = actualRank %}
+                                        {% endif %}
+                                    {% endif %}
 
-        <tr data-score="{{ crewData.total }}">
-            <td class="text-center">
-                {% if crewData.dns %}
-                    –
-                {% else %}
-                    {{ rank }}
-                {% endif %}
-            </td>
+                                    <tr data-score="{{ crewData.total }}">
+                                        <td class="text-center">
+                                            {% if crewData.dns %}
+                                                –
+                                            {% else %}
+                                                {{ rank }}
+                                            {% endif %}
+                                        </td>
 
-            <td>
-                {% if crewData.crew.pilot is defined %}   
-                    {% if competition.typecompetition.id == 2 %}
-                        {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}
-                    {% else %}
-                        {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}<br>
-                        {{ crewData.crew.navigator.lastName }} {{ crewData.crew.navigator.firstName }}                           
-                    {% endif %}    
-                {% else %}
-                    {{ crewData.crew }}
-                {% endif %}
-            </td>
+                                        <td>
+                                            {% if crewData.crew.pilot is defined %}   
+                                                {% if competition.typecompetition.id == 2 %}
+                                                    {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}
+                                                {% else %}
+                                                    {{ crewData.crew.pilot.lastName }} {{ crewData.crew.pilot.firstName }}<br>
+                                                    {{ crewData.crew.navigator.lastName }} {{ crewData.crew.navigator.firstName }}                           
+                                                {% endif %}    
+                                            {% else %}
+                                                {{ crewData.crew }}
+                                            {% endif %}
+                                        </td>
 
-            {# Colonnes par épreuve/test #}
-            {% for testKey, displayName in testNames %}
-                {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': false} %}                                            
+                                        {# Colonnes par épreuve/test #}
+                                        {% for testKey, displayName in testNames %}
+                                            {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': false} %}                                            
 
-                {% if result.dns %}
-                    <td data-key="{{ loop.index }}" class="text-center">DNS</td>
-                {% elseif competition.typecompetition.id == 2 %}
-                    {% if result.att is not null %}
-                        <td data-key="{{ loop.index }}" data-value="{{ result.att }}">{{ result.att }}</td>
-                    {% elseif result.nav is not null %}
-                        <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">{{ result.nav }}</td>
-                    {% else %}
-                        <td class="text-muted">—</td>
-                    {% endif %}
-                {% else %}
-                    <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">
-                        {% if result.total is not null %}
-                            {{ result.nav }}
-                        {% else %}
-                            <span class="text-muted">—</span>
-                        {% endif %}
-                    </td>                                            
-                {% endif %}
-            {% endfor %}
+                                            {% if result.dns %}
+                                                <td data-key="{{ loop.index }}" class="text-center">DNS</td>
+                                            {% elseif competition.typecompetition.id == 2 %}
+                                                {% if result.att is not null %}
+                                                    <td data-key="{{ loop.index }}" data-value="{{ result.att }}">{{ result.att }}</td>
+                                                {% elseif result.nav is not null %}
+                                                    <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">{{ result.nav }}</td>
+                                                {% else %}
+                                                    <td class="text-muted">—</td>
+                                                {% endif %}
+                                            {% else %}
+                                                <td data-key="{{ loop.index }}" data-value="{{ result.nav }}">
+                                                    {% if result.total is not null %}
+                                                        {{ result.nav }}
+                                                    {% else %}
+                                                        <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </td>                                            
+                                            {% endif %}
+                                        {% endfor %}
 
-            {# Colonne Total #}
-            <td class="text-center" data-key="total" data-value="{{ crewData.total }}">
-                {% if crewData.dns %}
-                    <strong class="text-muted">--</strong>
-                {% else %}
-                    <strong>{{ crewData.total }}</strong>
-                {% endif %}        
-            </td>
-        </tr>
+                                        {# Colonne Total #}
+                                        <td class="text-center" data-key="total" data-value="{{ crewData.total }}">
+                                            {% if crewData.dns %}
+                                                <strong class="text-muted">--</strong>
+                                            {% else %}
+                                                <strong>{{ crewData.total }}</strong>
+                                            {% endif %}        
+                                        </td>
+                                    </tr>
 
-        {% if not crewData.dns %}
-            {% set lastScore = crewData.total %}
-        {% endif %}                             
-    {% endfor %}
-</tbody>
+                                    {% if not crewData.dns %}
+                                        {% set lastScore = crewData.total %}
+                                    {% endif %}                             
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 </div>

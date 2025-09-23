@@ -93,7 +93,7 @@
         {% set hasCrewEntity = false %}
         {% for row in ranking %}
             {% if not hasCrewEntity %}
-                {% if row.crew.pilot is defined %}
+                {% if row.crew.pilot is not null %}
                     {% set hasCrewEntity = true %}
                 {% endif %}
             {% endif %}
@@ -170,26 +170,26 @@
                     {# Équipage #}
                     <td style="white-space: nowrap;">
                         <small>
-                        {% if row.crew.pilot is defined %}
-                            {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
-                            {% if row.crew.navigator is defined %}
-                                {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
-                            {% endif %}
-                        {% else %}
-                            {{ row.crew }}
-                        {% endif %}
+                            {% if row.crew.pilot is not null %}
+                                {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                                {% if row.crew.navigator is not null %}
+                                    {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
+                                {% endif %}
+                            {% else %}
+                                {{ row.crew }}
+                            {% endif %} 
                         </small>
                     </td>
 
                     {# Sexe #}
                     <td class="text-center">
-                        {% if row.crew.pilot is defined and row.crew.navigator is defined %}
+                        {% if row.crew.pilot is not null and row.crew.navigator is not null %}
                             {% if row.crew.pilot.gender == row.crew.navigator.gender %}
                                 {{ row.crew.pilot.gender.label }}
                             {% else %}
                                 {{ row.crew.pilot.gender.label }}/{{ row.crew.navigator.gender.label }}
                             {% endif %}
-                        {% elseif row.crew.pilot is defined %}
+                        {% elseif row.crew.pilot is not null %}
                             {{ row.crew.pilot.gender.label ?? '-' }}
                         {% else %}
                             -
@@ -198,13 +198,13 @@
 
                     {# Association / club #}
                     <td>
-                        {% if row.crew.pilot is defined and row.crew.navigator is defined %}
+                        {% if row.crew.pilot is not null and row.crew.navigator is not null %}
                             {% if row.crew.pilot.flyingclub == row.crew.navigator.flyingclub %}
                                 {{ row.crew.pilot.flyingclub }}
                             {% else %}
                                 {{ row.crew.pilot.flyingclub }}<br>{{ row.crew.navigator.flyingclub }}
                             {% endif %}
-                        {% elseif row.crew.pilot is defined %}
+                        {% elseif row.crew.pilot is not null %}
                             {{ row.crew.pilot.flyingclub ?? '-' }}
                         {% else %}
                             -
@@ -213,13 +213,13 @@
 
                     {# Comité / région #}
                     <td>
-                        {% if row.crew.pilot is defined and row.crew.navigator is defined %}
+                        {% if row.crew.pilot is not null and row.crew.navigator is not null %}
                             {% if row.crew.pilot.committee == row.crew.navigator.committee %}
                                 {{ row.crew.pilot.committee.label }}
                             {% else %}
                                 {{ row.crew.pilot.committee.label }}<br>{{ row.crew.navigator.committee.label }}
                             {% endif %}
-                        {% elseif row.crew.pilot is defined %}
+                        {% elseif row.crew.pilot is not null %}
                             {{ row.crew.pilot.committee.label ?? '-' }}
                         {% else %}
                             -

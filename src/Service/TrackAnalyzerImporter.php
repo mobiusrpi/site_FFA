@@ -30,7 +30,7 @@ class TrackAnalyzerImporter
      * @param int|null $userId Optionnel, ID utilisateur qui fait l'import (pour logs, si besoin)
      * @return array Tableau associatif avec 'status', 'importedCrew', 'invalidCrew' et éventuellement 'error'
      */
-    public function importResults(array $data, bool $withFlightPlanning = false, ?int $userId = null): array
+    public function importResultsData(array $data, bool $withFlightPlanning = false, ?int $userId = null): array
     {
         if (empty($data['TestId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
             $this->logger->error('Invalid JSON structure', ['data' => $data]);
@@ -48,58 +48,66 @@ class TrackAnalyzerImporter
         $invalidCrew = [];
         $importedCrew = [];
 
+        // Récupérer les résultats existants pour ce test
+        $existingResults = $this->em->getRepository(TestResults::class)->findBy(['test' => $test]);
+        $existingByCrew = [];
+        foreach ($existingResults as $res) {
+            $existingByCrew[$res->getCrew()->getId()] = $res;
+        }
+
+        $incomingCrewIds = [];
+
         foreach ($data['Crews'] as $crewData) {
-            if (empty($crewData['CrewId'])) {
-                $this->logger->warning('Id du concurrent non trouvé', ['CrewId' => $crewData['CrewId'] ?? null]);
+            $crewId = $crewData['CrewId'] ?? null;
+            if (!$crewId) {
+                $this->logger->warning('CrewId manquant dans le JSON', ['crewData' => $crewData]);
                 continue;
             }
+            $incomingCrewIds[] = $crewId;
 
-            $crew = $this->crewsRepository->find($crewData['CrewId']);
+            $crew = $this->crewsRepository->find($crewId);
             if (!$crew) {
-                $this->logger->warning('Concurrent non trouvé', ['CrewId' => $crewData['CrewId']]);
-                $invalidCrew[] = $crewData['CrewId'];
+                $this->logger->warning('Concurrent non trouvé', ['CrewId' => $crewId]);
+                $invalidCrew[] = $crewId;
                 continue;
             }
 
-            $pilot = $crew->getPilot();
-            $navigator = $crew->getNavigator();
-            $pilotName = $pilot ? $pilot->getLastname() . ' ' . $pilot->getFirstname() : '';
-            $navigatorName = $navigator ? $navigator->getLastname() . ' ' . $navigator->getFirstname() : '';
+            $pilotName = $crew->getPilot()?->getLastname() . ' ' . $crew->getPilot()?->getFirstname();
+            $navigatorName = $crew->getNavigator()?->getLastname() . ' ' . $crew->getNavigator()?->getFirstname();
             $crewLabel = trim($pilotName . ' / ' . $navigatorName);
             if (!empty($crewLabel) && $crewLabel !== '/') {
                 $importedCrew[] = $crewLabel;
             }
 
-            $existingResults = $this->em->getRepository(TestResults::class)->findBy([
-                'test' => $test,
-                'crew' => $crew->getId(),
-            ]);
-            foreach ($existingResults as $result) {
-                $this->em->remove($result);
-            }
-            if (!empty($existingResults)) {
-                $this->em->flush();
+            // Update si existant, create sinon
+            $testResult = $existingByCrew[$crewId] ?? new TestResults();
+            if (!isset($existingByCrew[$crewId])) {
+                $testResult->setTest($test);
+                $testResult->setCrew($crew);
+                $this->em->persist($testResult);
             }
 
-            $testResult = new TestResults();
-            $testResult->setTest($test);
-            $testResult->setCrew($crew);
-            $testResult->setCategory($crew->getCategory()->value);
-            $testResult->setNavigation($crewData['Navigation'] ?? null);
-
-            if ($typeCompet === 1) {
-                $testResult->setObservation($crewData['Observation'] ?? null);
+            // Remplir les champs depuis le JSON
+            $testResult->setNavigation($crewData['Navigation'] ?? 0);
+            if ($typeCompet === 1 || $typeCompet === 2) {
+                $testResult->setObservation($crewData['Observation'] ?? 0);
             }
-            
             if ($typeCompet === 2 && $withFlightPlanning) {
-                $testResult->setFlightPlanning($crewData['FlightPlanning'] ?? null);
+                $testResult->setFlightPlanning($crewData['FlightPlanning'] ?? 0);
             } else {
-                $testResult->setLanding($crewData['Landing'] ?? null);
+                $testResult->setLanding($crewData['Landing'] ?? 0);
             }
-            
+            $testResult->setCategory($crew->getCategory()?->value ?? null);
             $testResult->setStatus($crewData['Status'] ?? false);
+        }
 
-            $this->em->persist($testResult);
+        // Supprimer les résultats pour les crews non présents dans le JSON
+        if (count($incomingCrewIds) > 1) {
+            foreach ($existingResults as $res) {
+                if (!in_array($res->getCrew()->getId(), $incomingCrewIds)) {
+                    $this->em->remove($res);
+                }
+            }
         }
 
         $this->em->flush();

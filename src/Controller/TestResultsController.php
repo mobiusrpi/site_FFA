@@ -2,14 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Crews;
 use App\Entity\Tests;
 use App\Entity\Competitions;
 use App\Entity\Enum\TestCompet;
 use App\Repository\CrewsRepository;
 use App\Repository\TestsRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\TestResultsRepository;
 use App\Repository\CompetitionsRepository;
 use App\Service\CompetitionScoringService;
 use Symfony\Component\HttpFoundation\Request;
@@ -96,9 +94,9 @@ final class TestResultsController extends AbstractController
                 if (!isset($rankingByCategory[$category][$crewKey])) {
                     $rankingByCategory[$category][$crewKey] = [
                         'crew' => $crewKey,
-                        'navigation' => 0,
-                        'observation' => 0,                         
-                        'landing' => 0,                                              
+                        'navigation' => null,
+                        'observation' => null,                         
+                        'landing' => null,                                              
                         'total' => null,   // null pour DNS
                         'dns' => $dns,
                     ];
@@ -117,9 +115,9 @@ final class TestResultsController extends AbstractController
                 if (!isset($rankingByCategory[$category][$crewId])) {
                     $rankingByCategory[$category][$crewId] = [
                         'crew' => $crew,
-                        'navigation' => 0,
-                        'observation' => 0,                         
-                        'landing' => 0,                                              
+                        'navigation' => null,
+                        'observation' => null,                         
+                        'landing' => null,                                              
                         'total' => null,
                         'dns' => $dns,
                     ];
@@ -161,10 +159,10 @@ final class TestResultsController extends AbstractController
                 if (!isset($rankingByCategory[$category][$crewKey])) {
                     $rankingByCategory[$category][$crewKey] = [
                         'crew' => $crewKey,
-                        'navigation' => 0,
-                        'observation' => 0,
-                        'landing' => 0,
-                        'flightPlanning' => 0,
+                        'navigation' => null,
+                        'observation' => null,
+                        'landing' => null,
+                        'flightPlanning' => null,
                         'total' => null,   // null par défaut
                         'dns' => $dns,
                     ];
@@ -184,10 +182,10 @@ final class TestResultsController extends AbstractController
                 if (!isset($rankingByCategory[$category][$crewId])) {
                     $rankingByCategory[$category][$crewId] = [
                         'crew' => $crew,
-                        'navigation' => 0,
-                        'observation' => 0,
-                        'landing' => 0,
-                        'flightPlanning' => 0,
+                        'navigation' => null,
+                        'observation' => null,
+                        'landing' => null,
+                        'flightPlanning' => null,
                         'total' => null,
                         'dns' => $dns,
                     ];
@@ -222,8 +220,8 @@ final class TestResultsController extends AbstractController
                 if (!isset($rankingByCategory[$category][$crewId])) {
                     $rankingByCategory[$category][$crewId] = [
                         'crew' => $crew,
-                        'navigation' => 0,
-                        'landing' => 0,
+                        'navigation' => null,
+                        'landing' => null,
                         'total' => null,   // null par défaut, remplacé si non DNS
                         'dns' => $dns,
                     ];
@@ -290,10 +288,10 @@ final class TestResultsController extends AbstractController
                 if (!isset($ranking[$key])) {
                     $ranking[$key] = [
                         'crew' => $result->getCrew() ?? $result->getLiteralCrew(),
-                        'navigation' => 0,
-                        'observation' => 0,
-                        'landing' => 0,
-                        'flightPlanning' => 0,
+                        'navigation' => null,
+                        'observation' => null,
+                        'landing' => null,
+                        'flightPlanning' => null,
                         'total' => 0,
                         'dns' => false,
                     ];
@@ -428,7 +426,7 @@ final class TestResultsController extends AbstractController
                 $scoreByCategory[$category][$crewId] = [
                     'crew' =>$crewId,
                     'tests' => [],
-                    'total' => 0,
+                    'total' => null,
                 ];
             }
         }        
