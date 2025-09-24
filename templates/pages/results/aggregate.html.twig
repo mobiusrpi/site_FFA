@@ -5,14 +5,17 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container-fluid mt-4">
+    <div class="container-fluid mt-4"> 
         <div class="row align-items-center mb-3 no-print">
             <div class="col-12 col-md-8 mx-auto">
                 <h5 class="text-center">
                     <strong>Compétition {{ competition.name }}</strong><br>
                     {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }}
-                    au {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                    au {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}<br>
+                    <br>
+                    <strong>Résultats par type d'épreuve</strong>               
                 </h5>
+
             </div>
             <div class="col-12 col-md-4 text-center text-md-end mt-2 mt-md-0">
                 <button onclick="window.print()">🖨️ Imprimer</button>
@@ -27,13 +30,7 @@
                 <div class="col-12 col-lg-6 mt-4 page-break">
                     <h5 class="text-center">
                         <strong>
-                            Catégorie
-                            <a href="{{ path('test_results_per_category',{ id: competition.id, category: category }) }}"
-                                class="text-primary text-decoration-underline fw-bold"
-                                style="white-space: nowrap;"
-                                title="Voir par categorie {{ category }}">
-                                {{ category }}
-                            </a>
+                            Catégorie {{ category }}
                         </strong>
                     </h5>
 
@@ -41,85 +38,46 @@
                         <table class="table table-bordered table-sm mt-4 print-table">
                             <thead>
                                 <tr>
-                                    <th>Class.</th>
-                                    <th>
-                                        {% if competition.typecompetition.id == 2 %}
-                                            Pilote
-                                        {% else %}
-                                            Équipage
-                                        {% endif %}
-                                    </th>
-                                    <th class="text-center sort-column" data-key="nav">
-                                        <span class="fw-bold" style="white-space: nowrap;">
-                                            NAV <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                                        </span>
-                                    </th>
-                                    <th class="text-center sort-column" data-key="obs">
-                                        <span class="fw-bold" style="white-space: nowrap;">
-                                            OBS <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                                        </span>
-                                    </th>
-                                    <th class="text-center sort-column" data-key="att">
-                                        <span class="fw-bold" style="white-space: nowrap;">
-                                            {% if competition.typecompetition.id == 2 %}
-                                                Théorique
-                                            {% else %}
-                                                ATT
-                                            {% endif %}
-                                            <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                                        </span>
-                                    </th>
-                                    {% if competition.typecompetition.id == 2 %}
-                                        <th class="text-center sort-column" data-key="att">
-                                            <span class="fw-bold" style="white-space: nowrap;">
-                                                ATT <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                                            </span>
-                                        </th>
+                                    <th class="text-center sort-column" data-key="rank">Class.</th>
+                                    <th>Équipage / Pilote</th>
+                                    <th class="text-center sort-column" data-key="nav">NAV <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
+
+                                    {% if competition.typecompetition.id < 3 %}
+                                        <th class="text-center sort-column" data-key="obs">OBS <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
                                     {% endif %}
-                                    <th class="text-center sort-column" data-key="total">
-                                        <span class="fw-bold" style="white-space: nowrap;">
-                                            Total <i class="fa-solid fa-sort sort-arrow ms-2"></i>
-                                        </span>
-                                    </th>
+
+                                    {% if competition.typecompetition.id == 2 %}
+                                        <th class="text-center sort-column" data-key="flightPlanning">Théorique <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
+                                        <th class="text-center sort-column" data-key="att">ATT <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
+                                    {% else %}
+                                        <th class="text-center sort-column" data-key="att">ATT <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
+                                    {% endif %}
+
+                                    <th class="text-center sort-column" data-key="total">Total <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for crewData in crews %}
                                     <tr data-score="{{ crewData.total ?? 0 }}">
                                         <td class="text-center">{{ loop.index }}</td>
-                                        <td>
-                                            {% if crewData.crew is iterable %}
-                                                {{ crewData.crew.fullName ?? crewData.crew.name ?? '—' }}
-                                            {% else %}
-                                                {{ crewData.crew }}
-                                            {% endif %}
-                                        </td>
-                                        
-                                        {# NAV #}
-                                        <td class="text-center" data-key="nav" data-value="{{ crewData.nav is not null ? crewData.nav : -1 }}">
-                                            {{ crewData.nav is not null ? crewData.nav : '_' }}
-                                        </td>
+                                        <td>{{ crewData.crew }}</td>
+                                        <td class="text-center" data-value="{{ crewData.nav ?? 0 }}">{{ crewData.nav is not null ? crewData.nav : '_' }}</td>
 
-                                        {# OBS #}
-                                        <td class="text-center" data-key="obs" data-value="{{ crewData.obs is not null ? crewData.obs : -1 }}">
-                                            {{ crewData.obs is not null ? crewData.obs : '_' }}
-                                        </td>
+                                        {% if competition.typecompetition.id < 3 %}
+                                            <td class="text-center" data-value="{{ crewData.obs ?? 0 }}">{{ crewData.obs is not null ? crewData.obs : '_' }}</td>
+                                        {% endif %}
 
-                                        {# ATT / FlightPlanning #}
-                                        <td class="text-center" data-key="att" data-value="{{ crewData.att is not null ? crewData.att : -1 }}">
-                                            {{ crewData.att is not null ? crewData.att : '_' }}
-                                        </td>
                                         {% if competition.typecompetition.id == 2 %}
-                                            <td class="text-center">{{ crewData.att is not null ? crewData.att : '_' }}</td>
-                                        {% endif %}  
-                                        {# Total #}
-                                        <td class="text-center" data-key="total" data-value="{{ crewData.total is not null ? crewData.total : -1 }}">
-                                            <strong>{{ crewData.total is not null ? crewData.total : '_' }}</strong>
-                                        </td>
+                                            <td class="text-center" data-value="{{ crewData.flightPlanning ?? 0 }}">{{ crewData.flightPlanning is not null ? crewData.flightPlanning : '_' }}</td>
+                                            <td class="text-center" data-value="{{ crewData.att ?? 0 }}">{{ crewData.att is not null ? crewData.att : '_' }}</td>
+                                        {% else %}
+                                            <td class="text-center" data-value="{{ crewData.att ?? 0 }}">{{ crewData.att is not null ? crewData.att : '_' }}</td>
+                                        {% endif %}
+
+                                        <td class="text-center" data-value="{{ crewData.total ?? 0 }}"><strong>{{ crewData.total is not null ? crewData.total : '_' }}</strong></td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
-
                         </table>
                     </div>
                 </div>
@@ -127,78 +85,57 @@
         </div>
     </div>
 
-    {# Script de tri pour toutes les colonnes #}
+    {# Script de tri #}
     <script>
-document.querySelectorAll('.table').forEach(table => {
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
+        document.querySelectorAll('.table').forEach(table => {
+            const headers = table.querySelectorAll('.sort-column');
 
-    // Tri initial croissant sur 'total'
-    rows.sort((a, b) => {
-        const aVal = parseFloat(a.querySelector('td[data-key="total"]')?.dataset.value ?? -1);
-        const bVal = parseFloat(b.querySelector('td[data-key="total"]')?.dataset.value ?? -1);
-        return aVal - bVal;
-    });
+            headers.forEach((header, index) => {
+                const icon = header.querySelector('.sort-arrow');
+                let ascending = true;
+                const key = header.dataset.key;
 
-    // Réinsérer les lignes triées
-    rows.forEach(row => tbody.appendChild(row));
+                if (icon && key) {
+                    icon.addEventListener('click', () => {
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
 
-    // Ensuite, ton code existant pour les headers et clic sur flèches
-    const headers = table.querySelectorAll('.sort-column');
-    headers.forEach(header => {
-        const icon = header.querySelector('.sort-arrow');
-        let ascending = true;
-        const key = header.dataset.key;
+                        rows.sort((a, b) => {
+                            let aVal = 0;
+                            let bVal = 0;
 
-        if (icon && key) {
-            icon.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
+                            if (key === 'rank') {
+                                aVal = parseInt(a.children[0].textContent) || 0;
+                                bVal = parseInt(b.children[0].textContent) || 0;
+                            } else {
+                                const cellIndex = Array.from(header.parentNode.children).indexOf(header);
+                                aVal = parseFloat(a.children[cellIndex].dataset.value) || 0;
+                                bVal = parseFloat(b.children[cellIndex].dataset.value) || 0;
+                            }
 
-                const rows = Array.from(tbody.querySelectorAll('tr'));
+                            return ascending ? aVal - bVal : bVal - aVal;
+                        });
 
-                rows.sort((a, b) => {
-                    const aCell = a.querySelector(`td[data-key="${key}"]`);
-                    const bCell = b.querySelector(`td[data-key="${key}"]`);
-                    const aVal = parseFloat(aCell?.dataset.value ?? -1);
-                    const bVal = parseFloat(bCell?.dataset.value ?? -1);
-                    return ascending ? aVal - bVal : bVal - aVal;
-                });
+                        ascending = !ascending;
 
-                ascending = !ascending;
-                rows.forEach(row => tbody.appendChild(row));
+                        rows.forEach(row => tbody.appendChild(row));
 
-                // Mettre à jour les icônes
-                headers.forEach(h => {
-                    const i = h.querySelector('.sort-arrow');
-                    if (i) {
-                        i.classList.remove('fa-sort-up', 'fa-sort-down');
-                        i.classList.add('fa-sort');
-                    }
-                });
-                icon.classList.remove('fa-sort');
-                icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
+                        // Mise à jour des icônes
+                        headers.forEach(h => {
+                            const i = h.querySelector('.sort-arrow');
+                            if (i) { i.classList.remove('fa-sort-up', 'fa-sort-down'); i.classList.add('fa-sort'); }
+                        });
+                        icon.classList.remove('fa-sort');
+                        icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
 
-                // Recalculer les rangs si nécessaire
-                if (key === 'total') {
-                    let previousScore = null;
-                    let rank = 0;
-                    let displayRank = 0;
-                    rows.forEach((row) => {
-                        const score = parseFloat(row.dataset.score ?? 0);
-                        rank++;
-                        if (score !== previousScore) displayRank = rank;
-                        row.children[0].textContent = displayRank;
-                        previousScore = score;
+                        // Recalcul du classement
+                        rows.forEach((row, i) => {
+                            row.children[0].textContent = i + 1;
+                        });
                     });
-                } else {
-                    rows.forEach((row, i) => row.children[0].textContent = i + 1);
                 }
             });
-        }
-    });
-});
-
+        });
     </script>
 
 {% endblock %}

@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Competitions;
 use Psr\Log\LoggerInterface;
+use App\Entity\Enum\TestCompet;
 use App\Repository\TestsRepository;
 ;
 
@@ -273,96 +274,99 @@ class CompetitionScoringService
         return $scoreByCategory;
     }
 
-    public function calculateAggregateScores(Competitions $competition): array
+    public function calculateAggregateScores(array $results, int $typeId): array
     {
-        $scoreByCategory = [
-            'Elite' => [],
-            'Honneur' => [],
-        ];
+        $scoresByCategory = [];
 
-        $typeId = (int) $competition->getTypecompetition()?->getId();
+        foreach ($results as $result) {
+            $crew = $result->getCrew();
+            if ($crew) {
+                $crewName = $crew->getPilot()->getFullName(); // ou autre méthode pour Rallye/ANR
+                $crewId = $crew->getId();
+            } elseif ($result->getLiteralCrew()) {
+                $crewName = $result->getLiteralCrew();
+                $crewId = md5($crewName); // clé unique pour le tableau
+            } else {
+                continue; // pas de crew connu, ignorer
+            }
 
-        foreach ($competition->getTests() as $test) {
-            foreach ($test->getTestResults() as $result) {
-                $category = $result->getCategory();
-                if (!in_array($category, ['Elite', 'Honneur'])) {
-                    continue;
-                }
+            $category = $result->getCategory() ?? 'Hors Catégorie';
 
-                // Identifiant de l’équipage / pilote
-                if ($result->getCrew()) {
-                    $crew = $result->getCrew();
-                    $crewValue = method_exists($crew, 'getFullName') && $crew->getFullName()
-                        ? $crew->getFullName()
-                        : trim((method_exists($crew, 'getPilot') ? $crew->getPilot() : '') . '/' . (method_exists($crew, 'getNavigator') ? $crew->getNavigator() : ''));
+            if (!isset($scoresByCategory[$category][$crewId])) {
+                $scoresByCategory[$category][$crewId] = [
+                    'crew'           => $crewName,
+                    'nav'            => null,
+                    'obs'            => null,
+                    'att'            => null,
+                    'flightPlanning' => null,
+                    'total'          => 0,
+                    'dns'            => false,
+                ];
+            }
 
-                    $key = $crew->getId();
-                } else {
-                    $key = $result->getLiteralCrew();
-                    $crewValue = $result->getLiteralCrew();
-                }
+            $code = strtoupper(substr($result->getTest()->getCode(), 0, 3));
 
-                if (!isset($scoreByCategory[$category][$key])) {
-                    $scoreByCategory[$category][$key] = [
-                        'crew' => $crewValue,
-                        'nav' => null,
-                        'obs' => null,
-                        'att' => null,
-                        'total' => null,
-                    ];
-                }
+            switch ($code) {
+                case 'NAV':
+                    // NAVIGATION
+                    $scoresByCategory[$category][$crewId]['nav'] = $result->getNavigation();
 
-                // DNS
-                $dns = $result->isDns() ?? false;
+                    // OBSERVATION
+                    $scoresByCategory[$category][$crewId]['obs'] = $result->getObservation();
 
-                if ($dns) {
-                    $nav = $obs = $att = $sum = null;
-                } else {
-                    switch ($typeId) {
-                        case 2: // Précision
-                            $nav = $this->computeNullableSum([
-                                $result->getNavigation(),
-                                $result->getObservation(),
-                            ]);
-                            $att = $result->getFlightPlanning() ?? 0;
-                            $sum = ($nav ?? 0) + ($att ?? 0);
-                            break;
-
-                        case 1: // Rallye
-                            $nav = $this->computeNullableSum([
-                                $result->getNavigation(),
-                                $result->getObservation(),
-                            ]);
-                            $att = $result->getLanding() ?? 0;
-                            $sum = ($nav ?? 0) + ($att ?? 0);
-                            break;
-
-                        case 3: // ANR
-                        default:
-                            $nav = $result->getNavigation() ?? null;
-                            $obs = $result->getObservation() ?? null;
-                            $att = $result->getLanding() ?? 0;
-                            $sum = ($nav ?? 0) + ($obs ?? 0) + ($att ?? 0);
-                            break;
+                    // COMPÉTITION TYPE 2 (Précision) → ajoute Flight Planning
+                    if ($typeId === 2) {
+                        $scoresByCategory[$category][$crewId]['flightPlanning'] = $result->getFlightPlanning();
                     }
-                }
+                    // ATTERRISSAGE
+                    $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();
+                    break;
 
-                $scoreByCategory[$category][$key]['nav'] = $nav;
-                $scoreByCategory[$category][$key]['obs'] = $obs ?? 0;
-                $scoreByCategory[$category][$key]['att'] = $att;
-                $scoreByCategory[$category][$key]['total'] = $sum;
+                case 'ATT':
+                    // TEST ATTERRISSAGE PUR
+                    $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();
+                    break;
+                case 'ANR':
+                    // NAVIGATION 
+                    $scoresByCategory[$category][$crewId]['nav'] = $result->getNavigation();
+                    // ATTERRISSAGE
+                    $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();                   
+                    break;
+                default:    
+                    if ($typeId === 1) { // Rallye
+                        $scoresByCategory[$category][$crewId]['nav'] = $result->getNavigation();
+                        $scoresByCategory[$category][$crewId]['obs'] = $result->getObservation();
+                        $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();
+                    }        
+                    break;
+            }
+
+            // Gestion DNS
+            if ($result->isDns()) {
+                $scoresByCategory[$category][$crewId]['dns'] = true;
+                $scoresByCategory[$category][$crewId]['total'] = null;
+            } else {
+                // Recalcule du total (null si une épreuve non faite)
+                $nav   = $scoresByCategory[$category][$crewId]['nav'] ?? 0;
+                $obs   = $scoresByCategory[$category][$crewId]['obs'] ?? 0;
+                $att   = $scoresByCategory[$category][$crewId]['att'] ?? 0;
+                $fp    = $scoresByCategory[$category][$crewId]['flightPlanning'] ?? 0;
+
+                $scoresByCategory[$category][$crewId]['total'] = $nav + $obs + $att + $fp;
             }
         }
 
-        // Tri par total décroissant et DNS en bas
-        foreach ($scoreByCategory as &$list) {
-            uasort($list, function ($a, $b) {
-                if (($a['total'] === null) && ($b['total'] !== null)) return 1;
-                if (($a['total'] !== null) && ($b['total'] === null)) return -1;
-                return ($a['total'] ?? 0) <=> ($b['total'] ?? 0);
+        // Trie par catégorie → par total croissant (DNS à la fin)
+        foreach ($scoresByCategory as &$categoryScores) {
+            usort($categoryScores, function ($a, $b) {
+                if ($a['dns'] && !$b['dns']) return 1;
+                if (!$a['dns'] && $b['dns']) return -1;
+                return $a['total'] <=> $b['total']; // ordre croissant
             });
         }
 
-        return $scoreByCategory;
+        return $scoresByCategory;
     }
+
+
 }

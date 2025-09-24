@@ -8,6 +8,7 @@ use App\Entity\Enum\TestCompet;
 use App\Repository\CrewsRepository;
 use App\Repository\TestsRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\TestResultsRepository;
 use App\Repository\CompetitionsRepository;
 use App\Service\CompetitionScoringService;
 use Symfony\Component\HttpFoundation\Request;
@@ -538,6 +539,7 @@ final class TestResultsController extends AbstractController
     public function aggregateResults(
         int $id,
         CompetitionsRepository $repositoryCompetition,
+        TestResultsRepository $repositoryResults,
         CompetitionScoringService $scoringService
     ): Response {
         $competition = $repositoryCompetition->find($id);
@@ -546,52 +548,11 @@ final class TestResultsController extends AbstractController
             throw $this->createNotFoundException('Compétition non trouvée');
         }
 
-        // Calculer les scores par catégorie
-        $scoreByCategory = [];
-        foreach (['Elite', 'Honneur'] as $cat) {
-            $scoreByCategory[$cat] = [];
-        }
+        // Récupération des résultats liés à cette compétition
+        $results = $repositoryResults->resultsByCompetition($competition);
 
-        $typeId = (int) $competition->getTypecompetition()?->getId();
-
-        foreach ($competition->getTests() as $test) {
-            foreach ($test->getTestResults() as $result) {
-                $category = $result->getCategory();
-                if (!isset($scoreByCategory[$category])) continue;
-
-                $key = $result->getCrew()?->getId() ?? $result->getLiteralCrew();
-                if (!isset($scoreByCategory[$category][$key])) {
-                    $scoreByCategory[$category][$key] = [
-                        'crew' => $result->getCrew()?->getPilot()->getFullName() ?? $result->getLiteralCrew(),
-                        'nav' => 0,
-                        'obs' => 0,
-                        'att' => 0,
-                        'total' => 0,
-                    ];
-                }
-
-                // Additionner par type de test
-                $scoreByCategory[$category][$key]['nav'] += $result->getNavigation() ?? 0;
-                $scoreByCategory[$category][$key]['obs'] += $result->getObservation() ?? 0;
-
-                if ($typeId === 2) { // précision
-                    $scoreByCategory[$category][$key]['att'] += $result->getFlightPlanning() ?? 0;
-                } else { // rallye / ANR
-                    $scoreByCategory[$category][$key]['att'] += $result->getLanding() ?? 0;
-                }
-
-                // Total général
-                $scoreByCategory[$category][$key]['total'] =
-                    ($scoreByCategory[$category][$key]['nav'] ?? 0) +
-                    ($scoreByCategory[$category][$key]['obs'] ?? 0) +
-                    ($scoreByCategory[$category][$key]['att'] ?? 0);
-            }
-        }
-
-        // Tri par total décroissant
-        foreach ($scoreByCategory as &$list) {
-            usort($list, fn($a, $b) => ($b['total'] ?? 0) <=> ($a['total'] ?? 0));
-        }
+        // Calcul des scores agrégés PAR CATÉGORIE
+        $scoreByCategory = $scoringService->calculateAggregateScores($results, $competition->getTypeCompetition()->getId());
 
         return $this->render('pages/results/aggregate.html.twig', [
             'competition' => $competition,

@@ -25,4 +25,13 @@ class TestResultsRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function resultsByCompetition($competition): array
+    {
+        return $this->createQueryBuilder('r')
+        ->join('r.test', 't')
+        ->where('t.competition = :competition')
+        ->setParameter('competition', $competition)
+        ->getQuery()
+        ->getResult();
+    }
 }
