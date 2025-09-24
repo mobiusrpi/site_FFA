@@ -150,6 +150,110 @@ class TrackanalyzerController extends AbstractController
     }
     
 /**
+ * Imports results from Pipper function
+ *
+ * @param Request $request
+ * @param EntityManagerInterface $em
+ * @param TestsRepository $testsRepository
+ * @param CrewsRepository $crewsRepository
+ * @return JsonResponse
+ */
+    #[Route('/3rdparty/trackanalyzer/import-results-data', name: 'import_trackanalyzer_results_data', methods: ['POST'])]
+    public function importResults(
+        Request $request,
+        EntityManagerInterface $em,
+        TestsRepository $testsRepository,
+        CrewsRepository $crewsRepository,
+    ): JsonResponse {
+        $authHeader = $request->headers->get('Authorization');
+        $rawJson = $request->getContent();
+
+        $this ->logger->info('TrackAnalyzer import called', [
+            'Authorization' => $authHeader,
+        ]);
+
+        $data = json_decode($rawJson, true);
+        if (!$data) {
+            $this ->logger->error('Invalid JSON received', ['raw' => $rawJson]);
+        }
+        $this->logger->debug('Parsed JSON:', $data);
+
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
+        }
+        
+        /** @var \App\Entity\Users $user */
+        $user = $this->getUser(); 
+        $this->logger->info('Import called by user', [
+            'email' => $user?->getEmail() ?? 'unknown',
+        ]);
+
+        if (!$data || empty($data['TestId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
+            return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
+        }
+
+        $test = $testsRepository->findOneBy(['code' => $data['TestId']]); 
+        if (!$test) {
+            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu : ' . $data['TestId']], 404);
+            exit();
+        }
+
+        $existingResults = $em->getRepository(TestResults::class)->findBy(['test' => $test]);
+        if (!empty($existingResults)) {
+            foreach ($existingResults as $result) {
+                $em->remove($result);
+            }
+            $em->flush();
+        }
+        $results = [];
+        $invalidCrew = [];        
+        $importedCrew = [];
+
+        foreach ($data['Crews'] as $crewData) {
+            if ($crewData['Status'] == true) {
+                if (empty($crewData['CrewId'])) {
+                    continue;
+                }
+
+                $crew = $crewsRepository->find($crewData['CrewId']);
+                if (!$crew) {
+                    $this->logger->warning('Comcurrents non trouvé', ['CrewId' => $crewData['CrewId']]);
+                    $invalidCrew[] = $crewData['CrewId'];
+                    continue;
+                }
+
+                $testResult = new TestResults();
+                $testResult->setTest($test);                
+                $testResult->setCrew($crew);
+
+            }
+            else{
+                $testResult = new TestResults();
+                $testResult->setTest($test);                 
+            }                  
+            $testResult->setCategory($crewData['Category'] ?? null);            
+            $testResult->setNavigation($crewData['Nav'] ?? null);
+            $testResult->setLanding($crewData['Att'] ?? null);            
+            $testResult->setObservation($crewData['Obs'] ?? null);
+            $testResult->setFlightPlanning($crewData['FlightPlanning'] ?? null);            
+            $testResult->setLiteralCrew($crewData['Competitor'] ?? null);
+            $testResult->setStatus($crewData['Status'] ?? false); 
+
+            $em->persist($testResult);
+            $results[] = $testResult;        
+            $importedCrew[] = $crewData['CrewId'];
+        }
+
+        $em->flush();
+
+        return new JsonResponse([
+            'status' => 'ok',
+            'imported' => count($results),
+            'invalidCrew' => $invalidCrew,
+        ]);
+    }
+
+/**
  * Import test results scores function
  *
  * @param Request $request

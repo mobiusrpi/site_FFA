@@ -168,16 +168,7 @@
                     {% for result in item.elite|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
-                        {% set pilot = attribute(result.crew, 'pilot') ?? null %}
-                        {% if pilot %}
-                          {% if competition.typecompetition.id == 2 %}
-                            {{result.crew.pilot.fullname }} 
-                          {% else %}
-                            {{result.crew.pilot.fullname }}-{{ result.crew.navigator.fullname }} 
-                          {% endif %}
-                        {% else %}
-                          {{ result.crew }}
-                        {% endif %} – {{ result.total }} pts
+                        {{ result.crew }} – {{ result.total }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>
@@ -190,16 +181,7 @@
                     {% for result in item.honneur|slice(0, 3) %}
                       <li>
                         {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {% set pilot = attribute(result.crew, 'pilot') ?? null %}
-                        {% if pilot %}
-                          {% if competition.typecompetition.id == 2 %}
-                            {{result.crew.pilot.fullname }} 
-                          {% else %}
-                            {{result.crew.pilot.fullname }}-{{ result.crew.navigator.fullname }} 
-                          {% endif %}
-                        {% else %}
-                          {{ result.crew }}
-                        {% endif %} – {{ result.total }} pts
+                        {{ result.crew }} – {{ result.total }} pts
                       </li>
                     {% else %}
                       <li class="text-muted">Aucun résultat</li>
@@ -211,6 +193,10 @@
               <a href="{{ path('test_results_general', { id: competition.id }) }}"
                 class="btn btn-sm btn-outline-primary px-2 py-1 small">
                 Résultats complets
+              </a>          
+              <a href="{{ path('test_results_aggregate', { id: competition.id }) }}"
+                class="btn btn-sm btn-outline-primary px-2 py-1 small">
+                Classement par épreuve
               </a>          
 
             </div>
