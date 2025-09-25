@@ -36,10 +36,18 @@ class TrackAnalyzerImporter
             $this->logger->error('Invalid JSON structure', ['data' => $data]);
             return ['error' => 'Invalid JSON structure'];
         }
-
         $test = $this->testsRepository->findOneBy(['code' => $data['TestId']]);
         if (!$test) {
-            return ['error' => 'Code de l\'épreuve inconnu : ' . $data['TestId']];
+            $this->logger->ERROR('Test code inconnu', ['code' => $data['TestId']]);
+
+            return [
+                'error' => 'Code de l\'épreuve inconnu',
+                'details' => [
+                    'field' => 'TestId',
+                    'value' => $data['TestId'],
+                    'message' => 'Le code "' . $data['TestId'] . '" n\'existe pas en base.).'
+                ]
+            ];
         }
 
         $competition = $test->getCompetition();

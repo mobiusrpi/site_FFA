@@ -308,35 +308,50 @@ class CompetitionScoringService
 
             switch ($code) {
                 case 'NAV':
-                    // NAVIGATION
-                    $scoresByCategory[$category][$crewId]['nav'] = $result->getNavigation();
+                    // Accumuler navigation
+                    $scoresByCategory[$category][$crewId]['nav'] = 
+                        ($scoresByCategory[$category][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
 
-                    // OBSERVATION
-                    $scoresByCategory[$category][$crewId]['obs'] = $result->getObservation();
+                    // Accumuler observation
+                    $scoresByCategory[$category][$crewId]['obs'] = 
+                        ($scoresByCategory[$category][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
 
-                    // COMPÉTITION TYPE 2 (Précision) → ajoute Flight Planning
-                    if ($typeId === 2) {
-                        $scoresByCategory[$category][$crewId]['flightPlanning'] = $result->getFlightPlanning();
+                    if ($typeId === 1) { 
+                        $scoresByCategory[$category][$crewId]['att'] =
+                                ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     }
-                    // ATTERRISSAGE
-                    $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();
+
+                    if ($typeId === 2) { // Précision
+                        $scoresByCategory[$category][$crewId]['flightPlanning'] = 
+                            ($scoresByCategory[$category][$crewId]['flightPlanning'] ?? 0) + ($result->getFlightPlanning() ?? 0);
+                    }
+
+                    if (str_contains(strtoupper($result->getTest()->getCode()), 'ATT')) {
+                        $scoresByCategory[$category][$crewId]['att'] = 
+                            ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    }
                     break;
 
                 case 'ATT':
-                    // TEST ATTERRISSAGE PUR
-                    $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();
+                    $scoresByCategory[$category][$crewId]['att'] = 
+                        ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     break;
+
                 case 'ANR':
-                    // NAVIGATION 
-                    $scoresByCategory[$category][$crewId]['nav'] = $result->getNavigation();
-                    // ATTERRISSAGE
-                    $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();                   
+                    $scoresByCategory[$category][$crewId]['nav'] = 
+                        ($scoresByCategory[$category][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
+                    $scoresByCategory[$category][$crewId]['att'] = 
+                        ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     break;
+
                 default:    
                     if ($typeId === 1) { // Rallye
-                        $scoresByCategory[$category][$crewId]['nav'] = $result->getNavigation();
-                        $scoresByCategory[$category][$crewId]['obs'] = $result->getObservation();
-                        $scoresByCategory[$category][$crewId]['att'] = $result->getLanding();
+                        $scoresByCategory[$category][$crewId]['nav'] = 
+                            ($scoresByCategory[$category][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
+                        $scoresByCategory[$category][$crewId]['obs'] = 
+                            ($scoresByCategory[$category][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
+                        $scoresByCategory[$category][$crewId]['att'] = 
+                            ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     }        
                     break;
             }

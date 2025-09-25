@@ -135,15 +135,19 @@ class TrackanalyzerController extends AbstractController
         $rawJson = $request->getContent(); // ← ce que Symfony a reçu
 
         $data = json_decode($rawJson, true);
+        if (!$data) {
+            $this ->logger->error('Invalid JSON received', ['raw' => $rawJson]);
+        }
+        $this->logger->debug('Parsed JSON:', $data);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
             return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
         }
-
         $result = $this->importer->importResultsData($data, false);
         if (isset($result['error'])) {
-            return new JsonResponse(['error' => $result['error']], 400);
+            $this->logger->debug('Results JSON:', $result);
+            return new JsonResponse($result, 400);
         }
 
         return new JsonResponse($result);
