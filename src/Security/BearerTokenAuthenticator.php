@@ -29,6 +29,13 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
+        $authHeader = $request->headers->get('Authorization');
+        $this->logger->critical('supports() called', ['auth' => $authHeader]);
+            return $authHeader && str_starts_with($authHeader, 'Bearer ');
+
+        $this->logger->debug('BearerTokenAuthenticator supports check', [
+            'Authorization' => $request->headers->get('Authorization')
+        ]);
         // Check that URL start by /3rdparty/trackanalyzer
         if (str_starts_with($request->getPathInfo(), '/3rdparty/trackanalyzer')) {
             return $request->headers->has('Authorization');
