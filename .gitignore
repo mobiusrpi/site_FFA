@@ -1,8 +1,5 @@
 
 ###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
@@ -26,3 +23,15 @@
 ###< symfony/asset-mapper ###
 /public/robots.txt
 src/Command/DatabaseDataBackupCommand.php
+
+# --- Environment / server specific ---
+.env
+.env.local
+.env.*.local
+
+# --- Apache / server ---
+public/.htaccess
+public/phpinfo.php
+
+# --- Uploaded files ---
+public/uploads/
