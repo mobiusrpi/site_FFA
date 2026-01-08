@@ -29,10 +29,6 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
-        $authHeader = $request->headers->get('Authorization');
-        $this->logger->critical('supports() called', ['auth' => $authHeader]);
-            return $authHeader && str_starts_with($authHeader, 'Bearer ');
-
         $this->logger->debug('BearerTokenAuthenticator supports check', [
             'Authorization' => $request->headers->get('Authorization')
         ]);
