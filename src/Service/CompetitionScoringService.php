@@ -58,9 +58,8 @@ class CompetitionScoringService
                 }
 
                 // Identifiant d'équipage : id si crew existe, sinon literal
-               if ($result->getCrew()) {
+                if ($result->getCrew()) {
                     $crew = $result->getCrew();
-
                     // Préparer un affichage texte directement utilisable
                     if (method_exists($crew, 'getFullName') && $crew->getFullName()) {
                         $crewValue = $crew->getFullName();
@@ -93,8 +92,8 @@ class CompetitionScoringService
                     ];
                 }
 
-                // Did Not Start ?
-                $dns = $result->isDns() ?? false;
+                 // Did Not Start ?
+               $dns = $result->isDns() ?? false;
 
                 if ($dns) {
                     $nav = $att = $sum = null;
@@ -106,12 +105,10 @@ class CompetitionScoringService
                                 $result->getObservation(),
                                 $result->getFlightPlanning(),
                             ]);
-
-                            $att = $result->getLanding() !== null ? (int) $result->getLanding() : null;
-
+                            $att = $result->getLanding() !== null ? (int)$result->getLanding() : null;
                             $sum = ($nav === null && $att === null)
-                                ? null
-                                : (($nav ?? 0) + ($att ?? 0));
+                              ? null 
+                              : (($nav ?? 0) + ($att ?? 0));
                             break;
 
                         case 1: // Rallye
@@ -120,7 +117,6 @@ class CompetitionScoringService
                                 $result->getObservation(),
                                 $result->getLanding(),
                             ]);
-
                             $att = null;
                             $sum = $nav;
                             break;
@@ -128,14 +124,12 @@ class CompetitionScoringService
                         case 3: // ANR
                         default:
                             $nav = $this->computeNullableSum([
-                                $result->getNavigation(),
+                                $result->getNavigation()
                             ]);
-
-                            $att = $result->getLanding() !== null ? (int) $result->getLanding() : null;
-
+                            $att = $result->getLanding() !== null ? (int)$result->getLanding() : null;
                             $sum = ($nav === null && $att === null)
-                                ? null
-                                : (($nav ?? 0) + ($att ?? 0));
+                              ? null 
+                              : (($nav ?? 0) + ($att ?? 0));
                             break;
                     }
                 }
@@ -146,8 +140,18 @@ class CompetitionScoringService
                     'total' => $sum,
                     'dns' => $dns,
                 ];
+
+                $this->logger->debug('calc test', [
+                    'testId' => $testId,
+                    'crewKey' => $key,
+                    'typeId' => $typeId,
+                    'nav' => $nav,
+                    'att' => $att,
+                    'total' => $sum
+                ]);
             }
         }
+
         // Calcul total général et flag DNS pour le classement final
         foreach ($scoreByCategory as &$list) {
             foreach ($list as &$crewData) {
@@ -176,14 +180,6 @@ class CompetitionScoringService
                 return $a['total'] <=> $b['total'];
             });
         }
-        $this->logger->debug('calc test', [
-        'testId' => $testId,
-        'crewKey' => $key,
-        'typeId' => $typeId,
-        'nav' => $nav,
-        'att' => $att,
-        'total' => $sum
-        ]);
 
         return $scoreByCategory;
     }
