@@ -35,3 +35,7 @@ public/phpinfo.php
 
 # --- Uploaded files ---
 public/uploads/
+
+# Assets générés / prod
+/public/css/*.css
+/public/js/*.js
