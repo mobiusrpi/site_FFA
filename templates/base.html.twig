@@ -16,14 +16,12 @@
           <link rel="stylesheet" href="{{ asset('css/easyadmin-print.css') }}">
 
           {# Bootstrap et FontAwesome #}
-          {{ encore_entry_link_tags('app') }}
           <link rel="stylesheet" href="{{ asset('css/bootswatch.css') }}">
           <link rel="stylesheet" href="{{ asset('css/fontawesome.css') }}">
       {% endblock %}
 
       {% block javascripts %}
           {# Scripts Bootstrap et Popper #}
-          {{ encore_entry_script_tags('app') }}
           <script src="{{ asset('js/popper.min.js') }}"></script>
           <script src="{{ asset('js/bootstrap.min.js') }}"></script>
           {# Scripts EventListener #}
