@@ -235,6 +235,20 @@ class CompetitionsCrudController extends AbstractCrudController
         } else {
             $qb->andWhere('1 = 0'); // No access
         }
+        
+        // 📅 Filtrage par année (menu EasyAdmin)
+        $year = $this->getContext()?->getRequest()->query->get('year');
+
+        if ($year) {
+            // ⚠️ Version PERFORMANTE (sans YEAR())
+            $start = new \DateTimeImmutable("$year-01-01 00:00:00");
+            $end   = new \DateTimeImmutable("$year-12-31 23:59:59");
+
+            $qb
+                ->andWhere('entity.startDate BETWEEN :start AND :end')
+                ->setParameter('start', $start)
+                ->setParameter('end', $end);
+        }
 
         return $qb;
     }

@@ -32,8 +32,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {   
+
+
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private CompetitionsRepository $competitionsRepository,
+        private Security $security,         
         private TypeCompetitionRepository $typeCompetitionRepository,
         private UrlGeneratorInterface $urlGenerator,
         private AdminUrlGenerator $adminUrlGenerator,
@@ -56,12 +60,103 @@ class DashboardController extends AbstractDashboardController
             ->setDefaultColorScheme('dark');
     }
 
+    private function getPreviousCompetitionYearsMenuItems(int $currentYear): array
+    {
+        $years = $this->getCompetitionYears();
+
+        $items = [];
+
+        foreach ($years as $year) {
+            if ($year < $currentYear) {
+                $items[] = MenuItem::linkToCrud(
+                    (string) $year,
+                    'fa fa-angle-right',
+                    Competitions::class
+                )->setQueryParameter('year', $year);
+            }
+        }
+
+        return $items;
+    }
+
+    private function getCompetitionYears(): array
+    {
+        $dates = $this->entityManager->createQuery('
+            SELECT DISTINCT c.startDate
+            FROM App\Entity\Competitions c
+            ORDER BY c.startDate DESC
+        ')->getResult();
+
+        $years = [];
+
+        foreach ($dates as $row) {
+            /** @var \DateTimeImmutable $date */
+            $date = $row['startDate'];
+            $years[] = (int) $date->format('Y');
+        }
+
+        return array_values(array_unique($years));
+    }
+
+    private function getAccessibleCompetitionYears(int $currentYear): array
+    {
+        $user = $this->security->getUser();
+
+        if (!$user) {
+            return [];
+        }
+
+        // 🔐 Compétitions accessibles
+        $competitions = $this->competitionsRepository
+            ->findAccessibleCompetitionsForUser($user, $user->getRoles());
+
+        $years = [];
+
+        foreach ($competitions as $competition) {
+            $year = (int) $competition->getStartDate()->format('Y');
+
+            if ($year < $currentYear) {
+                $years[] = $year;
+            }
+        }
+
+        $years = array_values(array_unique($years));
+        rsort($years);
+
+        return $years;
+    }
+
+
     public function configureMenuItems(): iterable
     {
+        $currentYear = (int) date('Y');
+        $previousYears = $this->getAccessibleCompetitionYears($currentYear);
+
+
         yield MenuItem::linkToRoute('Retour accueil', 'fa-solid fa-right-from-bracket', 'home');
         yield MenuItem::linkToDashboard('Home admin', 'fa fa-home');
+
         yield MenuItem::section('Management');
-        yield MenuItem::linkToCrud('Compétitions', 'fas fa-list', Competitions::class);
+
+        // 🔹 Compétitions année en cours
+        yield MenuItem::linkToCrud(
+            'Compétitions ' . $currentYear,
+            'fas fa-list',
+            Competitions::class
+        )->setQueryParameter('year', $currentYear);
+
+        // 🔹 Années précédentes
+        if (!empty($previousYears)) {
+            yield MenuItem::subMenu('Compétitions – années précédentes', 'fa fa-calendar')
+                ->setSubItems(array_map(
+                    fn (int $year) => MenuItem::linkToCrud(
+                        (string) $year,
+                        'fa fa-angle-right',
+                        Competitions::class
+                    )->setQueryParameter('year', $year),
+                    $previousYears
+                ));
+        }
         yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
         yield MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
 
