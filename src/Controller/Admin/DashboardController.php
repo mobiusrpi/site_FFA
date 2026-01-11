@@ -16,37 +16,29 @@ use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use App\Repository\TestStartOrderRepository;
-use App\Repository\TypeCompetitionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Templates;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {   
-
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CompetitionsRepository $competitionsRepository,
         private Security $security,         
-        private TypeCompetitionRepository $typeCompetitionRepository,
-        private UrlGeneratorInterface $urlGenerator,
-        private AdminUrlGenerator $adminUrlGenerator,
     ) {}
 
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        $competitions = $this->entityManager->getRepository(Competitions::class)->findAll();
+        
         // ✅ Important: forwards to EasyAdmin logic
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
@@ -58,25 +50,6 @@ class DashboardController extends AbstractDashboardController
         return Dashboard::new()
             ->setTitle('Administration du site Sports FFA')
             ->setDefaultColorScheme('dark');
-    }
-
-    private function getPreviousCompetitionYearsMenuItems(int $currentYear): array
-    {
-        $years = $this->getCompetitionYears();
-
-        $items = [];
-
-        foreach ($years as $year) {
-            if ($year < $currentYear) {
-                $items[] = MenuItem::linkToCrud(
-                    (string) $year,
-                    'fa fa-angle-right',
-                    Competitions::class
-                )->setQueryParameter('year', $year);
-            }
-        }
-
-        return $items;
     }
 
     private function getCompetitionYears(): array

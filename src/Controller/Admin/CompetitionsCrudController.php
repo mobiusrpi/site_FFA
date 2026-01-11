@@ -237,7 +237,8 @@ class CompetitionsCrudController extends AbstractCrudController
         }
         
         // 📅 Filtrage par année (menu EasyAdmin)
-        $year = $this->getContext()?->getRequest()->query->get('year');
+        $request = $this->getContext()?->getRequest();
+        $year = $request?->query->get('year') ?? (int) date('Y');
 
         if ($year) {
             // ⚠️ Version PERFORMANTE (sans YEAR())
