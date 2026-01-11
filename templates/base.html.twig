@@ -39,46 +39,48 @@
   <body class="bg-grey">
     <div class="imagedefond">
 
-      {% block header %}
-          <div class="no-print">
-              {% if app.request.attributes.get('_route') starts with 'admin_' %}
-                  {% include '_partials/_headerEA.html.twig' %}
-              {% else %}
-                  {% include '_partials/_header.html.twig' %}
-              {% endif %}
+        {% block header %}
+            <div class="no-print">
+                {% if app.request.attributes.get('_route') starts with 'admin_' %}
+                    {% include '_partials/_headerEA.html.twig' %}
+                {% else %}
+                    {% include '_partials/_header.html.twig' %}
+                {% endif %}
+                
+                {# Compte non vérifié #}
+                {% if app.user is not null and not app.user.isVerified() %}
+                <div class="alert alert-warning alert-dismissible" role="alert">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert-message">
+                        <strong>Votre compte n'est pas vérifié</strong>,
+                        <a href="{{ path('resend_verif') }}">renvoyer le lien d'activation</a>
+                    </div>
+                </div>
+                {% endif %}
 
-              {% if app.user and app.user.isVerified == false %}
-                  <div class="alert alert-warning alert-dismissible" role="alert">
-                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      <div class="alert-message">
-                          <strong>Votre compte n'est pas vérifié</strong>,
-                          <a href="{{ path('resend_verif') }}">renvoyer le lien d'activation</a>
-                      </div>
-                  </div>
-              {% endif %}
+                {# Licence invalide #}
+                {% if app.user is not null and app.user.isCompetitor() %}
+                    {% set endValidity = app.user.endValidity %}
+                    {% if endValidity is null or endValidity|date('Y-m-d') < "now"|date('Y-m-d') %}
+                        <div class="alert alert-warning">
+                            Votre licence fédérale est invalide ou périmée. Accès restreint.
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endblock %}
 
-              {% if app.user and app.user.licenseFfa and app.user.endValidity < date() %}
-                  <div class="alert alert-warning alert-dismissible" role="alert">
-                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      <div class="alert-message">
-                          <strong>Votre licence fédérale est invalide ou périmée. Accès restreint</strong>
-                      </div>
-                  </div>
-              {% endif %}
-          </div>
-      {% endblock %}
+        {% include '_partials/_flash.html.twig' %}
 
-      {% include '_partials/_flash.html.twig' %}
+        {% block body %}
+            <div style="background-color: blue;"></div>
+        {% endblock %}
 
-      {% block body %}
-          <div style="background-color: blue;"></div>
-      {% endblock %}
-
-      {% block footer %}
-          <div class="no-print">
-              {% include '_partials/_footer.html.twig' %}
-          </div>
-      {% endblock %}
+        {% block footer %}
+            <div class="no-print">
+                {% include '_partials/_footer.html.twig' %}
+            </div>
+        {% endblock %}
     </div>
 
     <script>
