@@ -65,6 +65,7 @@ class RegistrationCrewType extends AbstractType
             if (!$accommodations) {
                 throw new \RuntimeException('L’hébergement de la compétition n’a pas été configuré. Veuillez contacter le gestionnaire.');
             }
+        }
 
         $builder   
             ->add('competition', EntityType::class, [
