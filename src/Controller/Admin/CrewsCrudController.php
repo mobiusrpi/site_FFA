@@ -15,11 +15,16 @@ use App\Entity\CompetitionAccommodation;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
 use Symfony\Bundle\SecurityBundle\Security;
+
+use Doctrine\ORM\QueryBuilder;
+
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use Symfony\Component\HttpFoundation\RequestStack;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -28,6 +33,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
@@ -58,8 +65,6 @@ class CrewsCrudController extends AbstractCrudController
 
         return $resultsCount > 0;
     }
-
-
 
     public static function getEntityFqcn(): string
     {
@@ -368,8 +373,15 @@ class CrewsCrudController extends AbstractCrudController
             throw $this->createAccessDeniedException('Utilisateur non connecté.');
         }
         $userRoles = $user->getRoles();
-        $competitions = $this->competitionsRepository->findAccessibleCompetitionsForUser($user, $userRoles);
+//        $competitions = $this->competitionsRepository->findAccessibleCompetitionsForUser($user, $userRoles);
+        $year = (int) ($context->getRequest()->query->get('year') ?? date('Y'));
 
+        $competitions = $this->competitionsRepository
+            ->findAccessibleCompetitionsForUserByYear(
+                $user,
+                $userRoles,
+                $year
+            );
         if (empty($competitions) && !in_array('ROLE_ADMIN', $userRoles, true)) {
             $this->addFlash('danger', 'Vous n\'êtes pas autorisé à visualiser les compétiteurs');
             return $this->redirectToRoute('home');

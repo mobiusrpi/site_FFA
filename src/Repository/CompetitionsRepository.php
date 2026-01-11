@@ -233,4 +233,35 @@ class CompetitionsRepository extends ServiceEntityRepository
 
         return [];
     }
+
+    public function findAccessibleCompetitionsForUserByYear(
+        Users $user,
+        array $userRoles,
+        int $year
+    ): array {
+        $start = new \DateTimeImmutable("$year-01-01 00:00:00");
+        $end   = new \DateTimeImmutable("$year-12-31 23:59:59");
+
+        $qb = $this->createQueryBuilder('c')
+            ->andWhere('c.startDate BETWEEN :start AND :end')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end);
+
+        if (in_array('ROLE_ADMIN', $userRoles, true)) {
+            // ADMIN : toutes les compétitions de l'année
+            return $qb->getQuery()->getResult();
+        }
+
+        if (in_array('ROLE_MANAGER', $userRoles, true)) {
+            // MANAGER : uniquement ses compétitions de l'année
+            $qb
+                ->join('c.competitionsUsers', 'cu')
+                ->andWhere('cu.user = :user')
+                ->setParameter('user', $user);
+
+            return $qb->getQuery()->getResult();
+        }
+
+        return [];
+    }
 }

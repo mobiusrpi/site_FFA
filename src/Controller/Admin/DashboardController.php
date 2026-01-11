@@ -118,7 +118,16 @@ class DashboardController extends AbstractDashboardController
             Competitions::class
         )->setQueryParameter('year', $currentYear);
 
-        // 🔹 Années précédentes
+        yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
+        yield MenuItem::linkToCrud(
+            'Concurrents',
+            'fas fa-users',
+            Crews::class
+        )->setQueryParameter('year', (new \DateTime())->format('Y'));
+
+        yield MenuItem::section('Administration')
+            ->setPermission('ROLE_ADMIN');
+        // 🔹 Compétitions des années précédentes
         if (!empty($previousYears)) {
             yield MenuItem::subMenu('Compétitions – années précédentes', 'fa fa-calendar')
                 ->setSubItems(array_map(
@@ -129,13 +138,7 @@ class DashboardController extends AbstractDashboardController
                     )->setQueryParameter('year', $year),
                     $previousYears
                 ));
-        }
-        yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
-        yield MenuItem::linkToCrud('Concurrents', 'fas fa-users', Crews::class);
-
-        yield MenuItem::section('Administration')
-            ->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page')
+        }        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page')
             ->setPermission('ROLE_ADMIN');  
         yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')
             ->setPermission('ROLE_ADMIN')
