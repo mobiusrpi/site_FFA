@@ -160,10 +160,13 @@ final class CrewsController extends AbstractController
 
         $availableCategories = [];
 
-        if ($countElite < $quotaElite) {
+        // ✅ Elite
+        if ($quotaElite === null || $quotaElite <= 0 || $countElite < $quotaElite) {
             $availableCategories[] = Category::Elite;
         }
-        if ($countHonor < $quotaHonor) {
+
+        // ✅ Honneur
+        if ($quotaHonor === null || $quotaHonor <= 0 || $countHonor < $quotaHonor) {
             $availableCategories[] = Category::Honneur;
         }
 
