@@ -10,14 +10,21 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CrewsRepository;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: CrewsRepository::class)]
-#[Assert\Expression(
-    "this.getPilot() != this.getNavigator()",
-    message: "Le pilote et le navigateur doivent être différents."
-)]
 class Crews
 {
+    #[Assert\Callback]
+    public function validatePilotNavigator(ExecutionContextInterface $context): void
+    {
+        if ($this->pilot !== null && $this->pilot === $this->navigator) {
+            $context
+                ->buildViolation('Le pilote et le navigateur doivent être différents.')
+                ->atPath('navigator')
+                ->addViolation();
+        }
+    }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
