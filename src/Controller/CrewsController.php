@@ -139,7 +139,19 @@ final class CrewsController extends AbstractController
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
        };        
        
-        $compet = $competitionsRepository->find($competId);     
+        $compet = $competitionsRepository->find($competId);  
+        
+        if (!$compet) {
+            $this->addFlash('danger', 'Compétition introuvable.');
+            return $this->redirectToRoute('competitions_list');
+        }
+
+        // 🔹 Vérification de l'hébergement avant même d'afficher le formulaire
+        if ($compet->getCompetitionAccommodation() === null || count($compet->getCompetitionAccommodation()) === 0) {
+            $this->addFlash('danger', 'L’hébergement de la compétition n’a pas été configuré. Veuillez contacter le gestionnaire.');
+            return $this->redirectToRoute('competitions_list');
+        }
+ 
         $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
        //Checkif the user is alreadu registered

@@ -62,9 +62,6 @@ class RegistrationCrewType extends AbstractType
         if ($competition !== null && $competition->getCompetitionAccommodation() !== null) {
             // toArray() returns a plain array of CompetitionAccommodation entities
             $accommodations = $competition->getCompetitionAccommodation()->toArray();
-            if (!$accommodations) {
-                throw new \RuntimeException('L’hébergement de la compétition n’a pas été configuré. Veuillez contacter le gestionnaire.');
-            }
         }
 
         $builder   
