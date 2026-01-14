@@ -8,6 +8,7 @@ use App\Entity\Enum\CRAList;
 use App\Service\CsvExporter;
 use App\Entity\Enum\Polosize;
 use Doctrine\ORM\QueryBuilder;
+use App\Entity\CompetitionsUsers;
 use Symfony\Component\Mime\Email;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use App\Controller\Admin\CompetitionsCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
@@ -56,9 +58,11 @@ class UsersCrudController extends AbstractCrudController
         private EntityManagerInterface $entityManager,    
         private CompetitionsRepository $competitionsRepository,
         private Security $security,
+        private RequestStack $requestStack
     ) {
         $this->createdAt = new \DateTimeImmutable();        
         $this->updatedAt = new \DateTimeImmutable();
+        $this->requestStack = $requestStack;
     }
 
     public function configureCrud(Crud $crud): Crud
@@ -248,7 +252,6 @@ class UsersCrudController extends AbstractCrudController
     {
         /** @var Competition $competition */
         $user = $repositoryUser->find($userId);
-
         $user->getArchivedAt() === null;
         $user->setFirstName('');
         $user->setLastName('Anonyme');
@@ -526,5 +529,41 @@ class UsersCrudController extends AbstractCrudController
             'crudControllerFqcn' => CompetitionsCrudController::class,
             'action' => 'index',
         ]);
+    }
+
+    public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if (!$entityInstance instanceof Users) {
+            parent::deleteEntity($entityManager, $entityInstance);
+            return;
+        }
+
+        // Vérifie toutes les compétitions assignées
+        $assignments = $entityManager->getRepository(CompetitionsUsers::class)
+            ->findBy(['user' => $entityInstance]);
+
+        if (count($assignments) > 0) {
+            /** @var Session $session */
+            $session = $this->requestStack->getSession();
+            $compNames = array_map(fn($a) => $a->getCompetition()->getName() . ' (' . $a->getRole()->label() . ')', $assignments);
+
+            // Ajouter le flash message
+            $session->getFlashBag()->add('danger', 'Impossible de supprimer cet utilisateur : assigné à ' . implode(', ', $compNames));
+
+            // Redirection vers la liste
+            $url = $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction('index')
+                ->generateUrl();
+
+            // Stop la suppression
+            throw new \Symfony\Component\HttpKernel\Exception\HttpException(
+                400,
+                'Suppression impossible : l’utilisateur est assigné à une ou plusieurs compétitions.'
+            );
+        }
+
+        // Sinon suppression normale
+        parent::deleteEntity($entityManager, $entityInstance);
     }
 }
