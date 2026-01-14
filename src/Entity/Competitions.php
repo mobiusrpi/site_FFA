@@ -82,8 +82,12 @@ class Competitions
     /**
      * @var Collection<int, CompetitionsUsers>
      */
-    #[ORM\OneToMany(mappedBy: 'competition', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
-    private Collection $competitionsUsers;
+    #[ORM\OneToMany(
+        mappedBy: 'competition',
+        targetEntity: CompetitionsUsers::class,
+        orphanRemoval: true
+    )]
+     private Collection $competitionsUsers;
 
     /**
      * @var Collection<int, Results>
@@ -381,10 +385,8 @@ class Competitions
     public function removeCompetitionsUser(CompetitionsUsers $competitionsUser): static
     {
         if ($this->competitionsUsers->removeElement($competitionsUser)) {
-            // set the owning side to null (unless already changed)
-            if ($competitionsUser->getCompetition() === $this) {
-                $competitionsUser->setCompetition(null);
-            }
+            // ⚠️ NE JAMAIS faire setCompetition(null)
+            // orphanRemoval se charge du DELETE
         }
 
         return $this;
