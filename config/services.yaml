@@ -7,15 +7,22 @@ parameters:
     app.jwtsecret: "%env(JWT_SECRET)%"
     apiUrl: 'https://wstools.ff-aero.fr/Licencies/IsValid'
     programmes_directory: '%kernel.project_dir%/public/uploads/programmes'
+    mailer_from: '%env(MAILER_FROM)%'
     
 services:
     # default configuration for services in *this* file
     _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
+        autowire: true     # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
-            string $dataDirectory: '%kernel.project_dir%/public/data/'
-            fichiers_pdf_folder: '%kernel.project_dir%/public/files/'
+            $dataDirectory: '%kernel.project_dir%/public/data/'
+            $fichiersPdfFolder: '%kernel.project_dir%/public/files/'
+            string $mailerFrom: '%env(MAILER_FROM)%'
+
+    # Email service
+    App\Service\SendMailService:
+        arguments:
+            $mailerFrom: '%mailer_from%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

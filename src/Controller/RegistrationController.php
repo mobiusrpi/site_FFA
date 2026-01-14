@@ -55,7 +55,7 @@ class RegistrationController extends AbstractController
         $form = $this->createForm(RegistrationForm::class, $user);
         $form->handleRequest($request);
 
-        $licenseValid = false;
+        $licenseValid = !$user->isCompetitor();
 
         if ($form->isSubmitted() && $user->isCompetitor()) {
             $license = $form->get('licenseFfa')->getData(); 
@@ -93,12 +93,12 @@ class RegistrationController extends AbstractController
             );
 
             $mail->send(
-                'jtremblet@gmail.com',
                 $user->getEmail(),
-                'Activation de votre compte sur le site sport-ffa-aero',
+               'Activation de votre compte sur le site sport-ffa-aero',
                 'register',
                 compact('user','token')
             );
+            $this->addFlash('success', 'Votre compte a été créé avec succès. Vérifiez votre email pour activer votre compte.');
 
             return $this->redirectToRoute('home');
         }
@@ -301,8 +301,8 @@ class RegistrationController extends AbstractController
         $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
 
         $mail->send(
-            'jtremblet@gmail.com',
-            $user->getEmail(),'Activation de votre compte sur le site sport-ffa-aero',
+            $user->getEmail(),
+            'Activation de votre compte sur le site sport-ffa-aero',
             'register',
             compact('user','token')
         );

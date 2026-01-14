@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.5; }
+        .header { font-weight: bold; margin-bottom: 1em; }
+        .content { margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <p class="header">Bonjour {{ firstname }},</p>
+
+    <div class="content">
+        {{ message|raw }}
+    </div>
+
+    {% if attachmentName %}
+    <p>Une pièce jointe est incluse : {{ attachmentName }}</p>
+    {% endif %}
+
+    <p>Cordialement,<br/>L’équipe FFA</p>
+</body>
+</html>

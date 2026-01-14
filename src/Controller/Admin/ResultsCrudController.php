@@ -69,14 +69,22 @@ class ResultsCrudController extends AbstractCrudController
             $crewEmail = $crew->getEmail(); 
             $crewName = $crew->getName();  
 
-            // Compose and send email
-            $email = (new Email())
-                ->from('jtremblet@gmail.com')   // Your sender address
-                ->to($crewEmail)
-                ->subject('Notification de Résultats')
-                ->text("Bonjour $crewName,\n\nVoici vos résultats...\nClassement: {$result->getRanking()}\nScore: {$result->getScore()}\n\nCordialement.");
+            $personalizedMessage = "Bonjour $crewName,\n\nVoici vos résultats...\nClassement: {$result->getRanking()}\nScore: {$result->getScore()}\n\nCordialement.";
 
-            $mailer->send($email);
+            // Compose and send email
+            $mailService->send(
+                $crewEmail,
+                'Notification de Résultats',
+                'results_notification',  // nom du template Twig sans extension
+                [
+                    'firstname' => $crewName,
+                    'competitionName' => $competition->getName(),
+                    'ranking' => $result->getRanking(),
+                    'score' => $result->getScore(),
+                    'subject' => 'Notification de Résultats', // utile pour l’en-tête <title>
+                ]
+            );
+
         }
 
         $this->addFlash('success', count($results) . ' emails envoyés.');
