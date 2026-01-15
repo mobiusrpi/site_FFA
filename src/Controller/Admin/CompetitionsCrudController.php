@@ -11,7 +11,6 @@ use Psr\Log\LoggerInterface;
 use Doctrine\ORM\QueryBuilder;
 use App\Service\SendMailService;
 use App\Entity\CompetitionsUsers;
-use Symfony\Component\Mime\Email;
 use App\Form\CompetitionEmailType;
 use App\Form\RegistrationCrewType;
 use App\Form\CompetitionsUsersType;

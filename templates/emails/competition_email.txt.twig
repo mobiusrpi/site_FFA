@@ -1,0 +1,18 @@
+Bonjour {{ firstname ?? '' }},
+
+{{ message|raw }}
+
+{% if attachmentName %}
+Une pièce jointe est incluse : {{ attachmentName }}
+{% endif %}
+
+Si le lien ci-dessus ne fonctionne pas, copiez-collez ce lien dans votre navigateur :
+{{ url('verify_user', {token: token}) }}
+
+------------------------------------------
+Fédération Française Aéronautique
+Service Sports
+https://sports.ff-aero.fr
+
+Ce message vous est envoyé automatiquement. 
+Aucune action n’est requise si vous n’êtes pas à l’origine de cette inscription.

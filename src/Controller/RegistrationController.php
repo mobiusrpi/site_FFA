@@ -302,7 +302,7 @@ class RegistrationController extends AbstractController
 
         $mail->send(
             $user->getEmail(),
-            'Activation de votre compte sur le site sport-ffa-aero',
+            'Validation de votre adresse email – Sports FF-Aéro',
             'register',
             compact('user','token')
         );

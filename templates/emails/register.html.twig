@@ -1,5 +1,44 @@
-<h3>Activez votre compte</h3>
-<p>Bonjour {{ user.firstname }},</p>
-Votre enregistrement sur le site sports-ff-aero est à valider en cliquant sur le lien ci-dessous :</p>
-<p> <a href="{{ absolute_url( path('verify_user', {token: token})) }}">Lien</a></p>
-<p>Ce lien expirera dans 3 heures</p>
+<!DOCTYPE html>
+<html lang="fr">
+  <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333; margin:0; padding:0;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="20" cellspacing="0" border="0" style="border:1px solid #ddd;">
+            <tr>
+              <td>
+                <p>Bonjour {{ user.firstname ?? '' }},</p>
+
+                <p>Vous avez créé un compte sur le site <strong>Sports de la Fédération Française Aéronautique</strong>.</p>
+
+                <p>Afin de finaliser votre inscription et de confirmer que cette adresse email vous appartient, merci de cliquer sur le lien ci-dessous :</p>
+
+                <p style="text-align:center; margin:20px 0;">
+                  <a href="{{ url('verify_user', {token: token}) }}"
+                     style="background-color:#004a99;color:#ffffff;padding:12px 18px;
+                            text-decoration:none;border-radius:4px;display:inline-block;">
+                    Confirmer mon adresse email
+                  </a>
+                </p>
+
+                <p>Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :</p>
+
+                <p style="word-break: break-all;">{{ url('verify_user', {token: token}) }}</p>
+
+                <p>Ce message vous est envoyé automatiquement. Aucune action n’est requise si vous n’êtes pas à l’origine de cette inscription.</p>
+
+                <hr>
+
+                <p style="font-size: 13px; color:#555;">
+                  <strong>Fédération Française Aéronautique</strong><br>
+                  Service Sports<br>
+                  <a href="https://sports.ff-aero.fr">https://sports.ff-aero.fr</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

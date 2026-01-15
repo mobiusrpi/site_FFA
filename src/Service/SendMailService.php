@@ -34,6 +34,7 @@ class SendMailService
      * @param string|null $html HTML brut si pas de template
      * @param array $attachments Tableau ['chemin' => 'nom_fichier'] des pièces jointes
      */
+
     public function send(
         string $to,
         string $subject,
@@ -48,8 +49,10 @@ class SendMailService
                 ->from($this->from)
                 ->to($to)
                 ->subject($subject)
-                ->htmlTemplate("emails/$template.html.twig")
+                ->htmlTemplate("emails/$template.html.twig")   // si tu as le HTML
+                ->textTemplate("emails/$template.txt.twig")   // version texte
                 ->context($context);
+
         } elseif ($html) {
             // Envoi HTML brut
             $email = (new Email())

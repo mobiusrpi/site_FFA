@@ -1,0 +1,16 @@
+Bonjour {{ user.firstname ?? '' }},
+
+Vous avez créé un compte sur le site Sports de la Fédération Française Aéronautique.
+
+Afin de finaliser votre inscription et de confirmer votre adresse email,
+merci d’ouvrir le lien suivant :
+
+{{ url('verify_user', {token: token}) }}
+
+Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer ce message.
+
+Cordialement,
+
+Fédération Française Aéronautique
+Service Sports
+https://sports.ff-aero.fr
