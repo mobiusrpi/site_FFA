@@ -39,3 +39,4 @@ public/uploads/
 # Assets générés / prod
 /public/css/*.css
 /public/js/*.js
+send_daily_mail.php
