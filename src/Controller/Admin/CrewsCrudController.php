@@ -376,24 +376,28 @@ class CrewsCrudController extends AbstractCrudController
 //        $competitions = $this->competitionsRepository->findAccessibleCompetitionsForUser($user, $userRoles);
         $year = (int) ($context->getRequest()->query->get('year') ?? date('Y'));
 
+        $isAdmin = in_array('ROLE_ADMIN', $userRoles, true);
+
         $competitions = $this->competitionsRepository
             ->findAccessibleCompetitionsForUserByYear(
                 $user,
                 $userRoles,
                 $year
             );
-        if (empty($competitions) && !in_array('ROLE_ADMIN', $userRoles, true)) {
-            $this->addFlash('danger', 'Vous n\'êtes pas autorisé à visualiser les compétiteurs');
+
+        if (!$isAdmin && empty($competitions)) {
+            $this->addFlash(
+                'warning',
+                'Aucune compétition n’est attribuée à votre compte.'
+            );
             return $this->redirectToRoute('home');
         }
 
-        $competitionIds = array_map(fn($competition) => $competition->getId(), $competitions);
-            
-        if (count($competitionIds) === 0) {
-            //no user 
-            $this->addFlash('danger', 'Vous n’avez aucune compétition attribuée.');
-            return $this->redirectToRoute('Home admin');
-        }
+        $competitionIds = array_map(
+            fn ($competition) => $competition->getId(),
+            $competitions
+        );
+
 
         $crews = $this->crewsRepository->findByCompetitions($competitionIds);
 
