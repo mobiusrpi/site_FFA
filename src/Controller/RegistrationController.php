@@ -183,8 +183,13 @@ class RegistrationController extends AbstractController
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
             $isCompetitorChecked = $form->get('isCompetitor');
+            
             // encode the plain password
-            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+            if ($plainPassword) {
+                $user->setPassword(
+                    $userPasswordHasher->hashPassword($user, $plainPassword)
+                );
+            }
             if (!$isCompetitorChecked){
                 $user->setLicenseFfa(null);
                 $user->setBirthDate(null);                
