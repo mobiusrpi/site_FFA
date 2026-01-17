@@ -316,13 +316,8 @@ class CompetitionsCrudController extends AbstractCrudController
             ->getRepository(CompetitionsUsers::class)
             ->findBy(['user' => $user]);
 
-        if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
-            $hasAdminRole = true;
-        } else {
-            $hasAdminRole = false;
-        }
-        if (!$hasAdminRole) {
-            // Disable the "New" action if user is not administrator
+        // if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
+        if (!$this->security->isGranted('ROLE_ADMIN')) {
             $actions = $actions->disable(Action::NEW);
         } else {                                
             $actions = $actions->update(Crud::PAGE_INDEX, Action::NEW,
