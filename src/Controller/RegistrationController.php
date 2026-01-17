@@ -140,7 +140,7 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted()) {            
             $license = $form->get('licenseFfa')->getData(); 
             $birthdate = $form->get('dateBirth')->getData(); 
-            $formattedDate = $birthdate->format('d/m/Y'); 
+            $formattedDate = $birthdate?->format('d/m/Y');
 
             if (!$license === null || !$birthdate === null){
             // Check if SmileService validates the user
