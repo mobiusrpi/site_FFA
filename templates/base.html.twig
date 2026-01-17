@@ -18,10 +18,8 @@
           {# Bootstrap#}
           <link rel="stylesheet" href="{{ asset('css/bootswatch.css') }}">
 
-          {# FontAwesome via CDN #}
-          <link rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-              crossorigin="anonymous">  
+          {# FontAwesome#}
+          <link rel="stylesheet" href="{{ asset('fontawesome/css/all.min.css') }}">
       {% endblock %}
 
       {% block javascripts %}
@@ -46,7 +44,7 @@
         {% block header %}
             <div class="no-print">
                 {% if app.request.attributes.get('_route') starts with 'admin_' %}
-                    {% include '_partials/_headerEA.html.twig' %}
+                     {% include '_partials/_headerEA.html.twig' %}
                 {% else %}
                     {% include '_partials/_header.html.twig' %}
                 {% endif %}
