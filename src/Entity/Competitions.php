@@ -85,6 +85,7 @@ class Competitions
     #[ORM\OneToMany(
         mappedBy: 'competition',
         targetEntity: CompetitionsUsers::class,
+        cascade: ['persist', 'remove'],
         orphanRemoval: true
     )]
      private Collection $competitionsUsers;

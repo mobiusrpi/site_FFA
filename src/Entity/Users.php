@@ -40,7 +40,10 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, CompetitionsUsers>
      */
-   #[ORM\OneToMany(mappedBy: 'user', targetEntity: CompetitionsUsers::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(
+        mappedBy: 'user', 
+        targetEntity: CompetitionsUsers::class, 
+    )]
     private Collection $competitionsUsers;
 
 
