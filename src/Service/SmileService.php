@@ -17,7 +17,7 @@ class SmileService
         private LoggerInterface $logger
     ) { }
 
-    public function verifyLicense(string $license,$birthdate): array
+    public function verifyLicense(string $license, ?\DateTimeInterface $birthdate): array
     {
         $formattedDate = $birthdate->format('d/m/Y'); 
 
