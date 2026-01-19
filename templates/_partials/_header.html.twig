@@ -38,10 +38,10 @@
               Mon compte
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profil</a></li>
               {% if app.user.licenseFfa %}
                 <li><a class="dropdown-item" href="{{ path('user_registrations_list') }}">Mes inscriptions</a></li>
               {% endif %}            
-              <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profil</a></li>
               <li><a class="dropdown-item" href="{{ path('user_aircrafts') }}">Mes avions</a></li>              
               <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
             </ul>
