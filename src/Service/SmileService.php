@@ -19,6 +19,19 @@ class SmileService
 
     public function verifyLicense(string $license, ?\DateTimeInterface $birthdate): array
     {
+        if (!$birthdate) {
+            $this->logger->warning('Vérification Smile annulée : date de naissance absente', [
+                'license' => $license,
+            ]);
+
+            return [
+                'error' => 'Date de naissance manquante',
+                'isValid' => false,
+                'endingDate' => null,
+                'isExist' => false,
+            ];
+        }
+        
         $formattedDate = $birthdate->format('d/m/Y'); 
 
         try {
