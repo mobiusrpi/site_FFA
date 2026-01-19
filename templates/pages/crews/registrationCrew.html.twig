@@ -329,17 +329,16 @@
             });
         });
 
-
         document.addEventListener('DOMContentLoaded', function() {
             const wikiLink = document.getElementById('wikiLink');
-            const blocks = document.querySelectorAll('.wiki-block');
+            const wikiBlocks = document.querySelectorAll('.wiki-block');
 
-            blocks.forEach(block => {
+            wikiBlocks.forEach(block => {
                 block.addEventListener('mouseenter', () => {
                     wikiLink.href = block.dataset.wiki;
                 });
                 block.addEventListener('mouseleave', () => {
-                    wikiLink.href = "#"; // ou lien par défaut
+                    wikiLink.href = "#"; // lien par défaut ou vide
                 });
             });
         });
