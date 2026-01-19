@@ -46,8 +46,7 @@
                         </div>
 
                         <hr class="bg-danger border-4 border-top border-danger" />
-
-                        <div class="row border rounded-4 border-primary my-3 p-3">
+                        <div class="row border rounded-4 border-primary my-3 p-3 wiki-block" data-wiki="https://sports.ffa-aero.fr/docs/index.php?title=Serveur_espace_concurrent#Fen%C3%AAtre_concurrent">
                             <div class="row justify-content-center g-3">
                                 <!-- Left Column -->
                                 <div class="col-12 col-md-5">
@@ -95,7 +94,7 @@
                                 {% endif %}                                      
                             </div>                             
                         </div>    
-                        <div class="row g-4">       
+                        <div class="row g-4 wiki-block" data-wiki="https://sports.ffa-aero.fr/docs/index.php?title=Serveur_espace_concurrent#Fen%C3%AAtre_avion"">       
                             <!-- Aircraft -->                    
                             <div class="col-11 col-md-4 form-group border rounded-4 border-primary ms-3 p-3">     
                                 <div class="justify-content-center fw-bold p-3">
@@ -164,8 +163,8 @@
                                         {{ form_row(form.pilotShared) }}
                                     </div>
                                 </div>
-                            </div>                                         
-                            <div class="col-11 col-md-7 form-group border rounded-4 border-primary ms-3 p-3">     
+                            </div>                                       
+                            <div class="col-11 col-md-7 form-group border rounded-4 border-primary ms-3 p-3 wiki-block" data-wiki="https://sports.ffa-aero.fr/docs/index.php?title=Serveur_espace_concurrent#Fen%C3%AAtre_accommodation"">     
                                 <!-- Accommodation -->                    
                                 <div class='mb-2'>
                                     {{ form_errors(form.competitionAccommodation) }}
@@ -221,7 +220,9 @@
                             </div>
                         </div>
                         {{ form_row(form._token) }}
-
+                        <div class="text-center my-2">
+                            <a href="#" id="wikiLink" target="_blank" class="btn btn-outline-info">Aide Wiki</a>
+                        </div>
                         <div class="row justify-content-center my-4">
                             <div class="col-10 text-center">
                                 <button class="btn btn-primary me-4" type="submit">Valider</button>
@@ -326,6 +327,22 @@
                 }
             });
         });
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const wikiLink = document.getElementById('wikiLink');
+            const blocks = document.querySelectorAll('.wiki-block');
+
+            blocks.forEach(block => {
+                block.addEventListener('mouseenter', () => {
+                    wikiLink.href = block.dataset.wiki;
+                });
+                block.addEventListener('mouseleave', () => {
+                    wikiLink.href = "#"; // ou lien par défaut
+                });
+            });
+        });
+
     </script>
 
 {% endblock %}
