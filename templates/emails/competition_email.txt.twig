@@ -1,13 +1,10 @@
-Bonjour {{ firstname ?? '' }},
+
 
 {{ message|raw }}
 
 {% if attachmentName %}
 Une pièce jointe est incluse : {{ attachmentName }}
 {% endif %}
-
-Si le lien ci-dessus ne fonctionne pas, copiez-collez ce lien dans votre navigateur :
-{{ url('verify_user', {token: token}) }}
 
 ------------------------------------------
 Fédération Française Aéronautique

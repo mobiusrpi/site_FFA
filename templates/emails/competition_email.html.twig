@@ -7,16 +7,11 @@
         <table width="600" cellpadding="20" cellspacing="0" border="0" style="border:1px solid #ddd;">
           <tr>
             <td>
-              <p>Bonjour {{ firstname ?? '' }},</p>
-
               <p>{{ message|raw }}</p>
 
               {% if attachmentName %}
                 <p>Une pièce jointe est incluse : {{ attachmentName }}</p>
               {% endif %}
-                
-              <p>Si le lien ci-dessus ne fonctionne pas, copiez-collez ce lien dans votre navigateur :</p>
-              {{ url('verify_user', {token: token}) }}
 
               <p>Ce message vous est envoyé automatiquement. Aucune action n’est requise si vous n’êtes pas à l’origine de cette inscription.</p>
 
