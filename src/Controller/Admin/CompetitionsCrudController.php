@@ -178,7 +178,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ]);
         $fields[] = DateField::new('createdAt')
             ->onlyOnDetail();
-        $fields[] = TextareaField::new('paymentInfo','Informations de réglement')
+        $fields[] = TextareaField::new('paymentInfo','Informations de règlement')
             ->onlyOnForms();
         $fields[] = TextareaField::new('information','Informations utiles')
             ->onlyOnForms();
