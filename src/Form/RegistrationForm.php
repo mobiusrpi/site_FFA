@@ -80,28 +80,30 @@ class RegistrationForm extends AbstractType
                 ],
             ])
             ->add('plainPassword', PasswordType::class, [
-                // instead of being set onto the object directly,
-                // this is read and encoded in the controller
                 'mapped' => false,
                 'attr' => [
                     'autocomplete' => 'new-password',
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ],
-                'label'    => 'Mot de passe',
+                'label' => 'Mot de passe',
                 'label_attr' => [
-                    'class' => 'form-label fw-bold'
+                    'class' => 'form-label fw-bold',
                 ],
                 'constraints' => [
                     new NotBlank([
                         'message' => 'Veuillez entrer un mot de passe',
                     ]),
                     new Length([
-                        'min' => 6,
-                        'minMessage' => 'Le mot de passe doit avoir au moins {{ limit }} caractères',
-                        // max length allowed by Symfony for security reasons
+                        'min' => 8,
+                        'minMessage' => 'Le mot de passe doit contenir au moins {{ limit }} caractères',
                         'max' => 4096,
-                    ]), 
+                    ]),
+                    new Regex([
+                        'pattern' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+                        'message' => 'Le mot de passe doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&).',
+                    ]),
                 ],
+                'always_empty' => true,
             ])
             ->add('isCompetitor', CheckboxType::class, [
                 'required' => false,

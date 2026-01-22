@@ -173,7 +173,11 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-    
+
+    #[Assert\Regex(
+        pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+        message: 'Le mot de passe doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial parmi @$!%*?&.'
+    )]
     private ?string $plainPassword = null;
 
     /**

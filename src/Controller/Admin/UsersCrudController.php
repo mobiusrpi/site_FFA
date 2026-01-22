@@ -23,11 +23,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Length;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use App\Controller\Admin\CompetitionsCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -80,26 +83,26 @@ class UsersCrudController extends AbstractCrudController
    
     public function configureFields(string $pageName): iterable
     {    
-        $password = TextField::new('password')
+        $availableRoles = [];
+
+        $password = TextField::new('plainPassword', 'Mot de passe')
             ->setFormType(RepeatedType::class)
             ->setFormTypeOptions([
                 'type' => PasswordType::class,
-                'first_options' => [
-                    'label' => 'Mot de passe',
-                ],
+                'first_options'  => ['label' => 'Mot de passe'],
                 'second_options' => ['label' => '(Répéter)'],
-                'mapped' => false,
-                
+                'mapped' => false,  // ne touche pas directement la base
+                'required' => $pageName === Crud::PAGE_NEW, // obligatoire uniquement à la création
+                'constraints' => [
+                    new Length(['min' => 8, 'minMessage' => '8 caractères minimum']),
+                    new Regex([
+                        'pattern' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+                        'message' => 'Majuscule, minuscule, chiffre et caractère spécial requis "@$!%*?&".',
+                    ]),
+                ]
             ])
-            ->setRequired($pageName === Crud::PAGE_NEW)
-            ->setSortable(false)
             ->onlyOnForms()
-        ;
-        if ($pageName === Crud::PAGE_EDIT) {
-            $password->setHelp('Laissez vide pour conserver le mot de passe actuel');
-        }
-
-        $availableRoles = [];
+            ->setHelp($pageName === Crud::PAGE_EDIT ? 'Laissez vide pour conserver le mot de passe actuel' : '');
 
         // Only allow assigning roles that are equal or lower in privilege
         if ($this->security->isGranted('ROLE_ADMIN')) {
@@ -193,12 +196,11 @@ class UsersCrudController extends AbstractCrudController
     {
         $request = $this->container->get('request_stack')->getCurrentRequest();
         $formData = $request->request->all();
-
-        if (!isset($formData['Users']['password']['first']) || empty($formData['Users']['password']['first'])) {
+        if (!isset($formData['Users']['plainPassword']['first']) || empty($formData['Users']['plainPassword']['first'])) {
             return;
         }
 
-        $plainPassword = $formData['Users']['password']['first'];
+        $plainPassword = $formData['Users']['plainPassword']['first'];
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPassword($hashedPassword);
     }
@@ -314,29 +316,26 @@ class UsersCrudController extends AbstractCrudController
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        if (!$entityInstance instanceof Users) {
-            return;
-        }
-            if ($entityInstance->getCreatedAt() === null) {
-                $entityInstance->setCreatedAt(new \DateTimeImmutable());
-            }
+        if (!$entityInstance instanceof Users) return;
 
-            $this->handlePassword($entityInstance); // Set hashed password
-
-            parent::persistEntity($entityManager, $entityInstance);
+        if ($entityInstance->getCreatedAt() === null) {
+            $entityInstance->setCreatedAt(new \DateTimeImmutable());
         }
+
+        $this->handlePassword($entityInstance); // applique le mot de passe
+
+        parent::persistEntity($entityManager, $entityInstance);
+    }
 
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         if (!$entityInstance instanceof Users) {
             return;
-        }
+        }   
 
-        if ($entityInstance->getUpdatedAt() === null) {
-            $entityInstance->setUpdatedAt(new \DateTimeImmutable());
-        }
-
+        $entityInstance->setUpdatedAt(new \DateTimeImmutable());
         $currentUser = $this->getUser(); //  manager connected
+
         $originalUser = $entityManager->getUnitOfWork()->getOriginalEntityData($entityInstance);
 
         // Manager can't modify an admin
@@ -346,9 +345,12 @@ class UsersCrudController extends AbstractCrudController
             $this->addFlash('warning', 'Vous ne pouvez pas modifier un administrateur.');   
                  
             return;
-        }        
+        }    
 
-        $this->handlePassword($entityInstance);
+        if ($entityInstance->getUpdatedAt() === null) {
+            $entityInstance->setUpdatedAt(new \DateTimeImmutable());
+        }
+        $this->handlePassword($entityInstance); // applique le mot de passe
 
         parent::updateEntity($entityManager, $entityInstance);
     }

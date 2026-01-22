@@ -29,13 +29,18 @@ class TrackanalyzerAuthController extends AbstractController
         $apiKey  = $request->request->get('key');
         $email   = $request->request->get('email');
         $password = $request->request->get('password');
- 
+
         if ($apiKey !== $_ENV['FFA_API_KEY']) {
             return $this->xmlError('INVALID_KEY');
         }
 
         $user = $userRepository->findOneBy(['email' => $email]);
-
+        $logger->critical('PASSWORD CHECK DEBUG', [
+            'email' => $email,
+            'plain_received' => $password,
+            'hash_in_db' => $user->getPassword(),
+            'password_valid' => $passwordHasher->isPasswordValid($user, $password),
+        ]); 
 
         if (!$user) {
             return $this->xmlError('INVALID_EMAIL');
