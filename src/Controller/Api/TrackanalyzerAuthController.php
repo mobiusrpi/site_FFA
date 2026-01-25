@@ -7,7 +7,7 @@ use Symfony\Component\Uid\Uuid;
 use App\Repository\UsersRepository;
 use Psr\Cache\CacheItemPoolInterface;
 use Doctrine\ORM\EntityManagerInterface;
-
+use App\Repository\CompetitionsRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -23,7 +23,8 @@ class TrackanalyzerAuthController extends AbstractController
         UsersRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         CacheItemPoolInterface $cache,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        CompetitionsRepository $competitionsRepository
     ): Response {
 
         $apiKey  = $request->request->get('key');
@@ -49,7 +50,25 @@ class TrackanalyzerAuthController extends AbstractController
             return $this->xmlError('INVALID_CREDENTIALS');
         }
 
-        if (!in_array('ROLE_ADMIN', $user->getRoles()) && !in_array('ROLE_MANAGER', $user->getRoles())) {
+//        if (!in_array('ROLE_ADMIN', $user->getRoles()) && !in_array('ROLE_MANAGER', $user->getRoles())) {
+//            return $this->xmlError('ACCESS_DENIED');
+//       }
+        $roles = $user->getRoles();
+        if (in_array('ROLE_ADMIN', $roles)) {
+            // OK
+        }
+        // MANAGER : uniquement s’il a des compétitions accessibles
+        elseif (in_array('ROLE_MANAGER', $roles)) {
+
+            $competitions = $competitionsRepository
+                ->findAccessibleCompetitionsForUser($user, $roles);
+
+            if (count($competitions) === 0) {
+                return $this->xmlError('ACCESS_DENIED_NOT_ASSIGNED');
+            }
+        }
+        // Autres profils : refus
+        else {
             return $this->xmlError('ACCESS_DENIED');
         }
 
