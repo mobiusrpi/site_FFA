@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Crews;
 use App\Entity\Tests;
 use App\Entity\TestResults;
+use App\Entity\Competitions;
 use Psr\Log\LoggerInterface;
 use App\Entity\TestStartOrder;
 use App\Repository\CrewsRepository;
@@ -448,6 +449,109 @@ class TrackanalyzerController extends AbstractController
         $em->flush();
 
         return $this->json(['status' => 'ok']);
+    }   
+    
+    #[Route('/3rdparty/trackanalyzer/copy-start-order', name: 'trackanalyzer_copy_start_order', methods: ['POST'])]
+    public function copyStartOrder(
+        Request $request, 
+        TestsRepository $testsRepository, 
+        TestStartOrderRepository $startOrderRepository
+    ): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $testCode = $data['testCode'] ?? null;
+
+        if (!$testCode) {
+            return $this->json(['error' => 'TestCode missing'], 400);
+        }
+
+        // Récupérer le test courant
+        $currentTest = $testsRepository->findOneBy(['code' => $testCode]);
+        if (!$currentTest) {
+            return $this->json(['error' => 'Test not found'], 404);
+        }
+
+        // Récupérer la compétition
+        $competition = $currentTest->getCompetition();
+        $tests = $competition->getTests();
+
+        $testsArray = [];
+        foreach ($tests as $test) {
+            $startOrders = $startOrderRepository->findBy(['test' => $test]);
+
+            $startListArray = [];
+            foreach ($startOrders as $item) {
+                $startListArray[] = [
+                    'crewId'     => $item->getCrew()->getId(),
+                    'startOrder' => $item->getStartOrder(),
+                    'crewGroup'  => $item->getCrewGroup(),
+                    'pilot'      => $item->getCrew()->getPilot()->getFullName(),
+                    'navigator'  => $item->getCrew()->getNavigator()->getFullName(),
+                    'category'   => $item->getCrew()->getCategory()?->value,
+                    'callsign'   => $item->getCrew()->getCallsign(),
+                    'speed'      => $item->getCrew()->getAircraftSpeed()?->value,
+                    'takeOffTime'=> $item->getTakeOffTime()?->format('Y-m-d H:i:s')
+                ];
+            }
+
+            $testsArray[] = [
+                'code'          => $test->getCode(),
+                'name'          => $test->getName(),
+                'existingStartList' => count($startListArray),
+                'startList'     => $startListArray
+            ];
+        }
+
+        return $this->json([
+            'competitionName' => $competition->getName(),
+            'tests'           => $testsArray
+        ]);
+    }
+
+    #[Route('/3rdparty/trackanalyzer/clear-start-order', name: 'trackanalyzer_clear_start_order', methods: ['POST'])]
+    public function clearStartOrder(
+        Request $request, 
+        EntityManagerInterface $em
+    ): JsonResponse  {
+        $rawJson = $request->getContent();
+        $this->logger->debug('JSON received: ' , ['raw' => $rawJson]);
+        $data = json_decode($request->getContent(), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
+            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+        }
+        $testCode = $data['testCode'] ?? null;
+        if (!$testCode) {
+            $this->logger->error('From clear-start-order : TestCode not found ');
+            return $this->json(['error' =>'Code' . $testCode . '  not found '],404);
+        }         
+
+        $test = $em->getRepository(Tests::class)->findOneBy(['code' => $testCode]);
+        if (!$test) {
+            $this->logger->error('From clear-start-order : Code' . $testCode . ' not found ');
+            return $this->json(['error' => 'Code' . $testCode . ' not found in DB'], 404);
+        }
+
+        $qb = $em->createQueryBuilder();
+
+        $deleted = $em->createQueryBuilder()
+            ->delete(TestStartOrder::class, 'tso')
+            ->where('tso.test = :test')
+            ->setParameter('test', $test)
+            ->getQuery()
+            ->execute();
+
+        return $this->json([
+            'status'  => 'ok',
+            'deleted' => $deleted
+        ]);
+
+        $em->flush();
+
+        return $this->json([
+            'status' => 'ok',
+            'deleted' => $deleted
+        ]);
     }
 
    #[Route('/3rdparty/trackanalyzer/getCompetition/{testCode}/tests', name: 'trackanalyzer_get_competition', methods: ['GET'])]

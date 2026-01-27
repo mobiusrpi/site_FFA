@@ -26,7 +26,9 @@
             <table class="table table-bordered align-middle">
                 <thead class="table-light">
             <tr class='border-bottom'>
+                <th class="text-center" scope="col">Nbre</th>                                
                 <th class="text-center" scope="col">Categorie</th>
+                <th class="text-center" scope="col">Id</th>      
                 <th class="text-center" scope="col">Immat.</th>
                 <th class="text-center" scope="col">Vp</th>                
                 <th class="text-center" scope="col">Nom prénom</th> 
@@ -41,8 +43,10 @@
                 {% for crew in crews %}                  
                     {% if crew.category is defined %} 
                         {% if crew.competition.typeCompetition.id == 2 %}
-                            <tr class='border-bottom'>   
+                            <tr class='border-bottom'>      
+                                <td class="align-middle">{{ loop.index }}</td>                                 
                                 <td class="align-middle">{{ crew.category.value }} </td>                            
+                                <td class="align-middle" {{ crew.id }} </td>    
                                 <td class="align-middle">{{ crew.callsign }} </td>                                             
                                 <td class="align-middle">{{ crew.aircraftSpeed.value }} </td>                       
                                 <td>{{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</td>
@@ -53,8 +57,10 @@
                                 <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
                             </tr>
                         {% else %}
-                            <tr class='border-bottom'>   
+                            <tr class='border-bottom'>  
+                                <td class="align-middle" rowspan="2">{{ loop.index }}</td>    
                                 <td class="align-middle" rowspan="2">{{ crew.category.value }} </td>                            
+                                <td class="align-middle" rowspan="2">{{ crew.id }} </td>    
                                 <td class="align-middle" rowspan="2">{{ crew.callsign }} </td>                                             
                                 <td class="align-middle" rowspan="2">{{ crew.aircraftSpeed.value }} </td>                       
                                 <td>{{ crew.pilot.lastname }}  {{ crew.pilot.firstname }}</td>
@@ -64,8 +70,8 @@
                                 <td>{{ crew.pilot.phone }}</td> 
                                 <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
                             </tr>
-                            <tr class='border-bottom'>             
-                                <td>{{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</td>
+                            <tr class='border-bottom'>    
+                                 <td>{{ crew.navigator.lastname }}  {{ crew.navigator.firstname }}</td>
                                 <td>{{ crew.navigator.flyingclub }}</td> 
                                 <td>{{ crew.navigator.licenseFfa }}</td>                             
                                 <td>{{ crew.navigator.email }}</td> 
