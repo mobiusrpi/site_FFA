@@ -124,7 +124,7 @@ class DashboardController extends AbstractDashboardController
             'fas fa-users',
             Crews::class
         )->setQueryParameter('year', (new \DateTime())->format('Y'));
-
+        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page') ;
         yield MenuItem::section('Administration')
             ->setPermission('ROLE_ADMIN');
         // 🔹 Compétitions des années précédentes
@@ -138,8 +138,8 @@ class DashboardController extends AbstractDashboardController
                     )->setQueryParameter('year', $year),
                     $previousYears
                 ));
-        }        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page')
-            ->setPermission('ROLE_ADMIN');  
+        }       
+ 
         yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')
             ->setPermission('ROLE_ADMIN')
             ->setSubItems([
