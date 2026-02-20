@@ -9,8 +9,11 @@
             <div class='col-10'>
                 {% if crews|length > 0 %}
                     <h3 class="mx-auto text-center fw-bold">
-                        Liste des inscrits - {{ crews[0].competition.name }}
+                        Liste des inscrits 
                     </h3>
+                   <h4 class="mx-auto text-center fw-bold">
+                        {{ crews[0].competition.name }} - {{ crews[0].competition.typecompetition.typecomp  }}
+                    </h4>
                 {% else %}
                     <h3 class="mx-auto text-center fw-bold">
                         Liste des inscrits
@@ -53,7 +56,7 @@
                                 <td>{{ crew.pilot.flyingclub }}</td>                             
                                 <td>{{ crew.pilot.licenseFfa }}</td>  
                                 <td>{{ crew.pilot.email }}</td> 
-                                <td>{{ crew.pilot.phone }}</td> 
+                                <td>{{ crew.pilot.phone|replace({' ': ''}) }}</td> 
                                 <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
                             </tr>
                         {% else %}
@@ -67,7 +70,7 @@
                                 <td>{{ crew.pilot.flyingclub }}</td>                             
                                 <td>{{ crew.pilot.licenseFfa }}</td>  
                                 <td>{{ crew.pilot.email }}</td> 
-                                <td>{{ crew.pilot.phone }}</td> 
+                                <td>{{ crew.pilot.phone|replace({' ': ''}) }}</td> 
                                 <td>{{ crew.pilot.committee.value|slice(0, 2) }}</td> 
                             </tr>
                             <tr class='border-bottom'>    

@@ -111,7 +111,8 @@
       </div>
     </div>
   {% endif %}
-
+  {% set currentYear = selectedYear %}
+  {% set pastYears = years|filter(y => y != currentYear) %}
     
   <div class='container mt-4'>
     <div class="row">
@@ -120,14 +121,25 @@
         <div class="bg-light p-3 rounded shadow-sm">
           <h5 class="mb-4">Résultats</h5>
           <strong>Année</strong>
-          <div class="mt-2">
-            {% for year in years %}
-              <a href="{{ path('home', { year: year }) }}"
-                class="btn btn-sm {{ year == selectedYear ? 'btn-primary' : 'btn-outline-primary' }}  mb-2 w-100 text-centered">
-                {{ year }}
-              </a>
-            {% endfor %}
+
+          <div class="mt-2 mb-3">
+            <a href="{{ path('home', { year: currentYear }) }}"
+              class="btn btn-sm btn-primary w-100">
+              {{ currentYear }}
+            </a>
           </div>
+          <strong>Archives</strong>
+          <select class="form-select form-select-sm mt-2"
+                  onchange="if (this.value) window.location.href = this.value;">
+            <option value="">Choisir une année</option>
+
+            {% for year in pastYears %}
+              <option value="{{ path('home', { year: year }) }}">
+                {{ year }}
+              </option>
+            {% endfor %}
+          </select>
+
           {% if live is not empty %}
           <div class="mt-4">
             <strong>Direct</strong>

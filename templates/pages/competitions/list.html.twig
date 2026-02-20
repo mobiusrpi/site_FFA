@@ -16,9 +16,21 @@
             {{message}}
           </div> 
         {% endfor %}
+        {% set currentYear = 'now'|date('Y') %}
+        {% set today = 'now'|date('Y-m-d') %}
+        {% set endOfYear = currentYear ~ '-12-31' %}
+
         {% if competition_list is empty %}
-          <div class="mt-4"><p>Les compétitions pour {{ 'now'|date('Y') }} sont terminées, rendez-vous pour {{  ('now'|date('Y')|number_format(0, '', '')) + 1 }}</p></div>
+        <div class="mt-4">
+            {% if today > endOfYear %}
+            <p>Les compétitions pour {{ currentYear }} sont terminées.</p>
+            {% else %}
+            <p>Aucune compétition inscrite pour {{ currentYear }}.</p>
+            {% endif %}
+        </div>
         {% endif %}
+
+
         <div class="row">
             {% for compet in competition_list %}
                 <div class="col-12 col-sm-6 col-md-4 col-lg-4 col-xl-4 mt-4">
