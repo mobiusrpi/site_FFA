@@ -8,7 +8,8 @@
             font-size: 0.8em; 
         }
         .required-field {
-            border: 1px solid orange; 
+            border: 1px solid orange !important;
+            box-shadow: 0 0 5px orange;
         }
     </style>
 
@@ -62,12 +63,6 @@
                     {{ form_errors(registrationForm.licenseFfa) }}
                 </div>
                 {{ form_widget(registrationForm.licenseFfa) }}
-
-                {{ form_label(registrationForm.flyingclub) }}
-                <div class='text-danger'> 
-                    {{ form_errors(registrationForm.flyingclub) }}
-                </div>                
-                {{ form_widget(registrationForm.flyingclub) }}
                       
                 {{ form_label(registrationForm.phone) }}
                 <div class='text-danger'> 
@@ -80,12 +75,6 @@
                     {{ form_errors(registrationForm.gender) }}
                 </div> 
                 {{ form_widget(registrationForm.gender) }}
-
-                {{ form_label(registrationForm.committee) }}               
-                <div class='text-danger'>                
-                    {{ form_errors(registrationForm.committee) }}
-                </div>                
-                {{ form_widget(registrationForm.committee) }}
 
                 {{ form_label(registrationForm.poloSize) }}            
                 <div class='text-danger'>                 
@@ -107,69 +96,73 @@
         </div>
     </section>    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var emailField = document.getElementById('registration_form_email');
-            var lastnameField = document.getElementById('registration_form_lastname');
-            var firstnameField = document.getElementById('registration_form_firstname');
-            var plainPasswordField = document.getElementById('registration_form_plainPassword');
-            var checkbox = document.getElementById('registration_form_isCompetitor');
-            var competitorFieldsContainer = document.getElementById('competitorFieldsContainer');
-            var licenseFfaField = document.getElementById('registration_form_licenseFfa');
-            var dateBirthField = document.getElementById('registration_form_dateBirth');
-            var flyingclubField = document.getElementById('registration_form_flyingclub');
-            var phoneField = document.getElementById('registration_form_phone');
-            var genderField = document.getElementById('registration_form_gender');
-            var committeeField = document.getElementById('registration_form_committee');
-            var poloSizeField = document.getElementById('registration_form_poloSize');
+        document.addEventListener('DOMContentLoaded', function () {
 
-            console.log('Checkbox:', checkbox);
-            console.log('Additional Field:', competitorFieldsContainer);
+            const checkbox = document.getElementById('registration_form_isCompetitor');
+            const competitorFieldsContainer = document.getElementById('competitorFieldsContainer');
 
+            const competitorFields = [
+                'registration_form_licenseFfa',
+                'registration_form_dateBirth',
+                'registration_form_phone',
+            ];
 
-            if (checkbox && competitorFieldsContainer) {
-                checkbox.addEventListener('change', function() {
-                    var isChecked = checkbox.checked;
-                    updateFieldAppearance(emailField, true);                    
-                    updateFieldAppearance(lastnameField, true);
-                    updateFieldAppearance(firstnameField, true);
-                    updateFieldAppearance(plainPasswordField, true);                   
-                    if (this.checked) {
-                        competitorFieldsContainer.style.display = 'block';
-                        licenseFfaField.required = true;
-                        dateBirthField.required = true;
-                        flyingclubField.required = true;
-                        phoneField.required = true;
-                        committeeField.required = true;
-                        poloSizeField.required = true;
-                    } else {
-                        competitorFieldsContainer.style.display = 'none';
-                        licenseFfaField.required = false;
-                        dateBirthField.required = false; 
-                        flyingclubField.required = false;                        
-                        phoneField.required = false; 
-                        committeeField.required = false; 
-                        poloSizeField.required = false;                     
-                    }           
-                    updateFieldAppearance(licenseFfaField, isChecked);
-                    updateFieldAppearance(dateBirthField, isChecked);
-                    updateFieldAppearance(flyingclubField, isChecked);
-                    updateFieldAppearance(phoneField, isChecked);
-                    updateFieldAppearance(committeeField, isChecked);
-                    updateFieldAppearance(poloSizeField, isChecked);
-                });
-                function updateFieldAppearance(field, isRequired) {
-                    if (isRequired) {
+            /* ===============================
+            1️⃣ Appliquer le style orange
+            aux champs required existants
+            (section Enregistrement)
+            =============================== */
+            function applyRequiredStyle() {
+                document.querySelectorAll('input[required], select[required], textarea[required]')
+                    .forEach(function (field) {
+                        field.classList.add('required-field');
+                    });
+            }
+
+            /* ===============================
+            2️⃣ Gestion dynamique Concurrent
+            =============================== */
+            function updateFields(isChecked) {
+
+                competitorFields.forEach(function (fieldId) {
+
+                    const field = document.getElementById(fieldId);
+                    if (!field) return;
+
+                    const label = document.querySelector("label[for='" + fieldId + "']");
+
+                    field.required = isChecked;
+
+                    if (isChecked) {
                         field.classList.add('required-field');
                     } else {
                         field.classList.remove('required-field');
                     }
-                }
 
-                // Trigger the change event on page load to set the initial state
-                checkbox.dispatchEvent(new Event('change'));
-            } else {
-                console.error('Checkbox or additional field not found');
+                    if (label) {
+                        label.classList.toggle('required', isChecked);
+                    }
+                });
+
+                if (competitorFieldsContainer) {
+                    competitorFieldsContainer.style.display = isChecked ? 'block' : 'none';
+                }
             }
+
+            /* ===============================
+            Initialisation
+            =============================== */
+
+            applyRequiredStyle(); // 👉 Pour Enregistrement
+
+            if (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    updateFields(this.checked);
+                });
+
+                updateFields(checkbox.checked);
+            }
+
         });
     </script>
 

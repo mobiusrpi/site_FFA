@@ -98,6 +98,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $flyingclub = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $idClub = null;
+
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $phone = null;
 
@@ -385,7 +388,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-
+    
     public function getFlyingclub(): ?string
     {
         return $this->flyingclub;
@@ -394,6 +397,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFlyingclub(?string $flyingclub): static
     {
         $this->flyingclub = $flyingclub;
+
+        return $this;
+    }
+
+     public function getIdClub(): ?int
+    {
+        return $this->idClub;
+    }
+   
+    public function setIdClub(?int $idClub): static
+    {
+        $this->idClub = $idClub;
 
         return $this;
     }

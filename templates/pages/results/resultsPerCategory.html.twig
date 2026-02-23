@@ -104,14 +104,15 @@
               <th class="text-center">Class.</th>
               <th class="text-center">
                 {% if competition.typecompetition.id == 2 %}
-                  Pilote            
+                  Pilote           
                 {% else %}
                   Équipage
                 {% endif %}
               </th>
               {% if hasCrewEntity %}
                 <th class="text-center">Sexe</th>
-                <th class="text-center">Association</th>
+                <th class="text-center">AC Licence</th>                
+                <th class="text-center">AC Sport</th>
                 <th class="text-center">CRA</th>
               {% endif %}
               <th class="text-center sort-column" data-key="navigation">
@@ -206,6 +207,15 @@
                             {% endif %}
                         {% elseif row.crew.pilot is not null %}
                             {{ row.crew.pilot.flyingclub ?? '-' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.crew.pilot is not null and row.crew.navigator is not null %}
+                            {{ row.crew.aircraftFlyingclub }}
+                        {% elseif row.crew.pilot is not null %}
+                            {{ row.crew.aircraftFlyingclub ?? '-' }}
                         {% else %}
                             -
                         {% endif %}

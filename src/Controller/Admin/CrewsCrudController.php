@@ -241,7 +241,7 @@ class CrewsCrudController extends AbstractCrudController
         $fields[] = TextField::new('callsign','Immatriculation');
         $fields[] = TextField::new('aircraftBrand','Marque de l\'avion')->hideOnIndex();
         $fields[] = TextField::new('aircraftType','Type d\'avion')->hideOnIndex();
-        $fields[] = TextField::new('aircraftFlyingclub','Propriétaire de l\'avion')->hideOnIndex();
+        $fields[] = TextField::new('aircraftFlyingclub','Aéroclub sport (avion)')->hideOnIndex();
         
         $fixSpeed = $competition->getTypecompetition()->getFixSpeed(); 
       

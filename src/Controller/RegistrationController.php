@@ -70,7 +70,9 @@ class RegistrationController extends AbstractController
                     $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
                 } else {
                     $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
-                    $user->setEndValidity($dateValidity);
+                    $user->setEndValidity($dateValidity);                    
+                    $user->setFlyingclub($dataSmile['nom_aeroclub']);                    
+                    $user->setIdClub($dataSmile['code_fna']);
                     $licenseValid = true;
                 }
             } else {

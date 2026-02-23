@@ -7,6 +7,7 @@ use App\Entity\Enum\Gender;
 use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Regex;
@@ -33,6 +34,7 @@ class RegistrationForm extends AbstractType
                 'attr' => [
                     'class' => 'form-control'
                 ],
+                'required' => true,
                 'label'    => 'Email',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
@@ -54,6 +56,7 @@ class RegistrationForm extends AbstractType
                     'class' => 'form-control',                    
                     'maxlength' => '30'
                 ],
+                'required' => true,
                 'label' => 'Nom',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
@@ -69,6 +72,7 @@ class RegistrationForm extends AbstractType
                     'class' => 'form-control',                    
                     'maxlength' => '30'
                 ],
+                'required' => true,
                 'label' => 'Prénom',
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
@@ -81,6 +85,7 @@ class RegistrationForm extends AbstractType
             ])
             ->add('plainPassword', PasswordType::class, [
                 'mapped' => false,
+                'required' => true,
                 'attr' => [
                     'autocomplete' => 'new-password',
                     'class' => 'form-control',
@@ -137,7 +142,12 @@ class RegistrationForm extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-                'constraints' =>  [
+                'required' => false,
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'La licence est obligatoire.',
+                        'groups' => ['competitor']
+                    ]),
                     new Regex([
                         'pattern' => '/^[0-9]/',
                         'message' => 'Format numerique seulement',
@@ -148,23 +158,17 @@ class RegistrationForm extends AbstractType
                 'widget' => 'single_text',
                 'attr' => [
                     'class' => 'form-control',                    
-                ],
-                'required' => false,                
+                ],             
                 'label' => 'Date de naissance',
-                'required' => false,
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-           ])
-            ->add('flyingclub',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '50'
-                ],                
                 'required' => false,
-                'label' => 'Aéroclub',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'La licence est obligatoire.',
+                        'groups' => ['competitor']
+                    ])
                 ],
             ])
             ->add('phone',TelType::class,[
@@ -176,13 +180,19 @@ class RegistrationForm extends AbstractType
                 'label_attr' => [
                     'class' => 'form-label fw-bold'
                 ],
-               'constraints' => [
+                'required' => false,
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'La licence est obligatoire.',
+                        'groups' => ['competitor']
+                    ]),
                     new Regex([
-                        'pattern' => '/^(\+33|0)[1-9][0-9 ]{8,12}$/',
-                        'message' => 'Format telephonique 06XXXXXXXX ou 0X XX XX XX XX',
+                        'pattern' => '/^(?:\+33|0)[1-9]\d{8}$/',
+                        'message' => 'Format téléphonique valide : 0XXXXXXXXX ou +33XXXXXXXXX',
                     ])
                 ],
-            ])
+            ])            
+
             ->add('gender',EnumType::class,[
                 'class' => Gender::class,
                 'choice_label' => function (
@@ -200,23 +210,7 @@ class RegistrationForm extends AbstractType
                 ],
                 'placeholder' => 'Sélectionner dans la liste'
              ])
-            ->add('committee',EnumType::class,[
-                'class' => CRAList::class,                
-                'choice_label' => function (
-                    mixed $value
-                ): TranslatableMessage|string {
-                    return $value->getLabel();  
-                },
-                'attr' => [
-                    'class' => 'form-select',                    
-                ],
-                'required' => false,
-                'label' => 'Région',    
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-                'placeholder' => 'Sélectionner dans la liste'
-            ])
+
             ->add('poloSize',EnumType::class,[
                 'class' => Polosize::class,
                 'choice_label' => function (
@@ -241,6 +235,16 @@ class RegistrationForm extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Users::class,
+            'validation_groups' => function (FormInterface $form) {
+
+                $user = $form->getData();
+
+                if ($user && $user->isCompetitor()) {
+                    return ['Default', 'competitor'];
+                }
+
+                return ['Default'];
+            },
         ]);
     }
 }
