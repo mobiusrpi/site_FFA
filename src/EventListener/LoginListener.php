@@ -5,23 +5,21 @@ namespace App\EventListener;
 
 use App\Service\SmileService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Routing\RouterInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 
 class LoginListener
 {
     public function __construct( 
-        private string $apiUrl,
+        private string $apiUrlSmileDetails,        
         private RequestStack $requestStack,        
         private EntityManagerInterface $entityManager,        
-        private Security $security,
         private SmileService $smileService,
-        private RouterInterface $router, 
+        private LoggerInterface $logger,   // ← ajouter ici
     ){}
 
 
@@ -29,7 +27,12 @@ class LoginListener
     {
         $user = $event->getUser();
 
-        if (!$user instanceof \App\Entity\Users  ) {
+        if (!$user instanceof \App\Entity\Users) {
+            return;
+        }
+
+        $user = $this->entityManager->getRepository(\App\Entity\Users::class)->find($user->getId());
+        if (!$user) {
             return;
         }
         try{
@@ -37,20 +40,22 @@ class LoginListener
             if (!$user->getLicenseFfa()) {
                 return;
             }
-            $result = $this->smileService->verifyLicense(
-                $user->getLicenseFfa(),
-                $user->getDateBirth()
-            );
 
             $session = $this->requestStack->getSession();
             if ($session instanceof SessionInterface && !$session->isStarted()) {
                 $session->start();
-            }
-         
-            if (!empty($result['error'])) {
+            }  
+
+            $dataSmile= $this->smileService->verifyLicense(
+                $user->getLicenseFfa(),
+                $user->getDateBirth()
+            );
+
+
+            if (!empty($dataSmile['error'])) {
                 
-                $hostFromUrl = parse_url($this->apiUrl, PHP_URL_HOST); 
-                preg_match('/host\s+"([^"]+)"/', $result['error'], $matches);
+                $hostFromUrl = parse_url($this->apiUrlSmileDetails, PHP_URL_HOST); 
+                preg_match('/host\s+"([^"]+)"/', $dataSmile['error'], $matches);
                 $hostFromError = $matches[1] ?? null;
                 if ($hostFromUrl === $hostFromError) {     
                     if ($session instanceof Session) {
@@ -58,54 +63,61 @@ class LoginListener
                     }
                 } else {
                     if ($session instanceof Session) {
-                        $session->getFlashBag()->add('Danger', $result['error']);
+                        $session->getFlashBag()->add('Danger', $dataSmile['error']);
                     }
                 }
                 return;
             }
 
-            if ($result['isExist']) 
-            {
-                if ($result['isValid']) {
-                
-                    $endingDateStr = $result['endingDate'] ?? '';
-                    $newEndDate = \DateTimeImmutable::createFromFormat('Y-m-d', $endingDateStr);
-                    if ($newEndDate instanceof \DateTimeImmutable){
-                        $currentEndDate = $user->getEndValidity();
-                        if (!$currentEndDate || $newEndDate->format('Y-m-d') > $currentEndDate->format('Y-m-d')) {
-                            $user->setEndValidity($newEndDate);
-                            $this->entityManager->persist($user);
-                            $this->entityManager->flush();
-                            if (!$currentEndDate ){
-                                $message = 'Licence fédérale vérifiée.';
-                            } else {
-                                $message = 'Date de validité de votre licence mise à jour.';
-                            }                 
-                            if ($session instanceof Session) {
-                                $session->getFlashBag()->add('success',$message);                   
-                            }      
-                        }
-                    }
-                } else {             
-                    if (empty($result['endingDate'])) {
-                        if ($session instanceof Session) {
-                            $session->getFlashBag()->add('danger', 'Problème de contôle de validité de votre licence avec Smile, vérifiez votre date de naissance.');
-                        }
-                    } else {            
-                    if ($session instanceof Session) {
-                            $session->getFlashBag()->add('danger', 'Validité de votre licence périmée : ' . $result['endingDate'] );
-                        }                   
-                    } 
-                }
-            }else{
-                $user->setIsCompetitor(false);
-                $user->setRoles([]);
+            if ($dataSmile['isValid']) {
+                                 
+                $dateUpdated = false;
+                $clubUpdated = false;
+                $isFirstValidation = false;
 
-                $this->entityManager->persist($user);
-                $this->entityManager->flush();
-                if ($session instanceof Session) {
-                    $session->getFlashBag()->add('danger', 'Numéro de licence inconnue.');
+                if ($dataSmile['endingDate'] instanceof \DateTimeImmutable){
+                    $currentEndDate = $user->getEndValidity();
+
+                    if (!$currentEndDate) {
+                    $user->setEndValidity($dataSmile['endingDate']);        
+                        $isFirstValidation = true;
+                        $dateUpdated = true;
+                    }
+                    elseif ($dataSmile['endingDate'] > $currentEndDate) {
+                    $user->setEndValidity($dataSmile['endingDate']);        
+                        $dateUpdated = true;
+                    }
                 }
+                
+                if (!empty($dataSmile['code_fna']) && $dataSmile['code_fna'] !== $user->getIdClub()) {
+
+                    $user->setIdClub($dataSmile['code_fna']);
+                    $user->setFlyingclub($dataSmile['nom_aeroclub'] ?? null);
+
+                    if (!empty($dataSmile['committee'])) {
+                        $user->setCommittee($dataSmile['committee']);
+                    }
+
+                    $clubUpdated = true;
+                }
+                $messages = [];
+
+                if ($isFirstValidation) {
+                    $messages[] = 'Licence fédérale vérifiée.';
+                }
+                elseif ($dateUpdated) {
+                    $messages[] = 'Date de validité mise à jour.';
+                }
+
+                if ($clubUpdated) {
+                    $messages[] = 'Mise à jour du club par Smile.';
+                }
+
+                if (!empty($messages) && $session instanceof Session) {
+                    $session->getFlashBag()->add('success', implode(' ', $messages));
+                }
+
+                $this->entityManager->flush();
             }
         } catch (\Throwable $e) {
             // 🔹 On renvoie un JSON clair pour le client Delphi

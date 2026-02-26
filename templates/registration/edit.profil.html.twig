@@ -14,8 +14,11 @@
     </style>
     <section class='container mt-4' >
         <h3 class="h3 text-center font-weight-normal mb-3">Mon profil</h3> 
-
-        <p class='text-center text-danger'>{{ form_errors(profilForm) }}</p>        
+        {% if profilForm.vars.errors|length > 0 %}
+            <div class="alert alert-danger">
+                {{ form_errors(profilForm) }}
+            </div>
+        {% endif %}
 
         {{ form_start(profilForm) }}
         <div class="row justify-items-center">
@@ -61,12 +64,6 @@
                 </div>
                 {{ form_widget(profilForm.licenseFfa) }}
 
-                {{ form_label(profilForm.flyingclub) }}
-                <div class='text-danger'> 
-                    {{ form_errors(profilForm.flyingclub) }}
-                </div>                
-                {{ form_widget(profilForm.flyingclub) }}
-
                 {{ form_label(profilForm.phone) }}
                 <div class='text-danger'> 
                     {{ form_errors(profilForm.phone) }}
@@ -79,18 +76,11 @@
                 </div> 
                 {{ form_widget(profilForm.gender) }}
 
-                {{ form_label(profilForm.committee) }}              
-                <div class='text-danger'>                
-                    {{ form_errors(profilForm.committee) }}
-                </div>                
-                {{ form_widget(profilForm.committee) }}
-
                 {{ form_label(profilForm.poloSize) }}            
                 <div class='text-danger'>                 
                     {{ form_errors(profilForm.poloSize) }}                    
                 </div>                 
                 {{ form_widget(profilForm.poloSize) }}
-
             </div> 
         </div>
        <div class="row justify-items-center">                 
@@ -113,10 +103,8 @@
             var competitorFieldsContainer = document.getElementById('competitorFieldsContainer');
             var licenseFfaField = document.getElementById('edit_profil_licenseFfa');
             var dateBirthField = document.getElementById('edit_profil_dateBirth');
-            var flyingclubField = document.getElementById('edit_profil_flyingclub');
             var phoneField = document.getElementById('edit_profil_phone');
             var genderField = document.getElementById('edit_profil_gender');
-            var committeeField = document.getElementById('edit_profil_committee');
             var poloSizeField = document.getElementById('edit_profil_poloSize');
 
             console.log('Checkbox:', checkbox);
@@ -133,25 +121,16 @@
                         competitorFieldsContainer.style.display = 'block';
                         licenseFfaField.required = true;
                         dateBirthField.required = true;
-                        flyingclubField.required = true;
                         phoneField.required = true;
-                        committeeField.required = true;
-                        poloSizeField.required = true;
                     } else {
                         competitorFieldsContainer.style.display = 'none';
                         licenseFfaField.required = false;
-                        dateBirthField.required = false; 
-                        flyingclubField.required = false;                        
-                        phoneField.required = false; 
-                        committeeField.required = false; 
-                        poloSizeField.required = false;                     
+                        dateBirthField.required = false;                     
+                        phoneField.required = false;                   
                     }           
                     updateFieldAppearance(licenseFfaField, isChecked);
                     updateFieldAppearance(dateBirthField, isChecked);
-                    updateFieldAppearance(flyingclubField, isChecked);
                     updateFieldAppearance(phoneField, isChecked);
-                    updateFieldAppearance(committeeField, isChecked);
-                    updateFieldAppearance(poloSizeField, isChecked);
                 });
                 function updateFieldAppearance(field, isRequired) {
                     if (isRequired) {

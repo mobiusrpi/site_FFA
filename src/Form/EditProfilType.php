@@ -112,17 +112,6 @@ class EditProfilType extends AbstractType
                     'class' => 'form-label fw-bold'
                 ],
            ])
-            ->add('flyingclub',TextType::class,[
-                'attr' => [
-                    'class' => 'form-control',                    
-                    'maxlength' => '30'
-                ],                
-                'required' => false,
-                'label' => 'Aéroclub',
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-            ])
             ->add('phone',TelType::class,[
                 'attr' => [
                     'class' => 'form-control',                    
@@ -156,23 +145,6 @@ class EditProfilType extends AbstractType
                 ],
                 'placeholder' => 'Sélectionner dans la liste'
              ])
-            ->add('committee',EnumType::class,[
-                'class' => CRAList::class,                
-                'choice_label' => function (
-                    mixed $value
-                ): TranslatableMessage|string {
-                    return $value->getLabel();  
-                },
-                'attr' => [
-                    'class' => 'form-select',                    
-                ],
-                'required' => false,
-                'label' => 'Région',    
-                'label_attr' => [
-                    'class' => 'form-label fw-bold'
-                ],
-                'placeholder' => 'Sélectionner dans la liste'
-            ])
             ->add('poloSize',EnumType::class,[
                 'class' => Polosize::class,
                 'choice_label' => function (

@@ -15,8 +15,11 @@
 
     <section class='container mt-4' >
         <h3 class="h3 text-center font-weight-normal mb-3">M'inscrire</h3> 
-        {{ form_errors(registrationForm) }}
-        
+        {% if registrationForm.vars.errors|length > 0 %}
+            <div class="alert alert-danger">
+                {{ form_errors(registrationForm) }}
+            </div>
+        {% endif %}
         {{ form_start(registrationForm) }}
         <div class="row justify-content-center">
             <div class="col-md-5 border border-dark border-1 rounded-3 order-1 order-md-1 mb-3 p-4 me-2">

@@ -2,24 +2,25 @@
 
 namespace App\Controller;
 
+use App\Entity\Enum\CRAList;
 use App\Entity\Users;
-use DateTimeImmutable;
-use App\Service\JWTService;
 use App\Form\EditProfilType;
-use Psr\Log\LoggerInterface;
-use App\Service\SmileService;
 use App\Form\RegistrationForm;
-use App\Security\EmailVerifier;
-use App\Service\SendMailService;
 use App\Repository\UsersRepository;
-use Symfony\Component\Form\FormError;
+use App\Security\EmailVerifier;
+use App\Service\JWTService;
+use App\Service\SendMailService;
+use App\Service\SmileService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Security;
 
 
 class RegistrationController extends AbstractController
@@ -52,6 +53,7 @@ class RegistrationController extends AbstractController
         $user = new Users();
         $user->setCreatedAt( new \DateTimeImmutable());
         $user->setUpdatedAt( new \DateTimeImmutable());  
+
         $form = $this->createForm(RegistrationForm::class, $user);
         $form->handleRequest($request);
 
@@ -60,20 +62,38 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted() && $user->isCompetitor()) {
             $license = $form->get('licenseFfa')->getData(); 
             $birthdate = $form->get('dateBirth')->getData(); 
-
+            $lastname =  $form->get('lastname')->getData();
             if ($license !== null && $birthdate !== null) {
-                $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
 
-                if (isset($dataSmile['error'])) {
-                    $form->addError(new FormError('La licence ne correspond pas à celle enregistrée dans Smile'));
-                } elseif (!$dataSmile['isValid']) {
-                    $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
-                } else {
-                    $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
-                    $user->setEndValidity($dateValidity);                    
-                    $user->setFlyingclub($dataSmile['nom_aeroclub']);                    
-                    $user->setIdClub($dataSmile['code_fna']);
-                    $licenseValid = true;
+                $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+                if (!$dataSmile['isValid']) {
+                    $form->addError(new FormError(
+                        $dataSmile['error'] ?? 'Erreur de validation Smile'
+                    ));
+                } else {    
+                    if (
+                        isset($dataSmile['nom']) &&
+                        mb_strtoupper($dataSmile['nom']) !== mb_strtoupper($lastname)
+                    ) {
+                        $form->addError(
+                            new FormError("Votre nom ne correspond pas à celui associé à votre numéro de licence")
+                        );
+                    } else {
+                        $user->setEndValidity($dataSmile['endingDate']);                    
+                        $user->setFlyingclub($dataSmile['nom_aeroclub']);  
+                        
+                        $codeFna = $dataSmile['code_fna'] ?? null;
+                        if ($codeFna !== null) {
+                            $user->setIdClub($codeFna);
+                        }
+
+                        // CRA enum
+                        if ($dataSmile['committee'] instanceof CRAList) {
+                            $user->setCommittee($dataSmile['committee']);
+                        }
+
+                        $licenseValid = true;
+                    }
                 }
             } else {
                 $form->addError(new FormError('Licence ou date de naissance manquante.'));
@@ -138,40 +158,50 @@ class RegistrationController extends AbstractController
         $form = $this->createForm(EditProfilType::class, $user);
         $form->handleRequest($request);
         $licenseValid = true;
-
         if ($form->isSubmitted()) {            
             $license = $form->get('licenseFfa')->getData(); 
             $birthdate = $form->get('dateBirth')->getData(); 
+            $user = $form->getData();    
+            $lastname = $user->getLastName();        
             $formattedDate = $birthdate?->format('d/m/Y');
 
-            if (!$license === null || !$birthdate === null){
+            if ($license !== null && $birthdate !== null){
             // Check if SmileService validates the user
                 $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+                if (!$dataSmile['isValid']) {
+                    $form->addError(new FormError(
+                        $dataSmile['error'] ?? 'Erreur de validation Smile'
+                    ));
+                } else {    
+                    if (
+                        isset($dataSmile['nom']) &&
+                        mb_strtoupper($dataSmile['nom']) !== mb_strtoupper($lastname)
+                    ) {
+                        $form->addError(
+                            new FormError('Votre nom ne correspond pas à celui associé à votre numéro de licence')
+                        );
+                    } else {
+                        if (!empty($dataSmile['code_fna'])) {
+                            $user->setIdClub($dataSmile['code_fna']);
+                        }
 
-                if (isset($dataSmile['error'])) {
-                    $form->addError(new FormError('La licence ne corespond pas à celle enregistrée dans Smile'));
-                    $this->logger->error('License number don\'t match Smile', [
-                        'License :' => $license,
-                        'Birthdate'=>  $formattedDate,
-                    ]);
-                } elseif (!$dataSmile['isValid']) {
-                    $form->addError(new FormError('Licence invalide ou expirée : fin le ' . $dataSmile['endingDate']));
-                    $this->logger->error('License invalid or expired', [
-                        'License :' => $license,
-                        'Birthdate :'=>  $formattedDate,
-                        'EndValidity :'=> $dataSmile['endingDate'],
-                    ]);
-                } else {
-                    $user = $form->getData();
-                    $dateValidity = \DateTimeImmutable::createFromFormat('Y-m-d', $dataSmile['endingDate']);
-                    $user->setEndValidity($dateValidity);
-                    $this->logger->info('License updated', [
-                        'License :' => $license,
-                        'Birthdate :'=>  $formattedDate,
-                        'EndValidity :'=> $dataSmile['endingDate'],
-                    ]);
+                        if (!empty($dataSmile['nom_aeroclub'])) {
+                            $user->setFlyingclub($dataSmile['nom_aeroclub']);
+                        }
+
+                        if ($dataSmile['committee'] instanceof CRAList) {
+                            $user->setCommittee($dataSmile['committee']);
+                        }
+
+                        $user->setEndValidity($dataSmile['endingDate']);
+      
+                        $this->logger->info('License updated', [
+                            'License :' => $license,
+                            'Birthdate :'=>  $formattedDate,
+                            'endValidity' => $dataSmile['endingDate']?->format('Y-m-d'),
+                        ]);
+                    }
                 }   
-            
             } else {
                 $this->logger->error('Licence number or Birthdate missing', [
                     'License :' => $license,
@@ -184,8 +214,7 @@ class RegistrationController extends AbstractController
 
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
-            $isCompetitorChecked = $form->get('isCompetitor');
-            
+            $isCompetitorChecked = $form->get('isCompetitor')->getData();            
             // encode the plain password
             if ($plainPassword) {
                 $user->setPassword(

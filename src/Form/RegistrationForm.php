@@ -134,7 +134,10 @@ class RegistrationForm extends AbstractType
             ->add('licenseFfa',TextType::class,[
                 'attr' => [
                     'class' => 'form-control',                    
-                    'maxlength' => '15'
+                    'inputmode' => 'numeric',     
+                    'pattern' => '[0-9]*',        
+                    'maxlength' => 10,           
+
                 ],
                 'required' => false,
                 'label' => '<strong>Licence fédérale, </strong><span class="smaller-text">elle sera vérifiée avec Smile</span>',

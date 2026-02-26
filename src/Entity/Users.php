@@ -90,6 +90,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $dateBirth = null;
 
     #[ORM\Column(length: 9,nullable: true)]
+    #[Assert\Regex(
+    pattern: '/^[0-9]+$/',
+    message: 'La licence doit contenir uniquement des chiffres.')]
     private ?string $licenseFfa = null;
 
     #[ORM\Column(nullable: true)]
@@ -98,8 +101,8 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $flyingclub = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $idClub = null;
+    #[ORM\Column(type: 'string', length: 10, nullable: true)]
+    private ?string $idClub = null;
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $phone = null;
@@ -401,15 +404,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-     public function getIdClub(): ?int
+     public function getIdClub(): ?string
     {
         return $this->idClub;
     }
    
-    public function setIdClub(?int $idClub): static
+    public function setIdClub(?string $idClub): self
     {
         $this->idClub = $idClub;
-
         return $this;
     }
 

@@ -48,8 +48,23 @@ enum CRAList: string
       };
     }
 
+    public static function fromCode(string $code): ?self
+    {
+        foreach (self::cases() as $case) {
+            if ($case->getCode() === $code) {
+                return $case;
+            }
+        }
+
+        return null; // si code inconnu
+    }
+    
     public function getCode(): string
     {
-        return explode(' ', $this->value)[0]; // returns the number before first space
+        // Récupère le nombre avant le premier espace
+        $number = explode(' ', $this->value)[0]; // "1", "2", "3"…
+        
+        // Ajoute un zéro devant si nécessaire pour faire "01", "02", "03"
+        return $number;
     }
 }; 
