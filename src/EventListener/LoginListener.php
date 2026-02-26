@@ -110,7 +110,7 @@ class LoginListener
                 }
 
                 if ($clubUpdated) {
-                    $messages[] = 'Mise à jour du club par Smile.';
+                    $messages[] = 'Mise à jour du nom de votre club par Smile.';
                 }
 
                 if (!empty($messages) && $session instanceof Session) {

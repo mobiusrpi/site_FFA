@@ -125,7 +125,8 @@ class UsersCrudController extends AbstractCrudController
             IdField::new('id')
                 ->hideOnForm()
                 ->hideOnIndex(),
-            TextField::new('lastname','Nom'),            
+            TextField::new('lastname','Nom')     
+                ->setSortable(true),      
             TextField::new('firstname','Prénom')
                 ->setSortable(false),
             EmailField::new('email','Email')
@@ -138,7 +139,7 @@ class UsersCrudController extends AbstractCrudController
                 ->setSortable(false),            
             TextField::new('licenseFfa','Licence FFA')
                 ->setDisabled(true)
-                ->setSortable(true)
+                ->hideOnIndex()
                 ->setDisabled(!$this->isGranted('ROLE_ADMIN')),            
             ChoiceField::new('roles')
                 ->setChoices($availableRoles)
@@ -152,6 +153,8 @@ class UsersCrudController extends AbstractCrudController
                 ->setDisabled(!$this->isGranted('ROLE_ADMIN')),                      
       
             ChoiceField::new('committee','CRA')
+                ->setDisabled(true)
+                ->setDisabled(!$this->isGranted('ROLE_ADMIN'))
                 ->setChoices(array_combine(
                     array_map(fn($case) => $case->value, CRAList::cases()),
                     CRAList::cases()
@@ -169,7 +172,14 @@ class UsersCrudController extends AbstractCrudController
                 ))
                 ->hideOnIndex(),
 
-            TextField::new('flyingclub','Aéroclub')
+            TextField::new('flyingclub','Aéroclub de licence')
+                ->setDisabled(true)
+                ->setDisabled(!$this->isGranted('ROLE_ADMIN'))
+                ->hideOnIndex(),  
+            
+                TextField::new('idClub','Code Aéroclub')
+                ->setDisabled(true)
+                ->setDisabled(!$this->isGranted('ROLE_ADMIN'))
                 ->hideOnIndex(),  
 
             BooleanField::new('isVerified', 'Vérifié')
