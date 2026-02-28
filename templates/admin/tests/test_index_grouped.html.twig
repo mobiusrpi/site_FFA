@@ -1,0 +1,207 @@
+{# templates/admin/test_index_grouped.html.twig #}
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block flash_messages %}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+
+{% block content_title %}
+    Epreuves par compétition
+{% endblock %}
+
+{% block main %}
+
+    {% for competitionId, groupData in grouped %}
+        <h5 class="d-flex justify-content-between align-items-center mb-2">
+            {{ groupData.competition.name}}
+
+            <a href="{{ ea_url()
+                    .setController('App\\Controller\\Admin\\TestsCrudController')
+                    .setAction('new')
+                    .set('competition', groupData.competition.id)
+                }}" 
+                class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter une épreuve
+            </a>
+        </h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>                     
+                    <th>Name</th>                      
+                    <th>Code</th>     
+                    <th>Type d'épreuve</th>                  
+                    <th>En cours</th>                          
+                    <th>Results validés</th>                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in groupData.tests %}
+                    <tr>
+                        <td>{{ test.id }}</td>                        
+                        <td>{{ test.name }}</td>                          
+                        <td>{{ test.code }}</td>                          
+                        <td>{{ test.type.value }}</td>                         
+        
+                        <td>
+                            <input type="checkbox"
+                                class="form-check-input toggle-switch"
+                                data-test-id="{{ test.id }}"
+                                data-field="inProgress"
+                                {% if test.inProgress %}checked{% endif %}>
+                        </td>
+
+                        <td>
+                            <input type="checkbox"
+                                class="form-check-input toggle-switch"
+                                data-test-id="{{ test.id }}"
+                                data-field="resultsValidated"
+                                {% if test.resultsValidated %}checked{% endif %}>
+                        </td>
+                     
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}" class="btn btn-sm btn-primary">Modifier</a>
+
+                                <form method="post"
+                                    action="{{ ea_url()
+                                                .setController('App\\Controller\\Admin\\TestsCrudController')
+                                                .setAction('delete')
+                                                .setEntityId(test.id) }}"
+                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette épreuve ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
+                                    <button class="btn btn-sm btn-outline text-danger">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}{id: test.id}
+            </tbody>
+        </table>
+        <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmer la validation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="passwordInput">Mot de passe :</label>
+                    <input type="password" id="passwordInput" class="form-control" placeholder="Entrez votre mot de passe">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmer</button>
+                </div>
+                </div>
+            </div>
+            </div>
+    {% endfor %}
+<script>
+let currentSwitch = null;
+let currentField = null;
+let currentTestId = null;
+
+// Stocker l'état initial
+document.querySelectorAll('.toggle-switch').forEach(function(switchEl) {
+    switchEl.dataset.initial = switchEl.checked ? '1' : '0';
+
+    switchEl.addEventListener('change', function() {
+        const testId = this.dataset.testId;
+        const field = this.dataset.field;
+        const initial = this.dataset.initial === '1'; // true si déjà coché
+
+        // Si field = resultsValidated et qu'on coche (initial=false && checked=true)
+        if (field === 'resultsValidated' && !initial && this.checked) {
+            currentSwitch = this;
+            currentField = field;
+            currentTestId = testId;
+
+            const passwordInput = document.getElementById('passwordInput');
+            passwordInput.value = '';
+            const modalEl = document.getElementById('passwordModal');
+            const modal = new bootstrap.Modal(modalEl);
+
+            // Listener pour Annuler / fermeture du modal
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                if (currentSwitch) {
+                    // Remet la checkbox à son état initial
+                    currentSwitch.checked = false;
+                    currentSwitch = null;
+                    currentField = null;
+                    currentTestId = null;
+                }
+            }, { once: true });
+
+            modal.show();
+        } else {
+            // Décoche ou inProgress → toggle normal
+            toggleField(testId, field, null, this);
+        }
+    });
+});
+
+// Bouton Confirmer du modal
+document.getElementById('confirmPasswordBtn').addEventListener('click', function() {
+    const password = document.getElementById('passwordInput').value;
+    if (!password) return;
+
+    toggleField(currentTestId, currentField, password, currentSwitch);
+
+    // fermer le modal
+    const modalEl = document.getElementById('passwordModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    // nettoyer les variables
+    currentSwitch = null;
+    currentField = null;
+    currentTestId = null;
+});
+
+// fonction fetch générique
+function toggleField(testId, field, password, switchEl) {
+    fetch(`/admin/tests/toggle/${testId}/${field}`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.error || 'Erreur lors de la mise à jour');
+            if (switchEl) switchEl.checked = !switchEl.checked; // revert si erreur
+        } else {
+            // update initial state
+            if (switchEl) switchEl.dataset.initial = switchEl.checked ? '1' : '0';
+
+            // Désactiver / réactiver boutons Edit/Delete si resultsValidated
+            if (field === 'resultsValidated') {
+                const row = switchEl.closest('tr');
+                const editBtn = row.querySelector('.edit-test');
+                const deleteBtn = row.querySelector('.delete-test');
+
+                if (switchEl.checked) { 
+                    if (editBtn) editBtn.classList.add('disabled');
+                    if (deleteBtn) deleteBtn.classList.add('disabled');
+                } else { 
+                    if (editBtn) editBtn.classList.remove('disabled');
+                    if (deleteBtn) deleteBtn.classList.remove('disabled');
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

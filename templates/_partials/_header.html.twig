@@ -41,7 +41,15 @@
               <li><a class="dropdown-item" href="{{ path('edit_profil') }}">Profil</a></li>
               {% if app.user.licenseFfa %}
                 <li><a class="dropdown-item" href="{{ path('user_registrations_list') }}">Mes inscriptions</a></li>
-                <li><a class="dropdown-item" href="{{ path('user_aircrafts') }}">Mes avions</a></li>              
+                <li><a class="dropdown-item" href="{{ path('user_aircrafts') }}">Mes avions</a></li>   
+                <li><hr class="dropdown-divider"></li>               
+                <a class="dropdown-item"
+                  href="https://sports.ffa-aero.fr/docs/index.php/Connexion"
+                  target="_blank"
+                  rel="noopener">
+                    <i class="fa-solid fa-circle-question me-2"></i>
+                    Aide
+                </a>           
               {% endif %}                
               <li><a class="dropdown-item" href="{{ path('logout') }}">Déconnexion</a></li>
             </ul>

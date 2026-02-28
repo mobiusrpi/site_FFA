@@ -29,8 +29,11 @@ class Tests
     #[ORM\Column(type: 'test_compet', nullable: true)]
     private ?TestCompet $type = null;    
     
-    #[ORM\Column(nullable: true)]
-    private ?bool $inProgress = false;
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $inProgress = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $resultsValidated = false;
 
     #[ORM\ManyToOne(inversedBy: 'tests')]
     #[ORM\JoinColumn(nullable: false)]
@@ -97,6 +100,18 @@ class Tests
     public function setInProgress(bool $inProgress): static
     {
         $this->inProgress = $inProgress;
+
+        return $this;
+    }
+
+    public function isResultsValidated(): bool
+    {
+        return $this->resultsValidated;
+    }
+
+    public function setResultsValidated(bool $resultsValidated): static
+    {
+        $this->resultsValidated = $resultsValidated;
 
         return $this;
     }

@@ -8,8 +8,8 @@
             <div class="d-flex justify-content-end">
                 {% if app.user.licenseFfa %}
                     <div class="dropup me-2">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Documents
+                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Documentation
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ asset('files/rules/Reglement_rallye_' ~ year ~ '.pdf') }}" download>Réglement championnat de Rallye</a></li>
@@ -19,11 +19,18 @@
                             <li><a class="dropdown-item" href="{{ asset('files/Pilotes_rallye_elite.pdf') }}" download>Liste des pilotes Elite -Rallye</a></li>
                             <li><a class="dropdown-item" href="{{ asset('files/Conseils_precision.pdf') }}" download>Conseils débutants Pilotage de précision</a></li>
                             <li><a class="dropdown-item" href="{{ asset('files/Conseils_rallye.pdf') }}" download>Conseils débutants Rallye</a></li>
-                        </ul>
-                    </div>                
+                            <li><hr class="dropdown-divider"></li>
+                            <a class="dropdown-item"
+                            href="https://sports.ffa-aero.fr/docs/index.php/Accueil"
+                            target="_blank"
+                            rel="noopener">
+                                🌐 Wiki Sports FFA
+                            </a>
+                         </ul>
+                    </div>
                 {% endif %}  
                 <div class="dropup">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Tutoriels vidéos
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">

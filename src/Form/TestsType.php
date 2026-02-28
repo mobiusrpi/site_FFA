@@ -3,15 +3,16 @@
 namespace App\Form;
 
 
-use App\Entity\Tests;
 use App\Entity\Enum\TestCompet;
+use App\Entity\Tests;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class TestsType extends AbstractType
 {
@@ -38,7 +39,13 @@ class TestsType extends AbstractType
                 ->add('inProgress', CheckboxType::class, [
                     'required' => false,
                     'label' => 'Épreuve en cours',
-                ]);
+                ])
+                ->add('resultsValidated', CheckboxType::class, [
+                    'required' => false,
+                    'label' => 'Résultats validés',
+                ])                
+        ;
+                
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -111,52 +111,77 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Management');
 
-        // 🔹 Compétitions année en cours
-        yield MenuItem::linkToCrud(
-            'Compétitions ' . $currentYear,
-            'fas fa-list',
-            Competitions::class
-        )->setQueryParameter('year', $currentYear);
+            // 🔹 Compétitions année en cours
+            yield MenuItem::linkToCrud(
+                'Compétitions ' . $currentYear,
+                'fas fa-list',
+                Competitions::class
+                )
+                ->setQueryParameter('year', $currentYear);
 
-        yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
-        yield MenuItem::linkToCrud(
-            'Concurrents',
-            'fas fa-users',
-            Crews::class
-        )->setQueryParameter('year', (new \DateTime())->format('Y'));
-        yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page') ;
+            yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
+            yield MenuItem::linkToCrud(
+                'Concurrents',
+                'fas fa-users',
+                Crews::class
+                )
+                ->setQueryParameter('year', (new \DateTime())->format('Y'));
+            yield MenuItem::linkToCrud(
+                'Epreuves', 
+                'fas fa-list',
+                Tests::class
+                )
+                ->setQueryParameter('year', (new \DateTime())->format('Y'));
+    
+            yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page') ;
+        
+        yield MenuItem::section('Documentation');        
+
+            yield MenuItem::linkToUrl(
+                'Documentation Serveur',
+                'fa fa-circle-question',
+                'https://sports.ffa-aero.fr/docs/index.php/Serveur_espace_gestionnaires'
+            )->setLinkTarget('_blank');   
+            yield MenuItem::linkToUrl(
+                'Documentation TrackAnalyzer',
+                'fa fa-circle-question',
+                'https://sports.ffa-aero.fr/docs/index.php/TrackAnalyzer'
+            )->setLinkTarget('_blank');             yield MenuItem::linkToUrl(
+                'Documentation FFA SkyTraq V6',
+                'fa fa-circle-question',
+                'https://sports.ffa-aero.fr/docs/index.php/FFA_SkyTraq'
+            )->setLinkTarget('_blank'); 
         yield MenuItem::section('Administration')
             ->setPermission('ROLE_ADMIN');
-        // 🔹 Compétitions des années précédentes
-        if (!empty($previousYears)) {
-            yield MenuItem::subMenu('Compétitions – années précédentes', 'fa fa-calendar')
-                ->setSubItems(array_map(
-                    fn (int $year) => MenuItem::linkToCrud(
-                        (string) $year,
-                        'fa fa-angle-right',
-                        Competitions::class
-                    )->setQueryParameter('year', $year),
-                    $previousYears
-                ));
-        }       
- 
-        yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')
-            ->setPermission('ROLE_ADMIN')
-            ->setSubItems([
-                MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
-                MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
-                MenuItem::linkToRoute('ANR','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'3'])
-        ]);
-        yield MenuItem::subMenu('Gestion', 'fa fa-cog')
-            ->setPermission('ROLE_ADMIN')
-            ->setSubItems([     
-                MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
-                MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
-                MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
-                MenuItem::linkToCrud('Epreuves', 'fas fa-id-card', Tests::class),
-                MenuItem::linkToRoute('Export des emails', 'fas fa-id-card', 'admin_export_users_email'),
-                MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
-        ]);   
+            // 🔹 Compétitions des années précédentes
+            if (!empty($previousYears)) {
+                yield MenuItem::subMenu('Compétitions – années précédentes', 'fa fa-calendar')
+                    ->setSubItems(array_map(
+                        fn (int $year) => MenuItem::linkToCrud(
+                            (string) $year,
+                            'fa fa-angle-right',
+                            Competitions::class
+                        )->setQueryParameter('year', $year),
+                        $previousYears
+                    ));
+            }       
+            yield MenuItem::subMenu('Sélection au CDF', 'fa fa-list')
+                ->setPermission('ROLE_ADMIN')
+                ->setSubItems([
+                    MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
+                    MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
+                    MenuItem::linkToRoute('ANR','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'3'])
+            ]);
+            yield MenuItem::subMenu('Gestion', 'fa fa-cog')
+                ->setPermission('ROLE_ADMIN')
+                ->setSubItems([     
+                    MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
+                    MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
+                    MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', Typecompetition::class),
+                    MenuItem::linkToCrud('Epreuves', 'fas fa-id-card', Tests::class),
+                    MenuItem::linkToRoute('Export des emails', 'fas fa-id-card', 'admin_export_users_email'),
+                    MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
+            ]);   
     }
 
     #[Route('/results-import', name: 'admin_results_import_page')]

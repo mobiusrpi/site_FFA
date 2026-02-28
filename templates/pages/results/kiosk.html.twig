@@ -4,7 +4,14 @@
 
 {% block body %}
 <div class="container py-4">
-    <h2 class="text-center mb-4">Résultats – {{ testName }}</h2>
+    <h2 class="text-center mb-4">
+        {% if resultsValidated %} 
+            Résultats – 
+        {% else %}
+            Résultats provisoires – 
+        {% endif %}
+        {{ testName }}
+    </h2>
 
     <div class="row">
         {% for category in ['elite', 'honneur'] %}

@@ -49,6 +49,10 @@ class CompetitionScoringService
         $typeId = (int) $competition->getTypecompetition()?->getId();
 
         foreach ($competition->getTests() as $test) {
+            if (!$test->isResultsValidated()) {
+                continue;
+            }
+
             $testId = $test->getId();
 
             foreach ($test->getTestResults() as $result) {

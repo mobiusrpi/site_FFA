@@ -2,20 +2,21 @@
 
 namespace App\Controller;
 
-use App\Entity\Tests;
 use App\Entity\Competitions;
 use App\Entity\Enum\TestCompet;
-use App\Repository\CrewsRepository;
-use App\Repository\TestsRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\TestResultsRepository;
+use App\Entity\Tests;
 use App\Repository\CompetitionsRepository;
+use App\Repository\CrewsRepository;
+use App\Repository\TestResultsRepository;
+use App\Repository\TestsRepository;
 use App\Service\CompetitionScoringService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class TestResultsController extends AbstractController
 {
@@ -46,6 +47,15 @@ final class TestResultsController extends AbstractController
         EntityManagerInterface $entityManager,
     ): Response {
         $test = $entityManager->getRepository(Tests::class)->find($testId);
+
+        if (!$test) {
+            throw $this->createNotFoundException('Épreuve introuvable.');
+        }
+
+        if (!$test->isResultsValidated()) {
+            $this->addFlash('warning', 'Les résultats de cette épreuve ne sont pas encore validés.');
+            return $this->redirectToRoute('test_results_index'); // ou autre page
+        }
 
         $competition = $entityManager->getRepository(Competitions::class)
             ->findWithCrewsAndUsersById($test->getCompetition()->getId()); 
@@ -274,10 +284,12 @@ final class TestResultsController extends AbstractController
         }        
 
         $ranking = [];
-
         foreach ($competition->getTests() as $test) {
-            foreach ($test->getTestResults() as $result) {
+            if (!$test->isResultsValidated()) {
+                continue;
+            }
 
+            foreach ($test->getTestResults() as $result) {
                 // Vérifier la catégorie
                 if ($result->getCategory() !== $category) {
                     continue;
@@ -287,8 +299,8 @@ final class TestResultsController extends AbstractController
                 $isDns = $result->isDns() ?? false;
                 if (
                     $result->getNavigation() === null &&
-                    $result->getObservation() === null &&
-                    $result->getLanding() === null &&
+                    $result->getObservation() === null &&                  
+                    $result->getLanding() === null &&       
                     $result->getFlightPlanning() === null
                 ) {
                     $isDns = true;
@@ -301,36 +313,46 @@ final class TestResultsController extends AbstractController
                 if (!isset($ranking[$key])) {
                     $ranking[$key] = [
                         'crew' => $result->getCrew() ?? $result->getLiteralCrew(),
-                        'navigation' => null,
-                        'observation' => null,
-                        'landing' => null,
-                        'flightPlanning' => null,
+                        'navigation' => 0,
+                        'observation' => 0,
+                        'landing' => 0,
+                        'flightPlanning' => 0,
                         'total' => 0,
                         'dns' => false,
                     ];
                 }
+                $navigation = $result->getNavigation() ?? 0;
+                $observation = $result->getObservation() ?? 0;
+                $landing = $result->getLanding() ?? 0;
+                $flightPlanning = $result->getFlightPlanning() ?? 0;
 
                 // Si l'épreuve est DNS, on marque l'équipage DNS pour tout le classement
                 if ($isDns) {
                     $ranking[$key]['dns'] = true;
                 } else {
-                    // Ajouter les points uniquement si l'épreuve n'est pas DNS
-                    $ranking[$key]['navigation'] += $result->getNavigation() ?? 0;
-                    if ($competition->getTypecompetition()->getId() != 3) {
-                        $ranking[$key]['observation'] += $result->getObservation() ?? 0;
-                    }
-                    $ranking[$key]['landing'] += $result->getLanding() ?? 0;
-                    if ($competition->getTypecompetition()->getId() == 2) {
-                        $ranking[$key]['flightPlanning'] += $result->getFlightPlanning() ?? 0;
-                    }
 
-                    $ranking[$key]['total'] += ($result->getNavigation() ?? 0)
-                                            + ($competition->getTypecompetition()->getId() != 3 ? ($result->getObservation() ?? 0) : 0)
-                                            + ($result->getLanding() ?? 0)
-                                            + ($competition->getTypecompetition()->getId() == 2 ? ($result->getFlightPlanning() ?? 0) : 0);
+                    // Ajouter les points uniquement si l'épreuve n'est pas DNS
+                    $ranking[$key]['navigation'] += $navigation;
+                    if ($competition->getTypecompetition()->getId() != 3) {
+                        $ranking[$key]['observation'] += $observation;
+                    }
+                   
+                    //$ranking[$key]['landing'] += $result->getLanding() !== null ? (int)$result->getLanding() : null;
+                    $ranking[$key]['landing'] += $landing;
+                    if ($competition->getTypecompetition()->getId() == 2) {
+                        $ranking[$key]['flightPlanning'] += $flightPlanning;
+                    }        
+     
+                    $ranking[$key]['total'] += $navigation
+                                            + ($competition->getTypecompetition()->getId() != 3 ? $observation : 0)
+                                            + $landing
+                                            + ($competition->getTypecompetition()->getId() == 2 ? $flightPlanning : 0);
+                         
+                    }
+                 
                 }
-            }
-        }
+          
+            }   
 
         // Convertir en tableau indexé pour le tri
         $ranking = array_values($ranking);
@@ -387,11 +409,14 @@ final class TestResultsController extends AbstractController
         $testNames = [];
         foreach ($competition->getTests() as $test) {
             $testId = $test->getId();
-            $label = $test->getName();
+            $label = $test->getName();         
+            $validated = $test->isResultsValidated();
             $type = $test->getType();
 
             $testNames[$testId] = [
                 'label' => $label,
+                'validated' => $validated,    
+                'hasResults' => $testsWithResults[$testId] ?? false,
                 'hasDetail' => $type !== TestCompet::LANDING,
             ];
         }
@@ -482,6 +507,7 @@ final class TestResultsController extends AbstractController
         return $this->render('pages/results/kiosk.html.twig', [
             'competition' => $test->getCompetition(),            
             'testName' => $test->getName(),
+            'resultsValidated' => $test->isResultsValidated(),
             'testId' => $testId,
         ]);
     }

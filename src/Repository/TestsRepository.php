@@ -70,4 +70,15 @@ class TestsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByCompetitions(array $competitions): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.competition IN (:competitions)')
+            ->setParameter('competitions', $competitions)
+            ->orderBy('t.competition', 'ASC')
+            ->addOrderBy('t.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

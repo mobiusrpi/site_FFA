@@ -197,13 +197,7 @@ class CompetitionsCrudController extends AbstractCrudController
             ->allowDelete()
             ->setLabel('Organisateurs de la compétition');
 
-        $fields[] = CollectionField::new('Tests')
-            ->setEntryType(TestsType::class)
-            ->allowAdd()
-            ->allowDelete()
-            ->onlyOnForms()
-            ->setFormTypeOptions(['by_reference' => false])
-            ->setLabel('Epreuves');
+
 
         $fields[] = TextField::new('testCodes', 'Codes')
             ->onlyOnIndex();

@@ -101,12 +101,13 @@ class CrewsCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Concurrent') // singular label
             ->setEntityLabelInPlural('Concurrents')  // plural label
+            ->overrideTemplate('crud/index', 'admin/crews/crew_index_grouped.html.twig')            
             ->setPageTitle(Crud::PAGE_INDEX, 'Liste des concurrents')
             ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un concurrent'))
             ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
             ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un concurrent'))
-            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Concurrent'))
-            ->overrideTemplate('crud/index', 'admin/crews/crew_index_grouped.html.twig');        
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Concurrent'));
+       
         }
 
     public function configureFields(string $pageName): iterable

@@ -114,10 +114,10 @@
   {% set currentYear = selectedYear %}
   {% set pastYears = years|filter(y => y != currentYear) %}
     
-  <div class='container mt-4'>
+  <div class="container-fluid mt-4 px-3">
     <div class="row">
       {# Left column: Filter by year #}
-      <div class="col-md-2 mb-4">
+      <div class="col-md-3 mb-4">
         <div class="bg-light p-3 rounded shadow-sm">
           <h5 class="mb-4">Résultats</h5>
           <strong>Année</strong>
@@ -142,7 +142,7 @@
 
           {% if live is not empty %}
           <div class="mt-4">
-            <strong>Direct</strong>
+            <strong>Résultats en direct</strong>
               {% for test in live %}
                 <div class="mt-2">
                   <a href="{{ path('public_results_kiosk', { testId: test.id }) }}"
@@ -158,7 +158,7 @@
       {% set medals = ['🥇', '🥈', '🥉'] %} 
 
       {# Right column: Competition cards #}
-      <div class="col-md-10 ">
+      <div class="col-md-9 ">
         {% for item in groupedCompetitions %}
           {% set competition = item.competition %}
           <div class="card mb-4 shadow-sm">
