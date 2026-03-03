@@ -101,7 +101,7 @@ class EditProfilType extends AbstractType
                         'message' => 'Format numerique seulement',
                     ])                ],            
             ])
-            ->add('dateBirth', DateType::class, [
+            ->add('birthdate', DateType::class, [
                 'widget' => 'single_text',
                 'attr' => [
                     'class' => 'form-control',                    

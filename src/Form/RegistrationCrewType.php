@@ -2,25 +2,26 @@
 
 namespace App\Form;
 
-use App\Entity\Crews;
-use App\Entity\Users;
+use App\Entity\CompetitionAccommodation;
 use App\Entity\Competitions;
+use App\Entity\Crews;
 use App\Entity\Enum\Category;
 use App\Entity\Enum\SpeedList;
-use Doctrine\ORM\EntityRepository;
-use App\Repository\UsersRepository;
-use Symfony\Component\Form\FormEvents;
-use App\Entity\CompetitionAccommodation;
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use App\Form\EventSubscriber\PreSubmitSubscriber;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Users;
 use App\Form\EventListener\AddNavigatorFieldListener;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Translation\TranslatableMessage;
+use App\Form\EventSubscriber\PreSubmitSubscriber;
+use App\Repository\UsersRepository;
+use Symfony\Component\Validator\Constraints\Count;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Translation\TranslatableMessage;
 
 class RegistrationCrewType extends AbstractType
 {    
@@ -202,19 +203,23 @@ class RegistrationCrewType extends AbstractType
                     'class' => "form-check form-check-lg",                    
                 ],
                 'class' => CompetitionAccommodation::class,
-                'choices' => array_unique(array_merge(
-                    $accommodations,
-                    $options['data']->getCompetitionAccommodation()->toArray()
-                ), SORT_REGULAR),
+                'choices' => $competition->getCompetitionAccommodation()->toArray(),
                 'choice_label' => fn($a) => $a->getAccommodation()?->getRoom() ?? 'Sans nom',
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,
-                'by_reference' => false, 
+                'by_reference' => true, 
                 'label' => 'Type d\'hébergement',
                 'label_attr' => [
-                    'class' => 'form-label'
+                    'class' => 'form-label'                
                 ],
+                'constraints' => [
+                    new Count([
+                        'min' => 1,
+                        'minMessage' => 'Vous devez sélectionner au moins un type d’hébergement.',
+                    ]),
+                ],
+
             ])                
             ->addEventListener(FormEvents::PRE_SUBMIT, 
                 [$this->preSubmitSubscriber, 'onPreSubmit'])

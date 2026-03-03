@@ -87,7 +87,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $resetToken = null;
 
     #[ORM\Column(nullable: true)] 
-    private ?\DateTimeImmutable $dateBirth = null;
+    private ?\DateTimeImmutable $birthdate = null;
 
     #[ORM\Column(length: 9,nullable: true)]
     #[Assert\Regex(
@@ -361,14 +361,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
   
-    public function getDateBirth(): ?\DateTimeImmutable
+    public function getBirthdate(): ?\DateTimeImmutable
     {
-        return $this->dateBirth;
+        return $this->birthdate;
     }
 
-    public function setDateBirth(?\DateTimeImmutable $dateBirth): static
+    public function setBirthdate(?\DateTimeImmutable $birthdate): static
     {
-        $this->dateBirth = $dateBirth;
+        $this->birthdate = $birthdate;
 
         return $this;
     }

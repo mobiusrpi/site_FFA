@@ -49,7 +49,7 @@ class LoginListener
 
             $dataSmile= $this->smileService->verifyLicense(
                 $user->getLicenseFfa(),
-                $user->getDateBirth()
+                $user->getBirthdate()
             );
 
 

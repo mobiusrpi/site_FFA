@@ -171,7 +171,6 @@
                             <div class="col-11 col-md-7 form-group border rounded-4 border-primary ms-3 p-3 wiki-block" data-wiki="https://sports.ffa-aero.fr/docs/index.php?title=Serveur_espace_concurrent#Fen%C3%AAtre_accommodation">     
                                 <!-- Accommodation -->                    
                                 <div class='mb-2'>
-                                    {{ form_errors(form.competitionAccommodation) }}
                                     <h5 class="fw-bold text-center mb-2 mt-0">Accommodation</h5>
                                     <div>
                                         <table class="table table-bordered">
@@ -190,7 +189,9 @@
                                                         <td class="bg-light text-end align-middle">
                                                             {{ form_label(checkbox, null, {'label_attr': {'class': 'mb-0 fw-bold'}}) }}
                                                             {% if competitionAccommodation %}
-                                                                <small class="text-muted ms-2">( {{ (competitionAccommodation.price / 100)|number_format(2, '.', ',') }} € )</small>
+                                                                <small class="text-muted ms-2">
+                                                                    ( {{ (competitionAccommodation.price / 100)|number_format(2, '.', ',') }} € )
+                                                                </small>
                                                             {% endif %}
                                                         </td>
                                                         <td class="bg-secondary text-center align-middle">
@@ -201,6 +202,16 @@
                                                     </tr>
                                                 {% endfor %}
                                             </tbody>
+                                            {# Affichage des erreurs du champ entier #}
+                                            {% if form.competitionAccommodation.vars.errors|length > 0 %}
+                                                <tr>
+                                                    <td colspan="2">
+                                                        {% for error in form.competitionAccommodation.vars.errors %}
+                                                            <div class="text-danger small mb-0">{{ error.message }}</div>
+                                                        {% endfor %}
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
                                         </table>
                                         <div class='mb-2'>
                                             {{ compet.paymentInfo|raw }}                              

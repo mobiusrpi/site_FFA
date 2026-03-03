@@ -28,6 +28,7 @@ class CompetitionAccommodation
      * @var Collection<int, Crews>
      */
     #[ORM\ManyToMany(targetEntity: Crews::class, inversedBy: 'competitionAccommodation')]
+    
     #[ORM\JoinTable(name: 'crew_competition_accommodation')]
     private Collection $crewAccommodation;
 

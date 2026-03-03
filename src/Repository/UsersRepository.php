@@ -54,8 +54,9 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         $qb->leftJoin('App\Entity\Crews', 't', 'WITH', '(t.pilot = user.id OR t.navigator = user.id) AND t.competition = :competId')
             ->setParameter('competId', $competId)
             ->where('user.isVerified = 1')
-            ->andWhere('user.endValidity >= :dateCompet')              
-            ->setParameter('dateCompet', $competition->getEndDate());
+  //          ->andWhere('user.endValidity >= :dateCompet')              
+//            ->setParameter('dateCompet', $competition->getEndDate())
+            ;
             
         if (!empty($includeUserIds)) {
             $qb->andWhere($qb->expr()->orX(
@@ -71,7 +72,7 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
         return $qb;
         ;
-    }
+    } 
 
     public function getQueryUsersToArchive(\DateTimeInterface $cutoff): array
     {

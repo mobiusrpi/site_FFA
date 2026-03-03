@@ -61,7 +61,7 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $user->isCompetitor()) {
             $license = $form->get('licenseFfa')->getData(); 
-            $birthdate = $form->get('dateBirth')->getData(); 
+            $birthdate = $form->get('birthdate')->getData(); 
             $lastname =  $form->get('lastname')->getData();
             if ($license !== null && $birthdate !== null) {
 
@@ -160,7 +160,7 @@ class RegistrationController extends AbstractController
         $licenseValid = true;
         if ($form->isSubmitted()) {            
             $license = $form->get('licenseFfa')->getData(); 
-            $birthdate = $form->get('dateBirth')->getData(); 
+            $birthdate = $form->get('birthdate')->getData(); 
             $user = $form->getData();    
             $lastname = $user->getLastName();        
             $formattedDate = $birthdate?->format('d/m/Y');
@@ -223,7 +223,7 @@ class RegistrationController extends AbstractController
             }
             if (!$isCompetitorChecked){
                 $user->setLicenseFfa(null);
-                $user->setBirthDate(null);                
+                $user->setBirthdate(null);                
                 $user->setFlyingclub(null);               
                 $user->setPhone(null);                   
                 $user->setCommittee(null);                    

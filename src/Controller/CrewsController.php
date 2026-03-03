@@ -2,33 +2,35 @@
 
 namespace App\Controller;
 
-use App\Entity\Crews;
-use App\Entity\Users;
+use App\Controller\Admin\CrewsCrudController;
 use App\Entity\Aircrafts;
 use App\Entity\Competitions;
+use App\Entity\Crews;
 use App\Entity\Enum\Category;
+use App\Entity\Enum\CRAList;
 use App\Entity\Enum\SpeedList;
+use App\Entity\Users;
+use Symfony\Component\Form\FormInterface;
+use App\Form\EventListener\AddNavigatorFieldListener;
 use App\Form\RegistrationCrewType;
-use App\Repository\CrewsRepository;
 use App\Repository\AircraftsRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
-use App\Controller\Admin\CrewsCrudController;
+use App\Repository\CrewsRepository;
+use App\Service\SmileService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Form\EventListener\AddNavigatorFieldListener;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Core\Security;
 
 final class CrewsController extends AbstractController
-{   private $addNavigatorFieldListener;
-    
-    public function __construct(
-        AddNavigatorFieldListener $addNavigatorFieldListener)
-    {
-        $this->addNavigatorFieldListener = $addNavigatorFieldListener;
-    }      
+{    
+    public function __construct(         
+        private SmileService $smileService,
+        private AddNavigatorFieldListener $addNavigatorFieldListener)
+    { }      
 
 /**
  * Delete crew's registration function
@@ -201,7 +203,32 @@ final class CrewsController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) 
         {
-            $crew= $form->getData();
+            $crew = $form->getData();
+
+            $response = $this->verifyAndUpdateLicense(
+                $crew->getPilot(),
+                'pilote',
+                $compet,
+                $form,
+                $entityManager
+            );
+
+            if ($response !== null) {
+                return $response;
+            }
+
+            $response = $this->verifyAndUpdateLicense(
+                $crew->getNavigator(),
+                'navigateur',
+                $compet,
+                $form,
+                $entityManager
+            );
+
+            if ($response !== null) {
+                return $response;
+            }
+          
             $shouldRegisterAircraft = $form->get('aircraftRegistration')->getData();
 
             if ($shouldRegisterAircraft) {
@@ -210,7 +237,9 @@ final class CrewsController extends AbstractController
 
                 if ($aircraftsRepository->isDuplicate($user, $callsign, $speed)) {
                     $this->addFlash('danger', 'Cet avion avec cette vitesse est déjà enregistré.');
-                    return $this->redirectToRoute('crews_registration');
+                    return $this->redirectToRoute('crews_registration', [
+                        'competId' => $compet->getId()
+                    ]);
                 }
 
                 $aircraft = new Aircrafts();
@@ -241,6 +270,87 @@ final class CrewsController extends AbstractController
         ]);
     }    
     
+    private function verifyAndUpdateLicense(
+        ?Users $userToCheck,
+        string $role,
+        Competitions $compet,
+        FormInterface $form,
+        EntityManagerInterface $entityManager
+    ): ?Response
+    {
+        if ($userToCheck === null) {
+            return null; // rien à vérifier
+        }
+
+        $competitionEndDate = $compet->getEndDate();
+        $endValidity = $userToCheck->getEndValidity();
+
+        if ($endValidity && $endValidity >= $competitionEndDate) {
+            return null; // licence encore valide
+        }
+
+        $license = $userToCheck->getLicenseFFA();
+        $birthdate = $userToCheck->getBirthdate();
+
+        if (!$license || !$birthdate) {
+            $form->addError(new FormError(
+                "Licence ou date de naissance manquante pour le $role."
+            ));
+
+            return $this->redirectToRoute('crews_registration', [
+                'competId' => $compet->getId()
+            ]);
+        }
+
+        $dataSmile = $this->smileService->verifyLicense($license, $birthdate);
+
+        if (!$dataSmile['isValid']) {
+            $this->addFlash(
+                'danger',
+                "La licence du $role n'est pas valide."
+            );
+
+            return $this->redirectToRoute('crews_registration', [
+                'competId' => $compet->getId()
+            ]);
+        }
+
+        if (
+            isset($dataSmile['nom']) &&
+            mb_strtoupper($dataSmile['nom']) !== mb_strtoupper($userToCheck->getLastname())
+        ) {
+            $form->addError(new FormError(
+                "Le nom du $role ne correspond pas à celui associé au numéro de licence"
+            ));
+
+            return $this->redirectToRoute('crews_registration', [
+                'competId' => $compet->getId()
+            ]);
+        }
+
+        // Mise à jour
+        $userToCheck->setEndValidity($dataSmile['endingDate']);
+        $userToCheck->setFlyingclub($dataSmile['nom_aeroclub']);
+
+        if (!empty($dataSmile['code_fna'])) {
+            $userToCheck->setIdClub($dataSmile['code_fna']);
+        }
+
+        if ($dataSmile['committee'] instanceof CRAList) {
+            $userToCheck->setCommittee($dataSmile['committee']);
+        }
+
+        $entityManager->persist($userToCheck);
+        $entityManager->flush();
+
+        $this->addFlash(
+            'info',
+            "La licence du $role a été mise à jour."
+        );
+
+        return null;
+    }
+
 /**
  * Crew's registrations list
  *
@@ -345,7 +455,9 @@ final class CrewsController extends AbstractController
 
                 if ($repositoryAircraft->isDuplicate($user, $callsign, $speed)) {
                     $this->addFlash('danger', 'Cet avion avec cette vitesse est déjà enregistré.');
-                    return $this->redirectToRoute('crews_registration');
+                    return $this->redirectToRoute('crews_registration', [
+                        'competId' => $compet->getId()
+                    ]);
                 }
 
                 $aircraft = new Aircrafts();

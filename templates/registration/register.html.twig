@@ -55,11 +55,11 @@
             <div class="col-md-6 border border-dark border-1 rounded-3 order-2 order-md-2  p-4 ms-2" id='competitorFieldsContainer'>
                 <h4 class="text-center font-weight-normal mb-3">Informations additionnelles pour les compétiteurs</h4>              
 
-                {{ form_label(registrationForm.dateBirth) }}
+                {{ form_label(registrationForm.birthdate) }}
                 <div class='text-danger'> 
-                    {{ form_errors(registrationForm.dateBirth) }}   
+                    {{ form_errors(registrationForm.birthdate) }}   
                 </div>             
-                {{ form_widget(registrationForm.dateBirth) }}
+                {{ form_widget(registrationForm.birthdate) }}
                       
                 {{ form_label(registrationForm.licenseFfa) }}                
                 <div class='text-danger'>            

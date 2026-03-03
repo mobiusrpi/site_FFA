@@ -30,7 +30,7 @@ class CrewsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()   
         ;
-    } 
+    }
 
     public function getQueryCrewCompetition($userId,$competId)
     {  
@@ -43,7 +43,7 @@ class CrewsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult()
         ;
-    }     
+    }
     
     public function getQueryCrews($competId)
     {

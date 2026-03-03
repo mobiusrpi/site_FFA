@@ -150,7 +150,7 @@ class UsersCrudController extends AbstractCrudController
                 ->setSortable(false)
                 ->renderExpanded(true), // or false for a dropdown
 
-            DateField::new('dateBirth','Date de naissance')
+            DateField::new('birthdate','Date de naissance')
                 ->setDisabled(true)
                 ->hideOnIndex()
                 ->setDisabled(!$this->isGranted('ROLE_ADMIN')),                      
@@ -278,7 +278,7 @@ class UsersCrudController extends AbstractCrudController
         $user->isCompetitor('false');        
         $user->isVerified('false');
         $user->setLicenseFfa(null);
-        $user->setDateBirth(new \DateTimeImmutable());
+        $user->setBirthdate(new \DateTimeImmutable());
         $user->setArchivedAt(new \DateTimeImmutable());
         $this->entityManager->flush();
 
@@ -313,7 +313,7 @@ class UsersCrudController extends AbstractCrudController
             $user->setIsCompetitor('false');        
             $user->setIsVerified('false');
             $user->setLicenseFfa('00000'.$user->getId());
-            $user->setDateBirth(new \DateTimeImmutable());
+            $user->setBirthdate(new \DateTimeImmutable());
             $user->setArchivedAt(new \DateTimeImmutable());
             $n = $n + 1;
         }

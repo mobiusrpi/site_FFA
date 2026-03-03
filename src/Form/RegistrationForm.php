@@ -157,7 +157,7 @@ class RegistrationForm extends AbstractType
                     ])
                 ],
             ])
-            ->add('dateBirth', DateType::class, [
+            ->add('birthdate', DateType::class, [
                 'widget' => 'single_text',
                 'attr' => [
                     'class' => 'form-control',                    
