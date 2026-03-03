@@ -640,12 +640,12 @@ class UsersCrudController extends AbstractCrudController
             // 🟢 BOUTON PREVIEW
             if ($previewButton->isClicked()) {
 
-                // Exemple avec un utilisateur test
-                $testUser = $users[0];
+                // Exemple avec l'utilisateur connecté
+                $testUser = $connected;
 
                 $personalizedMessage = str_replace(
                     '<Prénom>',
-                    htmlspecialchars($testUser->getFirstname()),
+                    htmlspecialchars($testUser?->getFirstname() ?? 'Prénom'),
                     $data['message']
                 );
 
@@ -696,8 +696,6 @@ class UsersCrudController extends AbstractCrudController
                         'Emails envoyés à %d utilisateurs.',
                         count($users)
                     ));
-
-                    $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
                 } catch (\Exception $e) {
                     $this->addFlash('danger', 'Erreur lors de l’envoi des emails : ' . $e->getMessage());
                 }

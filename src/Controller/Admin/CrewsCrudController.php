@@ -107,7 +107,6 @@ class CrewsCrudController extends AbstractCrudController
             ->setPageTitle(Crud::PAGE_NEW, 'Créer un nouvel équipage')
             ->setPageTitle(Crud::PAGE_EDIT, fn (Crews $crew) => sprintf('Modifier un concurrent'))
             ->setPageTitle(Crud::PAGE_DETAIL, fn (Crews $crew) => sprintf('Concurrent'));
-       
         }
 
     public function configureFields(string $pageName): iterable

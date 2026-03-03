@@ -3,12 +3,13 @@
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class CompetitionEmailType extends AbstractType
 {
@@ -49,7 +50,20 @@ class CompetitionEmailType extends AbstractType
                     'readonly' => true,
                     'class' => 'form-control-plaintext text-muted',
                 ],
+            ])
+            ->add('preview', SubmitType::class, [
+                'label' => 'Prévisualiser',
+                'attr' => [
+                    'class' => 'btn btn-secondary',
+                ],
+            ])
+            ->add('send', SubmitType::class, [
+                'label' => 'Envoyer', 
+                'attr' => [
+                    'class' => 'btn btn-success',
+                ],
             ]);
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver)

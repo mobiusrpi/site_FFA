@@ -1,4 +1,4 @@
-{# templates/admin/competitions/send_email_form.html.twig #}
+{# templates/admin/competitions/send_email_to_competitors.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}
@@ -29,9 +29,10 @@
                     {{ form_label(form.replyTo, null, {'label_attr': {'class': 'form-label'}}) }}
                     {{ form_widget(form.replyTo) }}
                 </div>
-                <button class="btn btn-success">
-                    <i class="fas fa-paper-plane"></i> Envoyer
-                </button>
+                <div class="mt-3 d-flex gap-2">
+                    {{ form_widget(form.preview) }}
+                    {{ form_widget(form.send) }}
+                </div>
             {{ form_end(form) }}
         </div>
     </div>

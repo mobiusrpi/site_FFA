@@ -662,9 +662,9 @@ class CompetitionsCrudController extends AbstractCrudController
         SendMailService $mailService,
         Security $security              
     ): Response {
-        /** @var Users|null $user */
-        $user = $security->getUser();
-        $userEmail = $user?->getEmail(); 
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();
 
         $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
         if (!$competition) {
@@ -685,43 +685,76 @@ class CompetitionsCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();;
             $attachment = $form->get('attachment')->getData();
+            /** @var SubmitButton $previewButton */
 
-            $users = [];
-            foreach ($competition->getCrew() as $crew) {
-                if ($crew->getPilot()) {
-                    $users[$crew->getPilot()->getEmail()] = $crew->getPilot();
-                }
-                if ($crew->getNavigator()) {
-                    $users[$crew->getNavigator()->getEmail()] = $crew->getNavigator();
-                }
-            }
+            $previewButton = $form->get('preview');
+            // 🟢 BOUTON PREVIEW
+            if ($previewButton->isClicked()) {
 
-            foreach ($users as $user) {
-                $personalizedMessage = str_replace('<Prénom>', htmlspecialchars($user->getFirstname()), $data['message']);
-
-                $mailService->send(
-                    $user->getEmail(),
-                    $data['subject'],
-                    'competition_email', // le template Twig
-                    [
-                        'firstname' => $user->getFirstname(),
-                        'message' => nl2br($personalizedMessage),
-                        'subject' => $data['subject'],
-                        'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
-                    ],
-                    null, // pas de texte brut, on passe tout dans Twig
-                    $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : []
+                // Exemple avec l'utilisateur connecté
+                $testUser = $connected;
+                $personalizedMessage = str_replace(
+                    '<Prénom>',
+                    htmlspecialchars($testUser?->getFirstname() ?? 'Prénom'),
+                    $data['message']
                 );
-            }
-            
-            $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
-            return $this->redirectToRoute('admin', [
-                'crudControllerFqcn' => CompetitionsCrudController::class,
-                'action' => 'index',
-            ]);
-        }
 
-        return $this->render('emails/send_email_form.html.twig', [
+                return $this->render('emails/preview_email.html.twig', [
+                    'subject' => $data['subject'],
+                    'message' => nl2br($personalizedMessage),
+                ]);
+            }
+
+            // 🟢 BOUTON ENVOYER
+            if ($previewButton->isClicked()) {
+
+                try {
+                    $users = [];
+                    foreach ($competition->getCrew() as $crew) {
+                        if ($crew->getPilot()) {
+                            $users[$crew->getPilot()->getEmail()] = $crew->getPilot();
+                        }
+                        if ($crew->getNavigator()) {
+                            $users[$crew->getNavigator()->getEmail()] = $crew->getNavigator();
+                        }
+                    }
+
+                    foreach ($users as $user) {
+                        $personalizedMessage = str_replace('<Prénom>', htmlspecialchars($user->getFirstname()), $data['message']);
+
+                        $mailService->send(
+                            $user->getEmail(),
+                            $data['subject'],
+                            'competition_email', // le template Twig
+                            [
+                                'firstname' => $user->getFirstname(),
+                                'message' => nl2br($personalizedMessage),
+                                'subject' => $data['subject'],
+                                'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
+                            ],
+                            null, // pas de texte brut, on passe tout dans Twig
+                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : []
+                        );
+                    }
+
+                    $this->addFlash('success', sprintf(
+                        'Emails envoyés à %d utilisateurs.', 
+                        count($users)
+                    ));
+
+                           
+                } catch (\Exception $e) {
+                    $this->addFlash('danger', 'Erreur lors de l’envoi des emails : ' . $e->getMessage());
+                }
+
+                return $this->redirectToRoute('admin', [
+                    'crudControllerFqcn' => CrewsCrudController::class,
+                    'action' => 'index',
+                ]);         
+            }   
+        }     
+
+        return $this->render('emails/send_email_to_competitors.html.twig', [
             'competition' => $competition,
             'form' => $form->createView(),
         ]);

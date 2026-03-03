@@ -47,7 +47,6 @@ admin_export_users_email:
 admin_competition_send_custom_email:
     path: /admin/competitions/{id}/send-custom-email
     controller: App\Controller\Admin\CompetitionsCrudController::sendCustomEmailAction
-       #[Route('/admin/send-all-email', name: 'admin_send_all_email')]
 
 admin_send_all_email:
     path: /admin/send-all-email
