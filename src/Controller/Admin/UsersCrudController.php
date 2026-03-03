@@ -612,12 +612,12 @@ class UsersCrudController extends AbstractCrudController
             ->getResult();
 
 
-        $competitorUsers = $usersRepository->findBy([ 'email' => 'jtremblet@gmail.com' ]); 
+//        $competitorUsers = $usersRepository->findBy([ 'email' => 'jtremblet@gmail.com' ]); 
 
         $users = $competitorUsers;
 
         if (empty($users)) {
-            $this->addFlash('warning', 'Aucun utilisateur expiré trouvé.');
+            $this->addFlash('warning', 'Aucun utilisateur de trouvé.');
             return $this->redirectToRoute('admin');
         }
 
