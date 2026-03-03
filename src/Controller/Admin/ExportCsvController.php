@@ -98,11 +98,23 @@ class ExportCsvController extends AbstractController
         CsvExporter $csvExporter
     ): Response {
         $crews = $repositoryCrew->getQueryCrews($competitionId);
-                $competition = $crews[0]->getCompetition();
-
+        
+        if (empty($crews)) {
+            throw $this->createNotFoundException('Aucun équipage trouvé.');
+        }
+        $competition = $crews[0]->getCompetition();
         $competName = $competition->getName();
         $filename = 'ExportCrews_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $competName) . '.csv';
 
+        $competitionAccommodations = [];
+        foreach ($competition->getCompetitionAccommodation() as $compAcc) {
+            $accommodation = $compAcc->getAccommodation();
+            if ($accommodation && $accommodation->getRoom()) {
+                $competitionAccommodations[$accommodation->getId()] = $accommodation->getRoom();
+            }
+        }
+        $rows = [];
+        
         foreach ($crews as $crew) {
             // check if pilot is null
             $pilot = $crew->getPilot();
@@ -122,7 +134,7 @@ class ExportCsvController extends AbstractController
             } else {
                 $navFullname = '';
             }
-            $rows[] = [
+            $row = [
                 'Concurrent' => $crew->getId(),
                 'Categorie' => $crew->getCategory()?->value ?? '',   
                 'Pilote' => $pilFullname,
@@ -151,8 +163,36 @@ class ExportCsvController extends AbstractController
                 'Avion_partage' => $crew->isAircraftSharing() ? 'Oui' : 'Non',
                 'Pilote_de_partage' => $crew->getPilotShared() ? $crew->getPilotShared() : '' ,
                 'Creation' => $this->DateFormated($crew->getRegisteredAt()),
-                'Enregistre_par' => $crew->getRegisteredBy()->getLastname() . ' ' . $crew->getRegisteredBy()->getFirstname(),
+                'Enregistre_par' => $crew->getRegisteredBy()
+                    ? $crew->getRegisteredBy()->getLastname() . ' ' . $crew->getRegisteredBy()->getFirstname()
+                    : '',
             ];
+            // On indexe les accommodations du crew pour éviter double boucle lourde
+            $crewAccIds = [];
+
+            foreach ($crew->getCompetitionAccommodation() as $crewAcc) {
+                if ($crewAcc->getAccommodation()) {
+                    $crewAccIds[] = $crewAcc->getAccommodation()->getId();
+                }
+            }
+
+            foreach ($competitionAccommodations as $accId => $accName) {
+                $crewAccPrice = ''; // par défaut vide
+                foreach ($crew->getCompetitionAccommodation() as $crewAcc) {
+                    $accommodation = $crewAcc->getAccommodation();
+                    if ($accommodation && $accommodation->getId() == $accId) {
+                        $crewAccPrice = $crewAcc->getPrice(); // récupère le montant
+                        break;
+                    }
+                }            
+                $row[$accName] = $crewAccPrice !== null
+                    ? number_format((float)$crewAccPrice / 100, 2, ',', '') // 150,00
+                    : ''
+                ;  
+             }
+
+            $rows[] = $row;
+
         }
         $csvContent = $csvExporter->exportCsv($rows);
 

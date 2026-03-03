@@ -35,11 +35,12 @@ class LoginListener
         if (!$user) {
             return;
         }
+
+        if (!$user->shouldCheckSmile()) {
+            return;
+        }
+
         try{
-            // Don't check license if empty
-            if (!$user->getLicenseFfa()) {
-                return;
-            }
 
             $session = $this->requestStack->getSession();
             if ($session instanceof SessionInterface && !$session->isStarted()) {
@@ -75,18 +76,25 @@ class LoginListener
                 $clubUpdated = false;
                 $isFirstValidation = false;
 
-                if ($dataSmile['endingDate'] instanceof \DateTimeImmutable){
-                    $currentEndDate = $user->getEndValidity();
+                if (!$dataSmile['endingDate'] instanceof \DateTimeImmutable) {
 
-                    if (!$currentEndDate) {
-                    $user->setEndValidity($dataSmile['endingDate']);        
-                        $isFirstValidation = true;
-                        $dateUpdated = true;
+                    if ($session instanceof Session) {
+                        $session->getFlashBag()->add(
+                            'Danger',
+                            'Licence valide mais date de fin inconnue. Vérification nécessaire.'
+                        );
                     }
-                    elseif ($dataSmile['endingDate'] > $currentEndDate) {
+
+                    return;
+                }
+                $currentEndDate = $user->getEndValidity();
+
+                if ($currentEndDate === null){
                     $user->setEndValidity($dataSmile['endingDate']);        
-                        $dateUpdated = true;
-                    }
+                    $isFirstValidation = true;
+                }
+                elseif ($dataSmile['endingDate'] > $currentEndDate) {
+                    $user->setEndValidity($dataSmile['endingDate']);        
                 }
                 
                 if (!empty($dataSmile['code_fna']) && $dataSmile['code_fna'] !== $user->getIdClub()) {

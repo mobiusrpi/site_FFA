@@ -2,51 +2,53 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Users;
-use App\Entity\Enum\Gender;
-use App\Entity\Enum\CRAList;
-use App\Service\CsvExporter;
-use App\Entity\Enum\Polosize;
-use Doctrine\ORM\QueryBuilder;
-use App\Entity\CompetitionsUsers;
-use Symfony\Component\Mime\Email;
-use App\Repository\UsersRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\CompetitionsRepository;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
-use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Length;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use App\Controller\Admin\CompetitionsCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use App\Entity\CompetitionsUsers;
+use App\Entity\Enum\CRAList;
+use App\Entity\Enum\Gender;
+use App\Entity\Enum\Polosize;
+use App\Entity\Users;
+use App\Form\UsersEmailType;
+use App\Repository\CompetitionsRepository;
+use App\Repository\UsersRepository;
+use App\Service\CsvExporter;
+use App\Service\SendMailService;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class UsersCrudController extends AbstractCrudController
 {   
     private $createdAt;    
-    private $updatedAt;
+    private $updatedAt;        
 
     public static function getEntityFqcn(): string
     {
@@ -54,7 +56,7 @@ class UsersCrudController extends AbstractCrudController
     }
 
     public function __construct(
-        private UsersRepository $repositoryUser,
+        private UsersRepository $repositoryUser,    
         public UserPasswordHasherInterface $userPasswordHasher,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private AdminUrlGenerator $adminUrlGenerator,          
@@ -80,7 +82,7 @@ class UsersCrudController extends AbstractCrudController
             ->setPageTitle('edit', 'Modification d\'un utilisateur')       
             ->setPageTitle('new', 'Nouvel utilisateur');
     }
-   
+
     public function configureFields(string $pageName): iterable
     {    
         $availableRoles = [];
@@ -217,7 +219,6 @@ class UsersCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-            
         $anonymizeUserAction = Action::new('anonymizeUserAction', 'Anonyme')
             ->setIcon('fa fa-edit')            
             ->linkToRoute('admin_anonymize_user',            
@@ -245,9 +246,10 @@ class UsersCrudController extends AbstractCrudController
                 return $action
                     ->setIcon('fa fa-trash') // or 'fas fa-edit'
                     ->setLabel('Supprimer');
-            }) 
+            })              
             ->add(Crud::PAGE_INDEX, $anonymizeUserAction) 
             ->reorder(Crud::PAGE_INDEX, [
+                Action::NEW,
                 Action::EDIT,                 
                 'anonymizeUserAction',
                 Action::DELETE             
@@ -577,5 +579,109 @@ class UsersCrudController extends AbstractCrudController
 
         // Sinon suppression normale
         parent::deleteEntity($entityManager, $entityInstance);
+    }
+
+    //The route admin_send-all-email is redirected to this function in the file
+    //config/routes/easyadmin.yaml
+    public function sendAllEmailAction(
+        Request $request,
+        UsersRepository $usersRepository,
+        SendMailService $mailService,
+        Security $security    
+    ): Response {
+
+        $today = new \DateTimeImmutable();
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();
+
+ /*       // Récupérer uniquement les utilisateurs expirés
+        $expiredUsers = $usersRepository->createQueryBuilder('u')
+            ->where('u.endValidity IS NOT NULL')
+            ->andWhere('u.endValidity < :today')
+            ->setParameter('today', $today)
+            ->getQuery()
+            ->getResult(); 
+//        $users = $expiredUsers;*/
+
+        // Récupérer tous les compétiteurs
+        $competitorUsers = $usersRepository->createQueryBuilder('u')
+            ->where('u.isCompetitor = :competitor') // filtre les compétiteurs
+            ->setParameter('competitor', true)
+            ->getQuery()
+            ->getResult();
+
+
+        $competitorUsers = $usersRepository->findBy([ 'email' => 'jtremblet@gmail.com' ]); 
+
+        $users = $competitorUsers;
+
+        if (empty($users)) {
+            $this->addFlash('warning', 'Aucun utilisateur expiré trouvé.');
+            return $this->redirectToRoute('admin');
+        }
+
+        // 2️⃣ Créer le formulaire pour l'email (CompetitionEmailType)
+        $form = $this->createForm(UsersEmailType::class);
+        $form = $this->createForm(UsersEmailType::class, null, [
+            'userEmail' => $userEmail, 
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $attachment = $form->get('attachment')->getData();
+
+            // Forcer subject et body en string
+             $replyTo = $form->get('replyTo')->getData() ?? $this->getParameter('mailer_from');
+            
+            try {
+            foreach ($users as $user) {
+                $personalizedMessage = str_replace(
+                    '<Prénom>',
+                    htmlspecialchars($user->getFirstname()),
+                    $data['message']
+                );
+
+                $message = nl2br($personalizedMessage); // convertit les sauts de ligne en <br>
+
+/*                $mailService->send(
+                    $user->getEmail(),
+                    $data['subject'],
+                    'user_email',   // pas de template
+                    [],
+                    $message,
+                    $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
+                    $replyTo
+                );  */
+                $mailService->send(
+                    $user->getEmail(),
+                    $data['subject'],
+                    'user_email',        // template Twig
+                    [
+                        'message' => $message,
+                        'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null,
+                        'firstname' => $user->getFirstname(),
+                    ],
+                    null,                // pas de HTML direct
+                    [],                  // pas d’attachments ici, tu peux gérer via Twig
+                    $replyTo
+                );
+            }             
+            $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
+            } catch (\Exception $e) {
+                $this->addFlash('danger', 'Erreur lors de l’envoi des emails : ' . $e->getMessage());
+            }
+
+            return $this->redirectToRoute('admin', [
+                'crudControllerFqcn' => UsersCrudController::class,
+                'action' => 'index',
+            ]);
+        }
+
+        // 4️⃣ Affichage du formulaire
+        return $this->render('emails/send_email_to_all_users.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 }

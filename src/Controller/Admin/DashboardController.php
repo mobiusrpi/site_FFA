@@ -127,7 +127,7 @@ class DashboardController extends AbstractDashboardController
                 )
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
             yield MenuItem::linkToCrud(
-                'Epreuves', 
+                'Épreuves', 
                 'fas fa-list',
                 Tests::class
                 )
@@ -171,7 +171,16 @@ class DashboardController extends AbstractDashboardController
                     MenuItem::linkToRoute('Rallye','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'1']), 
                     MenuItem::linkToRoute('Pilotage de précision','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'2']), 
                     MenuItem::linkToRoute('ANR','fa fa-trophy','admin_results_selection', ['typeCompetId' =>'3'])
-            ]);
+                ]);
+            yield MenuItem::subMenu('Envoi de mails', 'fa fa-envelope')
+                ->setPermission('ROLE_ADMIN')
+                ->setSubItems([
+                    MenuItem::linkToRoute(
+                        'Ouvertures inscriptions',
+                        'fa fa-paper-plane',
+                        'admin_send_all_email'
+                    )
+                ]);
             yield MenuItem::subMenu('Gestion', 'fa fa-cog')
                 ->setPermission('ROLE_ADMIN')
                 ->setSubItems([     

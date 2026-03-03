@@ -22,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,6 +49,26 @@ class TestsCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Tests::class;
+    }
+
+    public function createEntity(string $entityFqcn)
+    {
+        $test = new Tests();
+
+        $request = $this->requestStack->getCurrentRequest();
+        $competitionId = $request?->query->get('competition');
+
+        if ($competitionId) {
+            $competition = $this->entityManager
+                ->getRepository(Competitions::class)
+                ->find((int) $competitionId);
+
+            if ($competition) {
+                $test->setCompetition($competition);
+            }
+        }
+
+        return $test;
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -116,12 +137,12 @@ class TestsCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Epreuve') // singular label
-            ->setEntityLabelInPlural('Epreuves')  // plural label
+            ->setEntityLabelInSingular('Épreuve') // singular label
+            ->setEntityLabelInPlural('Épreuves')  // plural label
             ->setPageTitle(Crud::PAGE_INDEX, 'Liste des épreuves')
             ->setPageTitle(Crud::PAGE_NEW, 'Créer une nouvelle épreuve')
             ->setPageTitle(Crud::PAGE_EDIT, fn (Tests $crew) => sprintf('Modifier une épreuve'))
-            ->setPageTitle(Crud::PAGE_DETAIL, fn (Tests $crew) => sprintf('Epreuve'))
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (Tests $crew) => sprintf('Épreuve'))
             ->overrideTemplate('crud/index', 'admin/tests/test_index_grouped.html.twig');        
         }
 
@@ -151,9 +172,10 @@ class TestsCrudController extends AbstractCrudController
 
         // Récupérer paramètre de l'URL
         $request = $this->requestStack->getCurrentRequest();
-        $competitionId = $request?->query->get('competition');
-        $competition = null;
 
+        $competitionId = $request?->query->get('competition'); // get() au lieu de getInt()
+        $competitionId = $competitionId !== null ? (int) $competitionId : null;
+        $competition = null;
         if ($competitionId) {
             $competition = $this->entityManager
                 ->getRepository(Competitions::class)
@@ -179,10 +201,13 @@ class TestsCrudController extends AbstractCrudController
             $fields[] = BooleanField::new('resultsValidated', 'Résultats validés')->renderAsSwitch();
         } else {
             // PAGE NEW et PAGE EDIT
-
-            // Compétition pré-remplie et non modifiable
-            if ($competition) {
+ 
+            // Compétition pré-remplie et non modifiable //dd($competition); 
+            if ($pageName === Crud::PAGE_NEW && $competition) {
                 // Champ caché pour Doctrine
+                $fields[] = AssociationField::new('competition', 'Compétition')
+                    ->setFormTypeOption('disabled', $pageName === Crud::PAGE_NEW && $competitionId);
+            } elseif ($pageName === Crud::PAGE_EDIT && $competition)  {             
                 $fields[] = AssociationField::new('competition', 'Compétition')
                     ->setFormType(\Symfony\Bridge\Doctrine\Form\Type\EntityType::class)
                     ->setFormTypeOption('class', Competitions::class)
@@ -194,22 +219,31 @@ class TestsCrudController extends AbstractCrudController
                 $fields[] = AssociationField::new('competition', 'Compétition')
                     ->setRequired(true);
             }
-
-            // Nom
-            $fields[] = TextField::new('name', 'Nom')->setRequired(true);
+            $fields[] = TextField::new('name', 'Nom')
+                ->setRequired(true)
+                ->setHelp('Nom unique pour cette compétition, ex: NAV#, ATT ou ANR#')
+                ->setFormTypeOption('attr', [
+                    'maxlength' => 4,
+                    'pattern' => '[A-Za-z0-9]{3,4}',
+                    'style' => 'text-transform:uppercase'
+                ])
+            ;
 
             // Type d'épreuve
             $fields[] = ChoiceField::new('type', 'Type d\'épreuve')
                 ->setChoices(array_combine(
                     array_map(fn(TestCompet $c) => $c->label(), TestCompet::cases()),
                     TestCompet::cases()
-                ))
-                ->allowMultipleChoices(false);
+                ))   
+                ->setRequired(true)
+                ->allowMultipleChoices(false)
+            ;
 
             // Code généré automatiquement, non modifiable
             $fields[] = TextField::new('code', 'Code')
                 ->onlyOnForms()
-                ->setDisabled(true);
+                ->setDisabled(true)
+            ;
         }
 
         return $fields;

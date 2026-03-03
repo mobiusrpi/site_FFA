@@ -4,15 +4,19 @@
 
 {% block body %}
 <div class="container py-4">
-    <h2 class="text-center mb-4">
-        {% if resultsValidated %} 
-            Résultats – 
-        {% else %}
-            Résultats provisoires – 
-        {% endif %}
-        {{ testName }}
-    </h2>
-
+    <div class="col-12 col-md-8 mx-auto">
+        <h3 class="text-center">
+            <strong>Compétition {{ competition.name }}</strong></br> 
+        </h3>
+        <h2 class="text-center mb-4">
+            {% if resultsValidated %} 
+                Résultats – 
+            {% else %}
+                Résultats provisoires – 
+            {% endif %}
+            {{ testName }}
+        </h2>
+    </div>
     <div class="row">
         {% for category in ['elite', 'honneur'] %}
             <div class="col-md-6 mb-4">

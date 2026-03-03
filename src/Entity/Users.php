@@ -319,6 +319,11 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    
+    public function shouldCheckSmile(): bool
+    {
+        return $this->isCompetitor() && !empty($this->getLicenseFfa());
+    }
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {

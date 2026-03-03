@@ -41,20 +41,18 @@ class SendMailService
         ?string $template = null,
         array $context = [],
         ?string $html = null,
-        array $attachments = []
+        array $attachments = [],
+        ?string $replyTo = null
     ): void {
         if ($template) {
-            // Envoi via Twig template
             $email = (new TemplatedEmail())
                 ->from($this->from)
                 ->to($to)
                 ->subject($subject)
-                ->htmlTemplate("emails/$template.html.twig")   // si tu as le HTML
-                ->textTemplate("emails/$template.txt.twig")   // version texte
+                ->htmlTemplate("emails/$template.html.twig")
+                ->textTemplate("emails/$template.txt.twig")
                 ->context($context);
-
         } elseif ($html) {
-            // Envoi HTML brut
             $email = (new Email())
                 ->from($this->from)
                 ->to($to)
@@ -64,15 +62,45 @@ class SendMailService
             throw new \InvalidArgumentException('Vous devez fournir un template Twig ou du HTML.');
         }
 
+        // Ajouter replyTo si défini
+        if ($replyTo) {
+            $email->replyTo($replyTo);
+        }
+
         // Ajouter pièces jointes si présentes
         foreach ($attachments as $path => $filename) {
             $email->attachFromPath($path, $filename);
         }
 
-        // Log avant envoi
         $this->logger->info("Envoi email à {$to} avec sujet '{$subject}'");
 
-        // Envoi réel
+        $this->mailer->send($email);
+    }
+
+    public function sendToMultiple(
+        array $recipients,
+        string $subject,
+        string $html,
+        ?string $replyTo = null
+    ): void {
+
+        if (empty($recipients)) {
+            return;
+        }
+
+        $email = (new Email())
+            ->from($this->from)
+            ->to($this->from) // obligatoire
+            ->bcc(...$recipients)
+            ->subject($subject)
+            ->html($html);
+
+        if ($replyTo) {
+            $email->replyTo($replyTo);
+        }
+
+        $this->logger->info('Envoi email multiple à ' . count($recipients) . ' destinataires.');
+
         $this->mailer->send($email);
     }
 }

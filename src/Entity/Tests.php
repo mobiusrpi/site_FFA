@@ -3,15 +3,27 @@ namespace App\Entity;
 
 use App\Entity\Competitions;
 use App\Entity\Enum\TestCompet;
-use Doctrine\ORM\Mapping as ORM;
 use App\Repository\TestsRepository;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Boolean;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TestsRepository::class)]
 #[ORM\EntityListeners(['App\EventListener\TestCodeGeneratorListener'])]
+#[ORM\Table(
+    name: "tests",
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(name: "uniq_test_name_competition", columns: ["name", "competition_id"])
+    ]
+)]
+#[UniqueEntity(
+    fields: ['name', 'competition'],
+    errorPath: 'name',
+    message: 'Un test avec ce nom existe déjà pour cette compétition.'
+)]
 class Tests
 {
     #[ORM\Id]
@@ -19,15 +31,25 @@ class Tests
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 20)]
+   #[ORM\Column(length: 4)]
     #[Assert\NotBlank(message: "Le nom est obligatoire.")]
+    #[Assert\Length(
+        min: 3,
+        max: 4,
+        minMessage: "Le nom doit contenir au moins 3 caractères.",
+        maxMessage: "Le nom doit contenir au maximum 4 caractères."
+    )]
+    #[Assert\Regex(
+        pattern: "/^[A-Z0-9]{3,4}$/",
+        message: "Le nom doit contenir uniquement des caractères alphanumériques (A-Z, 0-9)."
+    )]
     private ?string $name = null;
 
     #[ORM\Column(length: 16, unique: true, nullable: false)]
     private ?string $code = null;
 
-    #[ORM\Column(type: 'test_compet', nullable: true)]
-    private ?TestCompet $type = null;    
+   #[ORM\Column(enumType: TestCompet::class, nullable: false)]
+    private ?TestCompet $type = null;  
     
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $inProgress = false;
@@ -66,7 +88,7 @@ class Tests
 
     public function setName(?string $name): static
     {
-        $this->name = $name;
+        $this->name = strtoupper($name);
         return $this;
     }
 

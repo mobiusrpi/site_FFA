@@ -2,20 +2,36 @@
 
 namespace App\Service;
 
-use Symfony\Component\HttpFoundation\StreamedResponse;
-
 class CsvExporter
 {
     public function exportCsv(array $rows, string $delimiter = ';'): string
     {
-        $handle = fopen('php://temp', 'w+'); 
+        if (empty($rows)) {
+            return '';
+        }
 
-        if (!empty($rows)) {         
-            fputcsv($handle, array_keys($rows[0]), $delimiter);
-            foreach ($rows as $row) {
-                // Ensure each field is casted to string to avoid Excel weirdness
-                fputcsv($handle, array_map(fn($v) => (string) $v, $row), $delimiter);
+        $handle = fopen('php://temp', 'w+');
+
+        // Construire la liste complète des colonnes
+        $headers = [];
+
+        foreach ($rows as $row) {
+            $headers = array_unique(array_merge($headers, array_keys($row)));
+        }
+
+        // Écrire le header UNE SEULE FOIS
+        fputcsv($handle, $headers, $delimiter);
+
+        // Écrire les lignes dans le bon ordre
+        foreach ($rows as $row) {
+
+            $orderedRow = [];
+
+            foreach ($headers as $header) {
+                $orderedRow[] = isset($row[$header]) ? (string) $row[$header] : '';
             }
+
+            fputcsv($handle, $orderedRow, $delimiter);
         }
 
         rewind($handle);
