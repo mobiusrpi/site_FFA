@@ -33,6 +33,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\SubmitButton;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -611,7 +612,6 @@ class UsersCrudController extends AbstractCrudController
             ->getQuery()
             ->getResult();
 
-
 //        $competitorUsers = $usersRepository->findBy([ 'email' => 'jtremblet@gmail.com' ]); 
 
         $users = $competitorUsers;
@@ -633,52 +633,81 @@ class UsersCrudController extends AbstractCrudController
             $attachment = $form->get('attachment')->getData();
 
             // Forcer subject et body en string
-             $replyTo = $form->get('replyTo')->getData() ?? $this->getParameter('mailer_from');
-            
-            try {
-            foreach ($users as $user) {
+            $replyTo = $form->get('replyTo')->getData() ?? $this->getParameter('mailer_from');
+
+             /** @var SubmitButton $previewButton */
+            $previewButton = $form->get('preview');
+            // 🟢 BOUTON PREVIEW
+            if ($previewButton->isClicked()) {
+
+                // Exemple avec un utilisateur test
+                $testUser = $users[0];
+
                 $personalizedMessage = str_replace(
                     '<Prénom>',
-                    htmlspecialchars($user->getFirstname()),
+                    htmlspecialchars($testUser->getFirstname()),
                     $data['message']
                 );
 
-                $message = nl2br($personalizedMessage); // convertit les sauts de ligne en <br>
-
-/*                $mailService->send(
-                    $user->getEmail(),
-                    $data['subject'],
-                    'user_email',   // pas de template
-                    [],
-                    $message,
-                    $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
-                    $replyTo
-                );  */
-                $mailService->send(
-                    $user->getEmail(),
-                    $data['subject'],
-                    'user_email',        // template Twig
-                    [
-                        'message' => $message,
-                        'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null,
-                        'firstname' => $user->getFirstname(),
-                    ],
-                    null,                // pas de HTML direct
-                    [],                  // pas d’attachments ici, tu peux gérer via Twig
-                    $replyTo
-                );
-            }             
-            $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
-            } catch (\Exception $e) {
-                $this->addFlash('danger', 'Erreur lors de l’envoi des emails : ' . $e->getMessage());
+                return $this->render('emails/preview_email.html.twig', [
+                    'subject' => $data['subject'],
+                    'message' => nl2br($personalizedMessage),
+                ]);
             }
 
-            return $this->redirectToRoute('admin', [
-                'crudControllerFqcn' => UsersCrudController::class,
-                'action' => 'index',
-            ]);
-        }
+            // 🟢 BOUTON ENVOYER
+            if ($previewButton->isClicked()) {
 
+                try {
+                    foreach ($users as $user) {
+
+                        $personalizedMessage = str_replace(
+                            '<Prénom>',
+                            htmlspecialchars($user->getFirstname()),
+                            $data['message']
+                        );
+
+                        $message = nl2br($personalizedMessage);
+        /*                $mailService->send(
+                            $user->getEmail(),
+                            $data['subject'],
+                            'user_email',   // pas de template
+                            [],
+                            $message,
+                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
+                            $replyTo
+                        );  */
+                        $mailService->send(
+                            $user->getEmail(),
+                            $data['subject'],
+                            'user_email',
+                            [
+                                'message' => $message,
+                                'firstname' => $user->getFirstname(),
+                                'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null,
+                            ],
+                            null,
+                            [],
+                            $replyTo
+                        );
+                    }
+
+                    $this->addFlash('success', sprintf(
+                        'Emails envoyés à %d utilisateurs.',
+                        count($users)
+                    ));
+
+                    $this->addFlash('success', sprintf('Emails envoyés à %d utilisateurs.', count($users)));
+                } catch (\Exception $e) {
+                    $this->addFlash('danger', 'Erreur lors de l’envoi des emails : ' . $e->getMessage());
+                }
+
+                return $this->redirectToRoute('admin', [
+                    'crudControllerFqcn' => UsersCrudController::class,
+                    'action' => 'index',
+                ]);
+            }   
+        }     
         // 4️⃣ Affichage du formulaire
         return $this->render('emails/send_email_to_all_users.html.twig', [
             'form' => $form->createView(),
