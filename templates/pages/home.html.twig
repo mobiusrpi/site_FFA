@@ -110,6 +110,7 @@
         {% endfor %}
       </div>
     </div>
+ 
   {% endif %}
   {% set currentYear = selectedYear %}
   {% set pastYears = years|filter(y => y != currentYear) %}
@@ -158,62 +159,73 @@
       {% set medals = ['🥇', '🥈', '🥉'] %} 
 
       {# Right column: Competition cards #}
-      <div class="col-md-9 ">
-        {% for item in groupedCompetitions %}
-          {% set competition = item.competition %}
-          <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">{{ competition.name }}</h5>
-                <div class="text-centered">
-                  <strong>{{ competition.typecompetition.typecomp }}</strong>
+      <div class="col-md-9 ">        
+        {% if groupedCompetitions %}
+          {% for item in groupedCompetitions %}
+            {% set competition = item.competition %}
+            <div class="card mb-4 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0">{{ competition.name }}</h5>
+                  <div class="text-centered">
+                    <strong>{{ competition.typecompetition.typecomp }}</strong>
+                  </div>
+                  <div class="text-end">
+                    <small class="text-muted">{{ competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</small><br>
+                  </div>
                 </div>
-                <div class="text-end">
-                  <small class="text-muted">{{ competition.startDate|format_datetime(locale='fr',pattern='dd MMMM y') }}</small><br>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6><strong>Elite</strong></h6>
+                    <ol class="ps-3">
+                      {% for result in item.elite|slice(0, 3) %}
+                        <li>
+                          {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
+                          {{ result.crew }} – {{ result.total }} pts
+                        </li>
+                      {% else %}
+                        <li class="text-muted">Aucun résultat</li>
+                      {% endfor %}
+                    </ol>
+                  </div>
+                  <div class="col-md-6">
+                    <h6><strong>Honneur</strong></h6>
+                    <ol class="ps-3">
+                      {% for result in item.honneur|slice(0, 3) %}
+                        <li>
+                          {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
+                          {{ result.crew }} – {{ result.total }} pts
+                        </li>
+                      {% else %}
+                        <li class="text-muted">Aucun résultat</li>
+                      {% endfor %}
+                    </ol>
+                  </div>
                 </div>
+
+                <a href="{{ path('test_results_general', { id: competition.id }) }}"
+                  class="btn btn-sm btn-outline-primary px-2 py-1 small">
+                  Résultats complets
+                </a>          
+                <a href="{{ path('test_results_aggregate', { id: competition.id }) }}"
+                  class="btn btn-sm btn-outline-primary px-2 py-1 small">
+                  Classement par épreuve
+                </a>          
+
               </div>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <h6><strong>Elite</strong></h6>
-                  <ol class="ps-3">
-                    {% for result in item.elite|slice(0, 3) %}
-                      <li>
-                        {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
-                        {{ result.crew }} – {{ result.total }} pts
-                      </li>
-                    {% else %}
-                      <li class="text-muted">Aucun résultat</li>
-                    {% endfor %}
-                  </ol>
-                </div>
-                <div class="col-md-6">
-                  <h6><strong>Honneur</strong></h6>
-                  <ol class="ps-3">
-                    {% for result in item.honneur|slice(0, 3) %}
-                      <li>
-                        {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
-                        {{ result.crew }} – {{ result.total }} pts
-                      </li>
-                    {% else %}
-                      <li class="text-muted">Aucun résultat</li>
-                    {% endfor %}
-                  </ol>
-                </div>
-              </div>
-
-              <a href="{{ path('test_results_general', { id: competition.id }) }}"
-                class="btn btn-sm btn-outline-primary px-2 py-1 small">
-                Résultats complets
-              </a>          
-              <a href="{{ path('test_results_aggregate', { id: competition.id }) }}"
-                class="btn btn-sm btn-outline-primary px-2 py-1 small">
-                Classement par épreuve
-              </a>          
-
             </div>
-          </div>
-        {% endfor %}
+          {% endfor %}
+        {% else %}
+        <div class="alert alert-info">
+            Il n'y a pas encore de résultats pour cette année.<br>
+            {% if pastYears|length > 0 %}
+                <a href="{{ path('home', { year: pastYears|first }) }}" class="btn btn-sm btn-outline-primary mt-2">
+                    Voir les résultats de l'année précédente ({{ pastYears|first }})
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
