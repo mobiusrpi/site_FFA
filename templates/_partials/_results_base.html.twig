@@ -4,6 +4,9 @@
     {{ parent() }}
 
     <style>
+        /* ======================== */
+        /* Styles pour impression    */
+        /* ======================== */
         @media print {
 
             table.print-table td {
@@ -67,75 +70,91 @@
             }
         }
 
+        /* ======================== */
+        /* Écran                    */
+        /* ======================== */
         @media screen {
-            .print-content {
-                display: none;
-            }
+            .print-content { display: none; }
+
             th, td {
-                padding: 0.25rem 0.25rem;  /* réduit l’espace horizontal */
-                font-size: 0.75rem;        /* small-header */
+                padding: 0.15rem 0.25rem;
+                font-size: 0.65rem;
             }
 
-            th.class-col,
-            td.class-col {
-                width: 40px;            /* largeur fixe adaptée à 1-2 chiffres */
-                max-width: 40px;
-                padding: 0.25rem 0.25rem;  /* réduire le padding */
-                font-size: 0.75rem;         /* small-header */
+            th.class-col, td.class-col {
+                width: 30px;
+                max-width: 30px;
+                padding: 0.1rem 0.15rem;
+                font-size: 0.65rem;
                 text-align: center;
                 white-space: nowrap;
             }
 
-            /* Bordures plus visibles pour toutes les cellules */
-            .results-category table th,
-            .results-category table td {
-                border: 1.5px solid silver;   /* augmente l'épaisseur et rend noir */
+            .results-category table th, .results-category table td {
+                border: 1px solid black;
             }
 
-            /* Ligne horizontale renforcée si tu veux */
             .results-category table tr {
-                border-bottom: 2px solid silver;  /* optionnel */
+                border-bottom: 1.5px solid black;
             }
 
             .results-container {
                 display: flex;
-                flex-wrap: wrap;       /* permet de passer à la ligne si ça déborde */
-                gap: 1rem;             /* espace entre les tables */
+                flex-wrap: wrap;
+                gap: 0.5rem;
             }
 
             .results-category {
-                flex: 1 1 500px;       /* minimum 500px, sinon passe à la ligne */
-                min-width: 300px;      /* ne devient pas trop étroit */
-                max-width: 100%;       /* limite pour petits écrans */
-                overflow-x: auto;      /* scroll horizontal si la table dépasse */
+                flex: 1 1 350px;
+                min-width: 250px;
+                max-width: 100%;
+                overflow-x: auto;
             }
 
             .results-category table {
-                width: 100%;           /* occupe tout l'espace disponible */
-                table-layout: fixed;   /* empêche le chevauchement des colonnes */
+                width: 100%;
+                table-layout: fixed;
             }
 
             .small-header {
-                font-size: 0.75rem;   /* ajuste la taille de la police */
-                padding: 0.25rem 0.5rem; /* réduit aussi le padding vertical */
+                font-size: 0.65rem;
+                padding: 0.15rem 0.3rem;
             }
-       }
-    /* Smartphone : empile logo et titre */
+        }
+
+        /* ======================== */
+        /* Smartphone très compact   */
+        /* ======================== */
         @media screen and (max-width: 576px) {
             .print-header {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
             }
 
             .print-logo img {
-                max-width: 40px;
-                max-height: 40px;
-                margin-bottom: 5px;
+                max-width: 30px !important;
+                max-height: 30px !important;
+                margin-bottom: 3px !important;
             }
 
             .print-title {
-                font-size: 0.9rem;
+                font-size: 0.8rem !important;
+            }
+
+            th, td {
+                font-size: 0.55rem !important;
+                padding: 0.1rem 0.15rem !important;
+            }
+
+            th.class-col, td.class-col {
+                width: 25px !important;
+                max-width: 25px !important;
+            }
+
+            /* Scroll horizontal si table trop large */
+            .results-category {
+                overflow-x: auto;
             }
         }
     </style>
