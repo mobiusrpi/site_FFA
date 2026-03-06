@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6fe66a26dddfc1b5a4729eb29ae04eda",
+    "content-hash": "6579c52ece5d4e419bd778ceee686408",
     "packages": [
         {
             "name": "composer/semver",
@@ -1703,21 +1703,21 @@
         },
         {
             "name": "nucleos/dompdf-bundle",
-            "version": "4.4.0",
+            "version": "4.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nucleos/NucleosDompdfBundle.git",
-                "reference": "423f98605b111d2284215bf0521729697b7b017c"
+                "reference": "d45dfbd4c25ffdeb6e2c68f377a646f3f98cd01d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nucleos/NucleosDompdfBundle/zipball/423f98605b111d2284215bf0521729697b7b017c",
-                "reference": "423f98605b111d2284215bf0521729697b7b017c",
+                "url": "https://api.github.com/repos/nucleos/NucleosDompdfBundle/zipball/d45dfbd4c25ffdeb6e2c68f377a646f3f98cd01d",
+                "reference": "d45dfbd4c25ffdeb6e2c68f377a646f3f98cd01d",
                 "shasum": ""
             },
             "require": {
                 "dompdf/dompdf": "^1.0.0 || ^2.0.0 || ^3.0.0",
-                "php": "^8.3",
+                "php": "^8.1",
                 "symfony/config": "^6.4 || ^7.0",
                 "symfony/dependency-injection": "^6.4 || ^7.0",
                 "symfony/event-dispatcher-contracts": "^1.1 || ^2.0 || ^3.0",
@@ -1760,7 +1760,7 @@
             ],
             "support": {
                 "issues": "https://github.com/nucleos/NucleosDompdfBundle/issues",
-                "source": "https://github.com/nucleos/NucleosDompdfBundle/tree/4.4.0"
+                "source": "https://github.com/nucleos/NucleosDompdfBundle/tree/4.3.0"
             },
             "funding": [
                 {
@@ -1780,7 +1780,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2025-10-12T18:07:38+00:00"
+            "time": "2024-08-14T16:24:20+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
