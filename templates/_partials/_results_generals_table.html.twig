@@ -1,8 +1,8 @@
 <table class="table table-bordered table-sm result-table w-100 mb-4">
     <thead>
         <tr>
-            <th>Class.</th>
-            <th>{% if competition.typecompetition.id == 2 %}
+            <th class="small-header class-col">Class.</th>
+            <th class="small-header">{% if competition.typecompetition.id == 2 %}
                     Pilote
                 {% else %}
                     Équipage
@@ -10,7 +10,7 @@
             </th>
             {% for testId, test in testNames %}
                 {% set isNavOrAnrTest = test.label|slice(0, 3) in ['NAV', 'ANR'] %}
-                <th class="text-center sort-column" data-key="{{ loop.index }}">
+                <th class="text-center sort-column small-header" data-key="{{ loop.index }}">
                     {% if isNavOrAnrTest and test.hasDetail %}
                         <a href="{{ path('test_results_detail', { testId: testId }) }}"
                         class="text-primary text-decoration-underline fw-bold d-inline-flex align-items-center sort-column"
@@ -27,7 +27,7 @@
                     {% endif %}
                 </th>
             {% endfor %}
-            <th class="text-center sort-column" data-key="total">
+            <th class="text-center sort-column small-header" data-key="total">
                 <span class="fw-bold" style="white-space: nowrap;">
                     Total <i class="fa-solid fa-sort sort-arrow ms-2"></i>
                 </span>
@@ -37,7 +37,7 @@
     <tbody>
         {% for rank, crewData in crews %}
             <tr data-score="{{ crewData.total ?? -1 }}">
-                <td class="text-center">{{ loop.index }}</td>
+                <td class="text-center class-col">{{ loop.index }}</td>
                 <td>{{ crewData.crew is iterable ? (crewData.crew.fullName ?? crewData.crew.name ?? '—') : crewData.crew }}</td>
                 {% for testKey, displayName in testNames %}
                     {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': false} %}

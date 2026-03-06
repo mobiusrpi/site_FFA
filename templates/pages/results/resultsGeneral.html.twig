@@ -28,15 +28,15 @@
         {# ----------- Tables écran ----------- #}
         <div class="row g-3 no-print">
             {% for category, crews in scoreByCategory %}
-                <div class="col-12 col-lg-6">
-                    <h6 class="fw-bold text-center mb-2">
+                <div class="results-category">
+                    <h5 class="fw-bold text-center mb-2">
                         <a href="{{ path('test_results_per_category',{ id: competition.id, category: category }) }}"
                                 class="text-primary text-decoration-underline fw-bold d-inline-flex align-items-center sort-column"
                             style="white-space: nowrap;"
                             title="Voir par categorie {{ category }}">
                             {{ category }}
                         </a>       
-                    </h6>
+                    </h5>
                     {% include '_partials/_results_generals_table.html.twig' with { 'crews': crews, 'competition': competition, 'testNames': testNames } %}                      
                 </div>
             {% endfor %}

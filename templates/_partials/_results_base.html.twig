@@ -71,7 +71,45 @@
             .print-content {
                 display: none;
             }
-        }
+            th, td {
+                padding: 0.25rem 0.25rem;  /* réduit l’espace horizontal */
+                font-size: 0.75rem;        /* small-header */
+            }
+
+            th.class-col,
+            td.class-col {
+                width: 40px;            /* largeur fixe adaptée à 1-2 chiffres */
+                max-width: 40px;
+                padding: 0.25rem 0.25rem;  /* réduire le padding */
+                font-size: 0.75rem;         /* small-header */
+                text-align: center;
+                white-space: nowrap;
+            }
+ 
+            .results-container {
+                display: flex;
+                flex-wrap: wrap;       /* permet de passer à la ligne si ça déborde */
+                gap: 1rem;             /* espace entre les tables */
+            }
+
+            .results-category {
+                flex: 1 1 500px;       /* minimum 500px, sinon passe à la ligne */
+                min-width: 300px;      /* ne devient pas trop étroit */
+                max-width: 100%;       /* limite pour petits écrans */
+                overflow-x: auto;      /* scroll horizontal si la table dépasse */
+            }
+
+            .results-category table {
+                width: 100%;           /* occupe tout l'espace disponible */
+                table-layout: fixed;   /* empêche le chevauchement des colonnes */
+            }
+
+            .small-header {
+                font-size: 0.75rem;   /* ajuste la taille de la police */
+                padding: 0.25rem 0.5rem; /* réduit aussi le padding vertical */
+            }
+       }
+
     </style>
 {% endblock %}
 

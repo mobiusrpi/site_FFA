@@ -76,7 +76,7 @@ class CompetitionScoringService
                             $crewValue = $pilot;
                         } else {
                             // Rallye / ANR : pilote / navigateur
-                            $crewValue = trim($pilot . '/' . $navigator);
+                            $crewValue = trim($pilot . ' ' . $navigator);
                         }
                     }
 
