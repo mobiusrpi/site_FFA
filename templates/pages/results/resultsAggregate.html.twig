@@ -1,0 +1,117 @@
+{% extends '_partials/_results_base.html.twig' %}
+
+
+{% block title %}
+  Résultats détaillés
+{% endblock %}
+
+{% block result_content %}
+    <div class="container-fluid mt-4 no-print">
+        {# ----------- Header écran ----------- #}
+        <div class="row align-items-center mb-3 no-print">
+            <div class="col-2">
+                <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height: 80px;">
+            </div>
+            <div class="col-7 text-center">
+                <strong>Compétition {{ competition.name }}</strong><br>
+                {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }}
+                au {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+            </div>
+            <div class="col-3 text-end">
+                <button onclick="window.print()">🖨️ Imprimer</button>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Retour
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-0 ">
+            {% for category, crews in scoreByCategory %}
+                <div class="col-12 col-lg-6 px-1 mb-4">
+                    <div class="text-center">
+                        <h5><strong>Catégorie {{ category }}</strong></h5>
+                    </div>
+
+                    <div class="table-responsive">
+                        {% include '_partials/_results_aggregate_table.html.twig' %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {# ================= IMPRESSION ================= #}
+    <div class="print-content">
+        {% for category, crews in scoreByCategory %}
+            <div class="print-category">
+                <div class="print-header">
+                    <div class="print-logo">
+                        <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height:60px;">
+                    </div>
+
+                    <div class="print-title">
+                        <strong>Compétition {{ competition.name }}</strong><br>
+                        {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+                        {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} - 
+                        <br><br>
+                        <strong>Catégorie {{ category }}</strong>
+                    </div>
+                </div>              
+
+                {% include '_partials/_results_aggregate_table.html.twig' with { 'crews': crews, 'competition': competition } %}                      
+            </div>            
+        {% endfor %}
+    </div>
+    {# Script de tri #}
+    <script>
+        document.querySelectorAll('.table').forEach(table => {
+            const headers = table.querySelectorAll('.sort-column');
+
+            headers.forEach((header, index) => {
+                const icon = header.querySelector('.sort-arrow');
+                let ascending = true;
+                const key = header.dataset.key;
+
+                if (icon && key) {
+                    icon.addEventListener('click', () => {
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                        rows.sort((a, b) => {
+                            let aVal = 0;
+                            let bVal = 0;
+
+                            if (key === 'rank') {
+                                aVal = parseInt(a.children[0].textContent) || 0;
+                                bVal = parseInt(b.children[0].textContent) || 0;
+                            } else {
+                                const cellIndex = Array.from(header.parentNode.children).indexOf(header);
+                                aVal = parseFloat(a.children[cellIndex].dataset.value) || 0;
+                                bVal = parseFloat(b.children[cellIndex].dataset.value) || 0;
+                            }
+
+                            return ascending ? aVal - bVal : bVal - aVal;
+                        });
+
+                        ascending = !ascending;
+
+                        rows.forEach(row => tbody.appendChild(row));
+
+                        // Mise à jour des icônes
+                        headers.forEach(h => {
+                            const i = h.querySelector('.sort-arrow');
+                            if (i) { i.classList.remove('fa-sort-up', 'fa-sort-down'); i.classList.add('fa-sort'); }
+                        });
+                        icon.classList.remove('fa-sort');
+                        icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
+
+                        // Recalcul du classement
+                        rows.forEach((row, i) => {
+                            row.children[0].textContent = i + 1;
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+
+{% endblock %}

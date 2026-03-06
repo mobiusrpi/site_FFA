@@ -74,7 +74,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->updatedAt = $now;
     }    
     
-    #[ORM\Column]
+    #[ORM\Column] 
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\PreUpdate]

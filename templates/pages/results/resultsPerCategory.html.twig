@@ -1,304 +1,51 @@
-{% extends 'base.html.twig' %}
+{# templates/results/results_per_category.html.twig #}
+{% extends '_partials/_results_base.html.twig' %}
 
-{% block title %}{{ category }} {% endblock %}
+{% block title %}Résultats par catégorie{% endblock %}
 
-{% block body %}
-  <style>
-      @media print {
-          .page-break {
-              page-break-after: always;
-          }
-          .no-print {
-              display: none !important;
-          }
-          .print-only {
-              display: block !important;
-          }   
+{% block result_content %}
 
-      /* Bordures plus foncées / épaisses pour impression */
-          table.print-table th,
-          table.print-table td {
-              border: 2px solid #000 !important;   /* 2px = plus épais */
-              padding: 4px;                        /* ajuster l'espacement */
-              background-color: white !important;  /* garantir fond blanc si besoin */
-          }
-          table.print-table thead th {
-              background-color: silver !important; /* si tu veux en-tête gris */
-          }
-          /* Supprimer marges/paddings Bootstrap */
-          body, .container, .row, .col-12, .col-md-8, .mx-auto {
-              margin: 0 !important;
-              padding: 0 !important;
-              max-width: 100% !important;
-          }
-
-          /* Forcer table à prendre toute la largeur */
-          table {
-              width: 100% !important;
-              table-layout: auto;
-          }
-
-          /* Réduire police pour éviter troncature */
-          table th, table td {
-              font-size: 12px;
-              word-wrap: break-word;
-          }
-      }      
-
-      /* Règles générales */
-      table.print-table {
-          border-collapse: collapse;
-          width: 100%;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-      }
-
-      .sort-column {
-          cursor: pointer;
-          user-select: none;
-      }
-      .sort-column:hover {
-          background-color:rgb(243, 158, 158);
-      }
-      .sort-arrow {
-          color: #999 !important;
-          text-decoration: none !important;
-          pointer-events: auto;
-      }
-
-      .sort-arrow:hover {
-          color: #000 !important;       
-      }
-  </style>
-  <div class="container mt-4">
-      <div class="row align-items-center mb-3">
-    <div class="col-12">
-        <h5 class="text-center mb-2">
-            <strong>Compétition {{ competition.name }}</strong><br>
-            {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
-            {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
-        </h5>
-
-        <div class="d-flex justify-content-between align-items-center no-print">
-
-            <div>
-                <h5 class="mb-0"><strong>Catégorie {{ category }}</strong></h5>
-            </div>
-
+    <div class="container-fluid mt-4 no-print">
+        {# ----------- Header écran ----------- #}
+        <div class="row align-items-center mb-3 no-print">
             <div class="text-end">
-                <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
-                    🖨️ Imprimer
-                </button>
-
+                <button onclick="window.print()">🖨️ Imprimer</button>
                 <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                     <i class="fa-solid fa-arrow-left me-1"></i> Retour
                 </a>
+            </div>
+        </div>
+  {# ----------- Tables écran -----------       #}
+        <div class="row g-3 no-print">                 
+            {% include '_partials/_results_category_table.html.twig' %}              
         </div>
     </div>
-</div>    
-        {% set hasCrewEntity = false %}
-        {% for row in ranking %}
-            {% if not hasCrewEntity %}
-                {% if row.crew.pilot is defined and row.crew.pilot is not null %}
-                    {% set hasCrewEntity = true %}
-                {% endif %}
-            {% endif %}
-        {% endfor %}
-        <table class="table table-bordered table-sm mt-4 print-table w-100">
-          <thead>
-            <tr>
-              <th class="text-center">Class.</th>
-              <th class="text-center">
-                {% if competition.typecompetition.id == 2 %}
-                  Pilote           
-                {% else %}
-                  Équipage
-                {% endif %}
-              </th>
-              {% if hasCrewEntity %}
-                <th class="text-center">Sexe</th>
-                <th class="text-center">AC Licence</th>                
-                <th class="text-center">AC Sport</th>
-                <th class="text-center">CRA</th>
-              {% endif %}
-              <th class="text-center sort-column" data-key="navigation">
-                <span class="d-inline-flex align-items-center">
-                  Nav <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                </span>
-              </th>
-              {% if competition.typecompetition.id != 3 %}
-                <th class="text-center sort-column" data-key="observation">
-                  <span class="d-inline-flex align-items-center">
-                    Obs <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                  </span>
-                </th>
-              {% endif %}
-               <th class="text-center sort-column" data-key="landing">            
-                  <span class="d-inline-flex align-items-center">           
-                    Att <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                  </span>                
-                </th>              
-                {% if competition.typecompetition.id == 2 %}
-                <th class="text-center sort-column" data-key="flightPlanning">                        
-                  <span class="d-inline-flex align-items-center">               
-                    Théo <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>            
-                  </span>
-                </th>                
-              {% endif %}
 
-              <th class="text-center sort-column" data-key="total"> 
-                <span class="d-inline-flex align-items-center">
-                  Total <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                </span>
-              </th>  
-            </tr>
-          </thead>
-          <tbody>
-            {% set lastScore = null %}
-            {% set rank = 0 %}
-            {% set actualRank = 0 %}
+    <div class="print-content">
+        {% include '_partials/_results_category_table.html.twig' %}
+    </div> 
 
-            {% for row in ranking %}
-                {% set actualRank = actualRank + 1 %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const table = document.querySelector('table');
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            let currentSort = { key: null, asc: true };
 
-                {# Rang : DNS -> '-' #}
-                {% if not row.dns %}
-                    {% if row.total != lastScore %}
-                        {% set rank = actualRank %}
-                    {% endif %}
-                {% else %}
-                    {% set rank = '-' %}
-                {% endif %}
+            document.querySelectorAll('th.sort-column').forEach(th => {
+                th.addEventListener('click', () => {
+                    const key = th.dataset.key;
+                    const asc = currentSort.key === key ? !currentSort.asc : true;
 
-                <tr>
-                    <td class="text-center">{{ rank }}</td>
+                    rows.sort((a, b) => {
+                        const aVal = parseFloat(a.querySelector(`td[data-key="${key}"]`)?.dataset.value || 0);
+                        const bVal = parseFloat(b.querySelector(`td[data-key="${key}"]`)?.dataset.value || 0);
+                        return asc ? aVal - bVal : bVal - aVal;
+                    });
 
-                    {# Équipage #}
-                    <td style="white-space: nowrap;">
-                        <small>
-                            {% if row.crew.pilot is defined %}
-                                {% if row.crew.pilot is not null %}
-                                    {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
-                                    {% if row.crew.navigator is defined and row.crew.navigator is not null %}
-                                        {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
-                                    {% endif %}
-                                {% endif %}
-                            {% else %}
-                                {{ row.crew }}
-                            {% endif %}
-                        </small>
-                    </td>
-
-                    {# Gender #}                   
-                       {% if row.crew.pilot is defined 
-                            and row.crew.navigator is defined 
-                            and row.crew.pilot is not null 
-                            and row.crew.navigator is not null
-                        %} 
-                        <td class="text-center">                
-                            {% if row.crew.pilot.gender == row.crew.navigator.gender %}
-                                {{ row.crew.pilot.gender.label }}
-                            {% else %}
-                                {{ row.crew.pilot.gender.label }}/{{ row.crew.navigator.gender.label }}
-                            {% endif %}  
-                       </td>                
-                    {% elseif row.crew.pilot is defined %}
-                        <td class="text-center">
-                            {{ row.crew.pilot.gender.label ?? '-' }}
-                       </td>                          
-                    {% endif %}
-         
-
-                    {# Association / club #}
-
-                    {% if row.crew.pilot is defined 
-                        and row.crew.navigator is defined 
-                        and row.crew.pilot is not null 
-                        and row.crew.navigator is not null
-                    %}                    
-                        <td>
-                            {% if row.crew.pilot.flyingclub == row.crew.navigator.flyingclub %}
-                                {{ row.crew.pilot.flyingclub }}
-                            {% else %}
-                                {{ row.crew.pilot.flyingclub }}<br>{{ row.crew.navigator.flyingclub }}
-                            {% endif %}                    
-                        </td>
-
-                    {% elseif row.crew.pilot is defined and row.crew.pilot is not null %}
-                        <td>
-                            {{ row.crew.pilot.flyingclub ?? '-' }}
-                        </td>
-                    {% endif %}
-
-                    {# Avion / club #}
-                    {% if row.crew.pilot is defined and row.crew.pilot is not null %} 
-                        <td>
-                            {{ row.crew.aircraftFlyingclub ?? '-' }}   
-                        </td>
-                    {% endif %}
-
-                    {# Comité / région #}
-                    {% if row.crew.pilot is defined 
-                        and row.crew.navigator is defined 
-                        and row.crew.pilot is not null 
-                        and row.crew.navigator is not null
-                    %}      
-                        <td>
-                            {% if row.crew.pilot.committee == row.crew.navigator.committee %}
-                                {{ row.crew.pilot.committee.label }}
-                            {% else %}
-                                {{ row.crew.pilot.committee.label }}<br>{{ row.crew.navigator.committee.label }}
-                            {% endif %}
-                        </td>
-                    {% elseif row.crew.pilot is defined %}
-                        <td>
-                            {{ row.crew.pilot.committee.label ?? '-' }}
-                        </td>
-                    {% endif %}
-                    
-
-                    {# Scores #}
-                    <td class="text-center">{{ row.dns ? '-' : row.navigation }}</td>
-                    {% if competition.typecompetition.id != 3 %}
-                        <td class="text-center">{{ row.dns ? '-' : row.observation }}</td>
-                    {% endif %}
-                    <td class="text-center">{{ row.dns ? '-' : row.landing }}</td>
-
-                    {% if competition.typecompetition.id == 2 %}
-                        <td class="text-center">{{ row.dns ? '-' : row.flightPlanning }}</td>
-                    {% endif %}
-
-                    {# Total #}
-                    <td class="text-center">{{ row.dns ? 'DNS' : row.total }}</td>
-                </tr>
-
-                {% set lastScore = row.total %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-  </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const table = document.querySelector('table');
-      const rows = Array.from(table.querySelectorAll('tbody tr'));
-      let currentSort = { key: null, asc: true };
-
-      document.querySelectorAll('th.sort-column').forEach(th => {
-        th.addEventListener('click', () => {
-          const key = th.dataset.key;
-          const asc = currentSort.key === key ? !currentSort.asc : true;
-
-          rows.sort((a, b) => {
-            const aVal = parseFloat(a.querySelector(`td[data-key="${key}"]`)?.dataset.value || 0);
-            const bVal = parseFloat(b.querySelector(`td[data-key="${key}"]`)?.dataset.value || 0);
-            return asc ? aVal - bVal : bVal - aVal;
-          });
-
-          rows.forEach(row => table.querySelector('tbody').appendChild(row));
-          currentSort = { key, asc };
+                    rows.forEach(row => table.querySelector('tbody').appendChild(row));
+                    currentSort = { key, asc };
+                });
+            });
         });
-      });
-    });
-  </script>
+    </script>
 {% endblock %}

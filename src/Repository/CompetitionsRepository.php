@@ -200,6 +200,9 @@ class CompetitionsRepository extends ServiceEntityRepository
             ->leftJoin('comp.crew', 'crew')->addSelect('crew')
             ->leftJoin('crew.pilot', 'pilot')->addSelect('pilot')
             ->leftJoin('crew.navigator', 'navigator')->addSelect('navigator')
+            // --- competitionsUsers et users associés ---
+            ->leftJoin('comp.competitionsUsers', 'cu')->addSelect('cu')
+            ->leftJoin('cu.user', 'u')->addSelect('u')
             ->where('comp.id = :id')
             ->setParameter('id', $competitionId)
             ->getQuery()

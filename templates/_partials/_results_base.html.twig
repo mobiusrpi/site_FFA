@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    <style>
+        @media print {
+
+            table.print-table td {
+                padding: 3px 6px;
+                line-height: 1.2;
+                font-size: 14px;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-content {
+                display: block;
+                width: 100%;
+            }
+
+            .print-category {
+                page-break-after: always;
+            }
+
+            .print-category:last-child {
+                page-break-after: auto;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                border: 1px solid #000 !important;
+                padding: 4px;
+            }
+
+            thead { 
+                display: table-header-group; 
+            }
+
+            tfoot { 
+                display: table-footer-group; 
+            }
+
+            .sort-arrow {
+                display: none !important;
+            }
+
+            .print-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .print-logo {
+                flex: 0 0 auto;
+            }
+
+            .print-title {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+        @media screen {
+            .print-content {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% block result_content %}{% endblock %}
+{% endblock %}

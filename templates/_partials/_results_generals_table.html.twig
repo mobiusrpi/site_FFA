@@ -1,0 +1,50 @@
+<table class="table table-bordered table-sm result-table w-100 mb-4">
+    <thead>
+        <tr>
+            <th>Class.</th>
+            <th>{% if competition.typecompetition.id == 2 %}
+                    Pilote
+                {% else %}
+                    Équipage
+                {% endif %}
+            </th>
+            {% for testId, test in testNames %}
+                {% set isNavOrAnrTest = test.label|slice(0, 3) in ['NAV', 'ANR'] %}
+                <th class="text-center sort-column" data-key="{{ loop.index }}">
+                    {% if isNavOrAnrTest and test.hasDetail %}
+                        <a href="{{ path('test_results_detail', { testId: testId }) }}"
+                        class="text-primary text-decoration-underline fw-bold d-inline-flex align-items-center sort-column"
+                        data-key="{{ loop.index }}" style="white-space: nowrap;"
+                        title="Voir les détails de {{ test.label }}">
+                            {{ test.label }}
+                            <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                        </a>
+                    {% else %}
+                        <span class="fw-bold" style="white-space: nowrap;">
+                            {{ test.label }}
+                            <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                        </span>
+                    {% endif %}
+                </th>
+            {% endfor %}
+            <th class="text-center sort-column" data-key="total">
+                <span class="fw-bold" style="white-space: nowrap;">
+                    Total <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rank, crewData in crews %}
+            <tr data-score="{{ crewData.total ?? -1 }}">
+                <td class="text-center">{{ loop.index }}</td>
+                <td>{{ crewData.crew is iterable ? (crewData.crew.fullName ?? crewData.crew.name ?? '—') : crewData.crew }}</td>
+                {% for testKey, displayName in testNames %}
+                    {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': false} %}
+                    <td class="text-center">{{ result.total is same as(null) ? '_' : result.total }}</td>
+                {% endfor %}
+                <td class="text-center"><strong>{{ crewData.total is same as(null) ? '_' : crewData.total }}</strong></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Competitions;
+use App\Entity\Enum\CompetitionRole;
 use App\Entity\Enum\TestCompet;
 use App\Entity\Tests;
 use App\Repository\CompetitionsRepository;
@@ -276,9 +277,9 @@ final class TestResultsController extends AbstractController
         int $id,
         $category,
         CompetitionsRepository $repositoryCompetition,        
-        CrewsRepository $repositoryCrew,
     ): Response {
-        $competition = $repositoryCompetition->findWithCrewsPilotsNavigators($id);   
+        $competition = $repositoryCompetition->findWithCrewsPilotsNavigators($id); 
+
         if (!$competition) {
             throw $this->createNotFoundException('Compétition non trouvée');
         }        
@@ -365,11 +366,13 @@ final class TestResultsController extends AbstractController
 
             return $a['total'] <=> $b['total'];
         });
+        $topRoles = array_slice(CompetitionRole::cases(), 0, 3);
 
         return $this->render('pages/results/resultsPerCategory.html.twig', [
             'competition' => $competition,
             'ranking' => $ranking,
             'category' => $category,
+            'topRoles' => $topRoles,
         ]);
     }
 
@@ -426,63 +429,6 @@ final class TestResultsController extends AbstractController
             'testNames' => $testNames,
             'scoreByCategory' => $scoreByCategory,
             'testsWithResults' => $testsWithResults,
-        ]);
-    }
-
-    /**
-     * general results sorted by score function
-     *
-     * @param Request $request
-     * @param CompetitionsRepository $competitionRepository
-     * @return Response
-     */
-    #[Route(path: '/testResults/live/{id}', name:'test_results_live', methods:['GET'])]    
-    public function resultslive(
-        int $id,
-        CompetitionsRepository $repositoryCompetition,
-        CompetitionScoringService $scoringService
-    ): Response {
-        //$competition = $repositoryCompetition->find($id);
-        $competition = $repositoryCompetition->findWithCrews($id);
-
-        if (!$competition) {
-            throw $this->createNotFoundException('Compétition non trouvée');
-        }
-        $crews = $competition->getCrew();
-
-        foreach ($crews as $crew) {
-            $crewId = $crew->getId();
-            $category = $crew->getCategory()->value;
-
-            // Initialize category if not present
-            if (!isset($scoreByCategory[$category])) {
-                $scoreByCategory[$category] = [];
-            }
-
-            // If the crew is not already in the score list, set default score to 0
-            if (!array_key_exists($crewId, $scoreByCategory[$category])) {
-                $scoreByCategory[$category][$crewId] = [
-                    'crew' =>$crewId,
-                    'tests' => [],
-                    'total' => null,
-                ];
-            }
-        }        
-        $testNames = [];
-        foreach ($competition->getTests() as $test) {
-            $testId = $test->getId();
-            $label = $test->getName();
-            $type = $test->getType();
-
-            $testNames[$testId] = [
-                'label' => $label,
-                'hasDetail' => $type !== TestCompet::LANDING,
-            ];
-        }
-        return $this->render('pages/results/resultsLive.html.twig', [
-            'competition' => $competition,
-            'testNames' => $testNames,
-            'scoreByCategory' => $scoreByCategory,
         ]);
     }
     
@@ -580,7 +526,7 @@ final class TestResultsController extends AbstractController
         // Calcul des scores agrégés PAR CATÉGORIE
         $scoreByCategory = $scoringService->calculateAggregateScores($results, $competition->getTypeCompetition()->getId());
 
-        return $this->render('pages/results/aggregate.html.twig', [
+        return $this->render('pages/results/resultsAggregate.html.twig', [
             'competition' => $competition,
             'scoreByCategory' => $scoreByCategory,
         ]);

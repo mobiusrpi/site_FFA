@@ -1,0 +1,214 @@
+    {# _partials/_results_category_table.html.twig #}
+
+{% set hasCrewEntity = false %}
+{% for row in ranking %}
+    {% if not hasCrewEntity and row.crew.pilot is defined and row.crew.pilot is not null %}
+        {% set hasCrewEntity = true %}
+    {% endif %}
+{% endfor %}
+
+<table class="table table-bordered table-sm print-table w-100">
+    <thead>
+         {# -------- Header logo + titre -------- #}
+        <tr>
+            <th colspan="11" class="text-center">
+                <div class="d-flex align-items-center">
+                    <div style="flex: 0 0 auto;"> {# Logo fixe à gauche #}
+                        <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height:60px;">
+                    </div>
+                    <div style="flex: 1; text-align: center;"> 
+                        <strong>Compétition {{ competition.name }}</strong><br>
+                        {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} 
+                        au {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                        <br>
+                        Catégorie : {{ category }}
+                    </div>
+                </div>
+            </th>
+        </tr>
+        <tr>
+            <th class="text-center">Class.</th>
+
+            <th class="text-center">
+                {% if competition.typecompetition.id == 2 %}
+                    Pilote
+                {% else %}
+                    Équipage
+                {% endif %}
+            </th>
+            
+            {% if hasCrewEntity %}
+                <th class="text-center">Sexe</th>
+                <th class="text-center">AC Licence</th>
+                <th class="text-center">AC Sport</th>
+                <th class="text-center">CRA</th>
+            {% endif %}
+
+            <th class="text-center sort-column" data-key="navigation">
+                Nav 
+                <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+            </th>
+            
+            {% if competition.typecompetition.id != 3 %}
+                <th class="text-center sort-column" data-key="observation">
+                    Obs
+                    <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+                </th>
+            {% endif %}
+
+            <th class="text-center sort-column" data-key="landing">
+                Att
+                <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+            </th>
+            
+            {% if competition.typecompetition.id == 2 %}
+                <th class="text-center sort-column" data-key="flightPlanning"> 
+                    Théo
+                    <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+                </th>
+            {% endif %}
+            
+            <th class="text-center sort-column" data-key="total">
+                Total 
+                <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% set lastScore = null %}
+        {% set rank = 0 %}
+        {% set position = 0 %}
+
+        {% for row in ranking %}
+
+            {% set crew = row.crew ?? null %}
+            {% set pilot = crew and crew.pilot ? crew.pilot : null %}
+            {% set navigator = crew and crew.navigator ? crew.navigator : null %}
+                    
+            {% if not row.dns %}
+                {% set position = position + 1 %}
+
+                {% if row.total != lastScore %}
+                    {% set rank = position %}
+                {% endif %}
+            {% else %}
+                {% set rank = '-' %}
+            {% endif %}
+
+            <tr>
+
+                <td class="text-center">{{ rank }}</td>
+
+                {# --- NOMS --- #}
+                <td style="white-space: nowrap;">
+                    <small>
+                        {% if pilot %}
+                            {{ pilot.lastName }} {{ pilot.firstName }}<br>
+                        {% endif %}
+
+                        {% if navigator %}
+                            {{ navigator.lastName }} {{ navigator.firstName }}
+                        {% endif %}
+
+                        {% if not pilot %}
+                            {{ row.crew ?? '-' }}
+                        {% endif %}
+                    </small>
+                </td>
+
+                {% if hasCrewEntity %}
+
+                    {# --- GENDER --- #}
+                    <td class="text-center">
+
+                        {% set g1 = pilot and pilot.gender ? pilot.gender.getLabel() : null %}
+                        {% set g2 = navigator and navigator.gender ? navigator.gender.getLabel() : null %}
+
+                        {% if g1 and g2 and g1 == g2 %}
+                            {{ g1 }}
+                        {% else %}
+                            {{ g1 ?? '' }}{{ g2 ? '/' ~ g2 : '' }}
+                        {% endif %}
+
+                    </td>
+
+                    {# --- CLUB PILOTE --- #}
+                    <td>
+                        {{ pilot and pilot.flyingclub ? pilot.flyingclub : '-' }}
+                    </td>
+
+                    {# --- CLUB AVION --- #}
+                    <td>    
+                        {{ crew and crew.aircraftFlyingclub ? crew.aircraftFlyingclub : '-' }}
+                    </td>
+
+                    {# --- COMITE --- #}
+                    <td>
+
+                        {% set c1 = (pilot and pilot.committee) ? pilot.committee.label : null %}
+                        {% set c2 = (navigator and navigator.committee) ? navigator.committee.label : null %}
+
+                        {% if c1 and c2 and c1 == c2 %}
+                            {{ c1 }}
+                        {% else %}
+                            {{ c1 ?? '-' }}
+                            {% if c2 %}
+                                <br>{{ c2 }}
+                            {% endif %}
+                        {% endif %}
+
+                    </td>
+
+                {% endif %}
+
+                {# --- SCORES --- #}
+
+                <td class="text-center">
+                    {{ row.dns ? '-' : (row.navigation ?? '-') }}
+                </td>
+
+                {% if competition.typecompetition and competition.typecompetition.id != 3 %}
+                    <td class="text-center">
+                        {{ row.dns ? '-' : (row.observation is not null ? row.observation : '-') }}
+                    </td>
+                {% endif %}
+
+                <td class="text-center">
+                    {{ row.dns ? '-' : (row.landing ?? '-') }}
+                </td>
+
+                {% if  competition.typecompetition and competition.typecompetition.id == 2 %}
+                    <td class="text-center">
+                        {{ row.dns ? '-' : (row.flightPlanning ?? '-') }}
+                    </td>
+                {% endif %}
+
+                <td class="text-center">
+                    {{ row.dns ? 'DNS' : row.total }}
+                </td>
+
+            </tr>
+
+            {% set lastScore = row.total %}
+
+        {% endfor %}
+
+        {% set colspanLeft = 2 + (hasCrewEntity ? 4 : 0) %}
+        {% set colspanRight = 5 %} {# ou ajuster selon tes colonnes de score #}
+    </tbody>
+</table>       
+<div class="roles-footer">
+    {% for role in topRoles %}
+        {% set usersForRole = competition.competitionsUsers|filter(cu => cu.role == role)|map(cu => cu.user.lastName ~ ' ' ~ cu.user.firstName) %}
+
+        {% if usersForRole|length > 0 %}
+            <strong>{{ role.label }}</strong> : {{ usersForRole|join(', ') }}
+            {% if role.label != 'IT' %} 
+             - 
+            {% endif %}
+            
+        {% endif %}
+    {% endfor %}
+</div>
+
+

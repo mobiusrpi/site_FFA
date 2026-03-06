@@ -1,0 +1,104 @@
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>Class.</th>
+            <th>Équipage</th>
+            <th class="text-center">Nav</th>
+            {% if competition.typecompetition.id != 3 %}
+                <th class="text-center">Obs</th>
+            {% endif %}
+            <th class="text-center">
+                {% if competition.typecompetition.id == 2 %}
+                    Théo
+                {% else %}
+                    Att
+                {% endif %}
+            </th>
+            <th class="text-center">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% set lastScore = null %}
+        {% set rank = 1 %}
+        {% set actualRank = 0 %}
+
+        {% for row in results %}
+            {% set actualRank = actualRank + 1 %}
+
+            {# rang uniquement si pas DNS #}
+            {% if not row.dns %}
+                {% if row.total != lastScore %}
+                    {% set rank = actualRank %}
+                {% endif %}
+            {% endif %}
+
+            <tr>
+                <td class="text-center">
+                    {% if row.dns %}
+                        –
+                    {% else %}
+                        {{ rank }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    <small>
+                        {% if row.crew.pilot is defined %}
+                            {% if competition.typecompetition.id == 2 %}
+                                {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}
+                            {% else %}
+                                {{ row.crew.pilot.lastName }} {{ row.crew.pilot.firstName }}<br>
+                                {{ row.crew.navigator.lastName }} {{ row.crew.navigator.firstName }}
+                            {% endif %}
+                        {% else %}
+                            {{ row.crew }}
+                        {% endif %}
+                    </small>
+                </td>
+
+                {# Colonnes de pénalités #}
+                <td class="text-center">
+                    {% if row.dns %}
+                        --
+                    {% else %}
+                        {{ row.navigation }}
+                    {% endif %}
+                </td>
+
+                {% if competition.typecompetition.id != 3 %}
+                    <td class="text-center">
+                        {% if row.dns %}
+                            --
+                        {% else %}
+                            {{ row.observation }}
+                        {% endif %}
+                    </td>
+                {% endif %}
+
+                <td class="text-center">
+                    {% if row.dns %}
+                        --
+                    {% else %}
+                        {% if competition.typecompetition.id == 2 %}
+                            {{ row.flightPlanning }}
+                        {% else %}
+                            {{ row.landing }}
+                        {% endif %}
+                    {% endif %}
+                </td>
+
+                <td class="text-center">
+                    {% if row.dns %}
+                        DNS
+                    {% else %}
+                        {{ row.total }}
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% if not row.dns %}
+                {% set lastScore = row.total %}
+            {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
