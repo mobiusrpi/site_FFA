@@ -9,15 +9,15 @@
     <div class="container-fluid mt-4 no-print">
         {# ----------- Header écran ----------- #}
         <div class="row align-items-center mb-3 no-print">
-            <div class="col-2">
+            <div class="col-md-2 col-12 text-center text-md-start">
                 <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height: 80px;">
             </div>
-            <div class="col-7 text-center">
+            <div class="col-md-7 col-12 text-center">
                 <strong>Compétition {{ competition.name }}</strong><br>
                 {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }}
                 au {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
             </div>
-            <div class="col-3 text-end">
+            <div class="col-md-3 col-12 text-center text-md-end">
                 <button onclick="window.print()">🖨️ Imprimer</button>
                 <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                     <i class="fa-solid fa-arrow-left me-1"></i> Retour
