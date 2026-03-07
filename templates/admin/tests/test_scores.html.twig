@@ -1,0 +1,143 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}
+Scores - {{ test.name }}
+{% endblock %}
+
+
+{% block main %}
+    {% set showNav = test.type in [
+        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION') , 
+        constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'), 
+        constant('App\\Entity\\Enum\\TestCompet::NAV_TG')] 
+    %}
+
+    {% set showObs = showNav %}   
+    
+    {% set showTheo = test.type in [
+        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION') ]
+    %}
+
+    {% set showAtt = test.type in [
+        constant('App\\Entity\\Enum\\TestCompet::LANDING'), 
+        constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'), 
+        constant('App\\Entity\\Enum\\TestCompet::NAV_TG')] 
+    %}    
+    
+    {% set competType = test.competition.typecompetition.id %}
+    {{ dump(competType) }}
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Crew</th>                                <
+                            {% if competType == 2 %}
+                                <th>Pilote</th>
+                            {% else %}
+                                <th>Équipage</th>   
+                            {% endif %}                       
+  
+                            {% if showNav %}
+                                <th>Nav</th>   
+                            {% endif %}
+                            {% if showObs %}
+                                <th>Obs</th>
+                            {% endif %}
+                            {% if showTheo %}                       
+                                <th>Théo</th>
+                            {% endif %}
+                            {% if showAtt %}
+                                <th>Att</th>
+                            {% endif %}
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for result in testResults %}
+                            {% set penalty = 0 %}
+                            <tr>
+                                <td>{{ result.crew.id }}</td>
+                                {% if competType == 2 %}
+                                    <td>{{ result.crew.pilot.lastname }} {{ result.crew.pilot.firstname }}</td>                                
+                                {% else %}
+                                    <td>
+                                        {{ result.crew.pilot.lastname }} {{ result.crew.pilot.firstname }}</br>
+                                        {{ result.crew.navigator.lastname }}  {{ result.crew.navigator.firstname }}
+                                    </td>                                  
+                                {% endif %} 
+
+
+                                {% if showNav %}
+                                    <td>
+                                        <input type="number"
+                                            name="results[{{ result.id }}][navigation]"
+                                            value="{{ result.navigation }}"
+                                            class="score-input nav form-control form-control-sm">
+                                    </td>
+                                    {% set penalty = penalty + (result.navigation|default(0)) %}
+                                {% endif %}
+
+                                {% if showObs %}
+                                    <td>
+                                        <input type="number"
+                                            name="results[{{ result.id }}][observation]"
+                                            value="{{ result.observation }}"
+                                            class="score-input obs form-control form-control-sm">
+                                    </td>
+                                    {% set penalty = penalty + (result.observation|default(0)) %}
+                                {% endif %}
+                                {% if showTheo %}                       
+                                    <td> <input type="number"
+                                        name="results[{{ result.id }}][flightPlanning]"
+                                        value="{{ result.flightPlanning }}"
+                                        class="score-input nav form-control form-control-sm">
+                                    </td>
+                                    {% set penalty = penalty + (result.navigation|default(0)) %}  
+                                {% endif %}
+
+                                {% if showAtt %}
+                                    <td>
+                                        <input type="number"
+                                            name="results[{{ result.id }}][landing]"
+                                            value="{{ result.landing }}"
+                                            class="score-input att form-control form-control-sm">
+                                    </td>
+                                    {% set penalty = penalty + (result.landing|default(0)) %}
+                                {% endif %}
+
+                                <td class="total"><strong>{{ penalty }}</strong></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <button class="btn btn-success">
+                    Enregistrer les modifications
+                </button>
+
+            </form>
+        </div>
+    </div>
+    <script>
+        // Mettre à jour le total à chaque modification
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.score-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const row = this.closest('tr');
+
+                    const nav = parseInt(row.querySelector('.nav').value) || 0;
+                    const obs = parseInt(row.querySelector('.obs').value) || 0;
+                    const att = parseInt(row.querySelector('.att').value) || 0;
+
+                    const total = nav + obs + att;
+
+                    row.querySelector('.total').textContent = total;
+                });
+            });
+        });
+    </script>
+{% endblock %}

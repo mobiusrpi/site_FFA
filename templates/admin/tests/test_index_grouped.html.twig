@@ -67,10 +67,17 @@
                      
                         <td>
                             <div class="d-flex gap-2">
-                                <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}" class="btn btn-sm btn-primary">Modifier</a>
+                                <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}" class="btn btn-sm btn-primary">
+                                    Modifier
+                                </a>
+                                
+                               <a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
+                                    class="btn btn-sm btn-primary">
+                                    Scores
+                                </a>
 
                                 <form method="post"
-                                    action="{{ ea_url()
+                                    action="{{ ea_url() }}
                                                 .setController('App\\Controller\\Admin\\TestsCrudController')
                                                 .setAction('delete')
                                                 .setEntityId(test.id) }}"

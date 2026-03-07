@@ -6,6 +6,7 @@ use App\Entity\Competitions;
 use App\Entity\Enum\TestCompet;
 use App\Entity\Tests;
 use App\Entity\Users;
+use App\Entity\TestResults;
 use App\Repository\CompetitionsRepository;
 use App\Repository\TestsRepository;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
@@ -22,7 +23,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -371,6 +371,49 @@ class TestsCrudController extends AbstractCrudController
         ]);
     }
 
+    #[Route('/admin/tests/update-scores', name: 'admin_update_scores', methods: ['POST'])]
+    public function updateScores(Request $request): Response
+    {
+        $testId = $request->query->get('entityId');
+
+        $test = $this->entityManager
+            ->getRepository(Tests::class)
+            ->find($testId);
+        $competitionType = $test->getCompetition()->getTypecompetition()->getId(); // not delete, to load competition type
+
+        $testResults = $this->entityManager
+            ->getRepository(TestResults::class)
+            ->findBy(['test' => $test]);
+
+        if ($request->isMethod('POST')) {
+
+            $data = $request->request->all('results');
+
+            foreach ($data as $resultId => $scores) {
+                $result = $this->entityManager->getRepository(TestResults::class)->find($resultId);
+                if (!$result) continue;
+
+                // Convertir en int ou null
+                $navigation  = $scores['navigation'] !== '' ? (int)$scores['navigation'] : null;
+                $observation = $scores['observation'] !== '' ? (int)$scores['observation'] : null;
+                $landing     = $scores['landing'] !== '' ? (int)$scores['landing'] : null;
+
+                $result->setNavigation($navigation);
+                $result->setObservation($observation);
+                $result->setLanding($landing);
+            }
+
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Scores mis à jour');
+        }
+
+        return $this->render('admin/tests/test_scores.html.twig', [
+            'test' => $test,
+            'testResults' => $testResults
+        ]);
+    }
+
     public function delete(AdminContext $context ): RedirectResponse
     {
         /** @var \App\Entity\Crews $crew */
@@ -429,5 +472,4 @@ class TestsCrudController extends AbstractCrudController
         }
         return $this->redirect($this->adminUrlGenerator->setController(self::class)->setAction('index')->generateUrl());
     }
-
 }

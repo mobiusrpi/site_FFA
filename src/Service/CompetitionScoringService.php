@@ -3,11 +3,10 @@
 
 namespace App\Service;
 
-use App\Entity\Competitions;
 use Psr\Log\LoggerInterface;
-use App\Entity\Enum\TestCompet;
+use App\Entity\Competitions;
+use App\Entity\Enum\Category;
 use App\Repository\TestsRepository;
-;
 
 class CompetitionScoringService
 {
@@ -56,9 +55,54 @@ class CompetitionScoringService
             $testId = $test->getId();
 
             foreach ($test->getTestResults() as $result) {
-                $category = $result->getCategory();
-                if (!in_array($category, ['Elite', 'Honneur'])) {
-                    continue;
+                $crew = $result->getCrew();
+
+                if ($crew) {
+
+                    $categoryEnum = $crew->getCategory();
+
+                    if (!$categoryEnum instanceof Category) {
+                        continue;
+                    }
+
+                    if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
+                        continue;
+                    }
+
+                    $category = $categoryEnum->getLabel();
+
+
+                    // Nom affiché
+                    if (method_exists($crew, 'getFullName') && $crew->getFullName()) {
+                        $crewValue = $crew->getFullName();
+                    } else {
+                        $pilot = $crew->getPilot()?->getLastname() ?? '';
+                        $navigator = $crew->getNavigator()?->getLastname() ?? '';
+                        $crewValue = trim($pilot . ' ' . $navigator);
+                    }
+
+                }else {
+
+                    $categoryEnum = $result->getCategory();
+
+                    if (is_string($categoryEnum)) {
+                        try {
+                            $categoryEnum = Category::from($categoryEnum);
+                        } catch (\ValueError) {
+                            continue;
+                        }
+                    }
+
+                    if (!$categoryEnum instanceof Category) {
+                        continue;
+                    }
+
+                    if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
+                        continue;
+                    }
+
+                    $category = $categoryEnum->getLabel();
+                    $crewValue = $result->getLiteralCrew();
                 }
 
                 // Identifiant d'équipage : id si crew existe, sinon literal
