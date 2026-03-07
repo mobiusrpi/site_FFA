@@ -36,6 +36,7 @@ final class HomeController extends AbstractController
         $today = new \DateTimeImmutable();
         
         $competitionsFinished = $competitionRepository->resultCompetitions($start, $end);
+
         $liveTests = $testRepository->liveTests( $today);
 
         $nextCompetitions = $competitionRepository->nextCompetition();

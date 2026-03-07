@@ -48,6 +48,7 @@ class CompetitionScoringService
         $typeId = (int) $competition->getTypecompetition()?->getId();
 
         foreach ($competition->getTests() as $test) {
+
             if (!$test->isResultsValidated()) {
                 continue;
             }
@@ -55,83 +56,68 @@ class CompetitionScoringService
             $testId = $test->getId();
 
             foreach ($test->getTestResults() as $result) {
+
                 $crew = $result->getCrew();
+
+                // -----------------------
+                // Catégorie
+                // -----------------------
+
+                $categoryEnum = $crew
+                    ? $crew->getCategory()
+                    : $result->getCategory();
+
+                if (is_string($categoryEnum)) {
+                    try {
+                        $categoryEnum = Category::from($categoryEnum);
+                    } catch (\ValueError) {
+                        continue;
+                    }
+                }
+
+                if (!$categoryEnum instanceof Category) {
+                    continue;
+                }
+
+                if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
+                    continue;
+                }
+
+                $category = $categoryEnum->getLabel();
+
+                // -----------------------
+                // Equipage
+                // -----------------------
 
                 if ($crew) {
 
-                    $categoryEnum = $crew->getCategory();
+                    $key = $crew->getId();
 
-                    if (!$categoryEnum instanceof Category) {
-                        continue;
-                    }
-
-                    if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
-                        continue;
-                    }
-
-                    $category = $categoryEnum->getLabel();
-
-
-                    // Nom affiché
                     if (method_exists($crew, 'getFullName') && $crew->getFullName()) {
                         $crewValue = $crew->getFullName();
                     } else {
-                        $pilot = $crew->getPilot()?->getLastname() ?? '';
-                        $navigator = $crew->getNavigator()?->getLastname() ?? '';
-                        $crewValue = trim($pilot . ' ' . $navigator);
-                    }
 
-                }else {
+                        $pilot = ($crew->getPilot()?->getLastname() ?? '') . ' ' . ($crew->getPilot()?->getFirstname() ?? '');
+                        $navigator = ($crew->getNavigator()?->getLastname() ?? '') . ' ' . ($crew->getNavigator()?->getFirstname() ?? '');
 
-                    $categoryEnum = $result->getCategory();
-
-                    if (is_string($categoryEnum)) {
-                        try {
-                            $categoryEnum = Category::from($categoryEnum);
-                        } catch (\ValueError) {
-                            continue;
-                        }
-                    }
-
-                    if (!$categoryEnum instanceof Category) {
-                        continue;
-                    }
-
-                    if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
-                        continue;
-                    }
-
-                    $category = $categoryEnum->getLabel();
-                    $crewValue = $result->getLiteralCrew();
-                }
-
-                // Identifiant d'équipage : id si crew existe, sinon literal
-                if ($result->getCrew()) {
-                    $crew = $result->getCrew();
-                    // Préparer un affichage texte directement utilisable
-                    if (method_exists($crew, 'getFullName') && $crew->getFullName()) {
-                        $crewValue = $crew->getFullName();
-                    } else {
-                        // fallback sur Pilot/Navigator si pas de fullName
-                        $pilot = method_exists($crew, 'getPilot') ? $crew->getPilot() : '';
-                        $navigator = method_exists($crew, 'getNavigator') ? $crew->getNavigator() : '';
                         if ($competition->getTypecompetition()?->getId() === 2) {
-                            // Précision : seulement le pilote
                             $crewValue = $pilot;
                         } else {
-                            // Rallye / ANR : pilote / navigateur
-                            $crewValue = trim($pilot . ' ' . $navigator);
+                            $crewValue = trim($pilot . ' - ' . $navigator);
                         }
                     }
-
-                    $key = $crew->getId();
                 } else {
-                    // LiteralCrew
-                    $key = $result->getLiteralCrew();
+
                     $crewValue = $result->getLiteralCrew();
+                    $key = $crewValue;
                 }
 
+                // -----------------------
+                // Initialisation
+                // -----------------------
+
                 if (!isset($scoreByCategory[$category][$key])) {
+
                     $scoreByCategory[$category][$key] = [
                         'crew' => $crewValue,
                         'tests' => [],
@@ -140,45 +126,65 @@ class CompetitionScoringService
                     ];
                 }
 
-                 // Did Not Start ?
-               $dns = $result->isDns() ?? false;
+                // -----------------------
+                // DNS
+                // -----------------------
+
+                $dns = $result->isDns() ?? false;
 
                 if ($dns) {
+
                     $nav = $att = $sum = null;
+
                 } else {
+
                     switch ($typeId) {
+
                         case 2: // Précision
+
                             $nav = $this->computeNullableSum([
                                 $result->getNavigation(),
                                 $result->getObservation(),
                                 $result->getFlightPlanning(),
                             ]);
-                            $att = $result->getLanding() !== null ? (int)$result->getLanding() : null;
+
+                            $att = $result->getLanding() !== null
+                                ? (int)$result->getLanding()
+                                : null;
+
                             $sum = ($nav === null && $att === null)
-                              ? null 
-                              : (($nav ?? 0) + ($att ?? 0));
+                                ? null
+                                : (($nav ?? 0) + ($att ?? 0));
+
                             break;
 
                         case 1: // Rallye
+
                             $nav = $this->computeNullableSum([
                                 $result->getNavigation(),
                                 $result->getObservation(),
                                 $result->getLanding(),
                             ]);
+
                             $att = null;
                             $sum = $nav;
+
                             break;
 
                         case 3: // ANR
                         default:
+
                             $nav = $this->computeNullableSum([
                                 $result->getNavigation()
                             ]);
-                            $att = $result->getLanding() !== null ? (int)$result->getLanding() : null;
+
+                            $att = $result->getLanding() !== null
+                                ? (int)$result->getLanding()
+                                : null;
+
                             $sum = ($nav === null && $att === null)
-                              ? null 
-                              : (($nav ?? 0) + ($att ?? 0));
-                            break;
+                                ? null
+                                : (($nav ?? 0) + ($att ?? 0));
                     }
                 }
 
@@ -188,15 +194,6 @@ class CompetitionScoringService
                     'total' => $sum,
                     'dns' => $dns,
                 ];
-
-                $this->logger->debug('calc test', [
-                    'testId' => $testId,
-                    'crewKey' => $key,
-                    'typeId' => $typeId,
-                    'nav' => $nav,
-                    'att' => $att,
-                    'total' => $sum
-                ]);
             }
         }
 

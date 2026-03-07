@@ -379,6 +379,11 @@ class TestsCrudController extends AbstractCrudController
         $test = $this->entityManager
             ->getRepository(Tests::class)
             ->find($testId);
+
+        if ($test->isResultsValidated()) {
+            $this->addFlash('warning', 'Les résultats sont validés, modification impossible.');
+            return $this->redirectToRoute('admin_update_scores'); // page liste des tests
+        }
         $competitionType = $test->getCompetition()->getTypecompetition()->getId(); // not delete, to load competition type
 
         $testResults = $this->entityManager

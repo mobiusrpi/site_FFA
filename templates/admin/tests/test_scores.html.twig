@@ -25,7 +25,7 @@ Scores - {{ test.name }}
     %}    
     
     {% set competType = test.competition.typecompetition.id %}
-    {{ dump(competType) }}
+
     <div class="card">
         <div class="card-body">
             <form method="post">
@@ -33,7 +33,7 @@ Scores - {{ test.name }}
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Crew</th>                                <
+                            <th>Crew</th>                                
                             {% if competType == 2 %}
                                 <th>Pilote</th>
                             {% else %}
@@ -60,15 +60,24 @@ Scores - {{ test.name }}
                         {% for result in testResults %}
                             {% set penalty = 0 %}
                             <tr>
-                                <td>{{ result.crew.id }}</td>
-                                {% if competType == 2 %}
-                                    <td>{{ result.crew.pilot.lastname }} {{ result.crew.pilot.firstname }}</td>                                
+                                {% if result.crew is not null %}
+                                   <td>{{ result.crew.id }}</td>
+
+                                    {% if competType == 2 %}
+                                        <td>
+                                            {{ result.crew.pilot.lastname ?? '' }} {{ result.crew.pilot.firstname ?? '' }}
+                                        </td>                                
+                                    {% else %}
+                                        <td>
+                                            {{ result.crew.pilot.lastname ?? '' }} {{ result.crew.pilot.firstname ?? '' }}<br>
+                                            {{ result.crew.navigator.lastname ?? '' }} {{ result.crew.navigator.firstname ?? '' }}
+                                        </td>                                  
+                                    {% endif %}  
+
                                 {% else %}
-                                    <td>
-                                        {{ result.crew.pilot.lastname }} {{ result.crew.pilot.firstname }}</br>
-                                        {{ result.crew.navigator.lastname }}  {{ result.crew.navigator.firstname }}
-                                    </td>                                  
-                                {% endif %} 
+                                    <td>{{ result.id }}</td>
+                                    <td>{{ result.literalCrew }}</td>                               
+                                {% endif %}
 
 
                                 {% if showNav %}
@@ -117,6 +126,9 @@ Scores - {{ test.name }}
 
                 <button class="btn btn-success">
                     Enregistrer les modifications
+                </button>
+                <button type="button" class="btn btn-online" onclick="history.back();">
+                    Retour
                 </button>
 
             </form>

@@ -38,7 +38,7 @@
                     <th>Code</th>     
                     <th>Type d'épreuve</th>                  
                     <th>En cours</th>                          
-                    <th>Results validés</th>                    
+                    <th>Resultats validés</th>                    
                 </tr>
             </thead>
             <tbody>
@@ -67,30 +67,46 @@
                      
                         <td>
                             <div class="d-flex gap-2">
-                                <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}" class="btn btn-sm btn-primary">
-                                    Modifier
-                                </a>
-                                
-                               <a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
-                                    class="btn btn-sm btn-primary">
-                                    Scores
-                                </a>
+ <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}"
+   class="btn btn-sm btn-primary edit-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
+   {% if test.resultsValidated %}
+       tabindex="-1"
+       aria-disabled="true"
+       title="Résultats validés"
+       onclick="return false;"
+   {% endif %}>
+    Modifier
+</a>
 
-                                <form method="post"
-                                    action="{{ ea_url() }}
-                                                .setController('App\\Controller\\Admin\\TestsCrudController')
-                                                .setAction('delete')
-                                                .setEntityId(test.id) }}"
-                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette épreuve ?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
-                                    <button class="btn btn-sm btn-outline text-danger">
-                                        <i class="fas fa-trash"></i> Supprimer
-                                    </button>
-                                </form>
+<a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
+   class="btn btn-sm btn-primary scores-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
+   {% if test.resultsValidated %}
+       tabindex="-1"
+       aria-disabled="true"
+       title="Résultats validés"
+       onclick="return false;"
+   {% endif %}>
+    Scores
+</a>
+
+<form method="post"
+      class="delete-test"
+      action="{{ ea_url()
+                 .setController('App\\Controller\\Admin\\TestsCrudController')
+                 .setAction('delete')
+                 .setEntityId(test.id) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
+    <button class="btn btn-sm btn-outline text-danger"
+            {% if test.resultsValidated %}
+                disabled aria-disabled="true" title="Résultats validés"
+            {% endif %}>
+        <i class="fas fa-trash"></i> Supprimer
+    </button>
+</form>             
                             </div>
                         </td>
                     </tr>
-                {% endfor %}{id: test.id}
+                {% endfor %}
             </tbody>
         </table>
         <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
@@ -112,103 +128,123 @@
             </div>
             </div>
     {% endfor %}
-<script>
-let currentSwitch = null;
-let currentField = null;
-let currentTestId = null;
+    <script>
+        let currentSwitch = null;
+        let currentField = null;
+        let currentTestId = null;
 
-// Stocker l'état initial
-document.querySelectorAll('.toggle-switch').forEach(function(switchEl) {
-    switchEl.dataset.initial = switchEl.checked ? '1' : '0';
+        document.addEventListener('DOMContentLoaded', function () {
 
-    switchEl.addEventListener('change', function() {
-        const testId = this.dataset.testId;
-        const field = this.dataset.field;
-        const initial = this.dataset.initial === '1'; // true si déjà coché
+            // Initialisation des toggle-switch
+            document.querySelectorAll('.toggle-switch').forEach(function (switchEl) {
+                switchEl.dataset.initial = switchEl.checked ? '1' : '0';
 
-        // Si field = resultsValidated et qu'on coche (initial=false && checked=true)
-        if (field === 'resultsValidated' && !initial && this.checked) {
-            currentSwitch = this;
-            currentField = field;
-            currentTestId = testId;
+                switchEl.addEventListener('change', function () {
+                    const testId = this.dataset.testId;
+                    const field = this.dataset.field;
+                    const initial = this.dataset.initial === '1';
 
-            const passwordInput = document.getElementById('passwordInput');
-            passwordInput.value = '';
-            const modalEl = document.getElementById('passwordModal');
-            const modal = new bootstrap.Modal(modalEl);
+                    // Si field = resultsValidated et on coche
+                    if (field === 'resultsValidated' && !initial && this.checked) {
+                        currentSwitch = this;
+                        currentField = field;
+                        currentTestId = testId;
 
-            // Listener pour Annuler / fermeture du modal
-            modalEl.addEventListener('hidden.bs.modal', function () {
-                if (currentSwitch) {
-                    // Remet la checkbox à son état initial
-                    currentSwitch.checked = false;
-                    currentSwitch = null;
-                    currentField = null;
-                    currentTestId = null;
+                        const passwordInput = document.getElementById('passwordInput');
+                        passwordInput.value = '';
+
+                        const modalEl = document.getElementById('passwordModal');
+                        const modal = new bootstrap.Modal(modalEl);
+
+                        modalEl.addEventListener('hidden.bs.modal', function () {
+                            if (currentSwitch) {
+                                currentSwitch.checked = false;
+                                currentSwitch = null;
+                                currentField = null;
+                                currentTestId = null;
+                            }
+                        }, { once: true });
+
+                        modal.show();
+                    } else {
+                        toggleField(testId, field, null, this);
+                    }
+                });
+            });
+
+            // Bouton confirmer du modal
+            document.getElementById('confirmPasswordBtn').addEventListener('click', function () {
+                const password = document.getElementById('passwordInput').value;
+                if (!password) return;
+
+                toggleField(currentTestId, currentField, password, currentSwitch);
+
+                const modalEl = document.getElementById('passwordModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+
+                currentSwitch = null;
+                currentField = null;
+                currentTestId = null;
+            });
+
+        });
+
+        // Fonction toggle générique
+        function toggleField(testId, field, password, switchEl) {
+            fetch(`/admin/tests/toggle/${testId}/${field}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.error || 'Erreur lors de la mise à jour');
+                    if (switchEl) switchEl.checked = !switchEl.checked;
+                } else {
+                    if (switchEl) switchEl.dataset.initial = switchEl.checked ? '1' : '0';
+
+                    if (field === 'resultsValidated') {
+                        const row = switchEl.closest('tr');
+                        const editBtn = row.querySelector('.edit-test');
+                        const scoresBtn = row.querySelector('.scores-test');
+                        const deleteBtn = row.querySelector('.delete-test button');
+
+                        if (switchEl.checked) {
+                            [editBtn, scoresBtn].forEach(btn => {
+                                if (btn) {
+                                    btn.classList.add('disabled','btn-secondary');
+                                    btn.setAttribute('tabindex','-1');
+                                    btn.setAttribute('aria-disabled','true');
+                                    btn.style.pointerEvents = 'none';
+                                    btn.title = 'Résultats validés';
+                                }
+                            });
+                            if (deleteBtn) {
+                                deleteBtn.disabled = true;
+                                deleteBtn.setAttribute('aria-disabled','true');
+                                deleteBtn.title = 'Résultats validés';
+                            }
+                        } else {
+                            [editBtn, scoresBtn].forEach(btn => {
+                                if (btn) {
+                                    btn.classList.remove('disabled','btn-secondary');
+                                    btn.removeAttribute('tabindex');
+                                    btn.removeAttribute('aria-disabled');
+                                    btn.style.pointerEvents = '';
+                                    btn.title = '';
+                                }
+                            });
+                            if (deleteBtn) {
+                                deleteBtn.disabled = false;
+                                deleteBtn.removeAttribute('aria-disabled');
+                                deleteBtn.title = '';
+                            }
+                        }
+                    }
                 }
-            }, { once: true });
-
-            modal.show();
-        } else {
-            // Décoche ou inProgress → toggle normal
-            toggleField(testId, field, null, this);
+            });
         }
-    });
-});
-
-// Bouton Confirmer du modal
-document.getElementById('confirmPasswordBtn').addEventListener('click', function() {
-    const password = document.getElementById('passwordInput').value;
-    if (!password) return;
-
-    toggleField(currentTestId, currentField, password, currentSwitch);
-
-    // fermer le modal
-    const modalEl = document.getElementById('passwordModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-
-    // nettoyer les variables
-    currentSwitch = null;
-    currentField = null;
-    currentTestId = null;
-});
-
-// fonction fetch générique
-function toggleField(testId, field, password, switchEl) {
-    fetch(`/admin/tests/toggle/${testId}/${field}`, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ password: password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.success) {
-            alert(data.error || 'Erreur lors de la mise à jour');
-            if (switchEl) switchEl.checked = !switchEl.checked; // revert si erreur
-        } else {
-            // update initial state
-            if (switchEl) switchEl.dataset.initial = switchEl.checked ? '1' : '0';
-
-            // Désactiver / réactiver boutons Edit/Delete si resultsValidated
-            if (field === 'resultsValidated') {
-                const row = switchEl.closest('tr');
-                const editBtn = row.querySelector('.edit-test');
-                const deleteBtn = row.querySelector('.delete-test');
-
-                if (switchEl.checked) { 
-                    if (editBtn) editBtn.classList.add('disabled');
-                    if (deleteBtn) deleteBtn.classList.add('disabled');
-                } else { 
-                    if (editBtn) editBtn.classList.remove('disabled');
-                    if (deleteBtn) deleteBtn.classList.remove('disabled');
-                }
-            }
-        }
-    });
-}
-</script>
+    </script>
 {% endblock %}
