@@ -54,7 +54,7 @@
                     Obs
                     <i class="fa-solid fa-sort sort-arrow ms-2"></i>
                 </th>
-            {% endif %}
+            {% endif %} 
 
             <th class="text-center sort-column" data-key="landing">
                 Att
@@ -101,19 +101,19 @@
 
                 {# --- NOMS --- #}
                 <td style="white-space: nowrap;">
-                    <small>
-                        {% if pilot %}
-                            {{ pilot.lastName }} {{ pilot.firstName }}<br>
-                        {% endif %}
+  
+                    {% if pilot %}
+                        {{ pilot.lastName }} {{ pilot.firstName }}<br>
+                    {% endif %}
 
-                        {% if navigator %}
-                            {{ navigator.lastName }} {{ navigator.firstName }}
-                        {% endif %}
+                    {% if navigator %}
+                        {{ navigator.lastName }} {{ navigator.firstName }}
+                    {% endif %}
 
-                        {% if not pilot %}
-                            {{ row.crew ?? '-' }}
-                        {% endif %}
-                    </small>
+                    {% if not pilot %}
+                        {{ row.crew ?? '-' }}
+                    {% endif %}
+  
                 </td>
 
                 {% if hasCrewEntity %}
@@ -162,31 +162,38 @@
                 {% endif %}
 
                 {# --- SCORES --- #}
-
-                <td class="text-center">
+                <td class="text-center"
+                    data-key="navigation"
+                    data-value="{{ row.navigation ?? -1 }}">
                     {{ row.dns ? '-' : (row.navigation ?? '-') }}
                 </td>
 
                 {% if competition.typecompetition and competition.typecompetition.id != 3 %}
-                    <td class="text-center">
-                        {{ row.dns ? '-' : (row.observation is not null ? row.observation : '-') }}
+                    <td class="text-center"
+                        data-key="observation"
+                        data-value="{{ row.observation ?? -1 }}">
+                        {{ row.dns ? '-' : (row.observation ?? '-') }}
                     </td>
                 {% endif %}
-
-                <td class="text-center">
+                <td class="text-center"
+                    data-key="landing"
+                    data-value="{{ row.landing ?? -1 }}">
                     {{ row.dns ? '-' : (row.landing ?? '-') }}
                 </td>
 
                 {% if  competition.typecompetition and competition.typecompetition.id == 2 %}
-                    <td class="text-center">
+                    <td class="text-center"
+                        data-key="flightPlanning"
+                        data-value="{{ row.flightPlanning ?? -1 }}">
                         {{ row.dns ? '-' : (row.flightPlanning ?? '-') }}
                     </td>
                 {% endif %}
 
-                <td class="text-center">
+                <td class="text-center"
+                    data-key="total"
+                    data-value="{{ row.total ?? -1 }}">
                     {{ row.dns ? 'DNS' : row.total }}
                 </td>
-
             </tr>
 
             {% set lastScore = row.total %}
@@ -209,6 +216,7 @@
             
         {% endif %}
     {% endfor %}
+    
 </div>
 
 
