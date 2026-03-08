@@ -40,37 +40,85 @@
         {% endfor %}
     </div>
 
-</div>
+    {# ================= IMPRESSION ================= #}
 
+    <div class="print-content">
+        {% for category, results in rankingByCategory %}
 
-{# ================= IMPRESSION ================= #}
+            <div class="print-category">
 
-<div class="print-content">
-    {% for category, results in rankingByCategory %}
+                <div class="print-header">
+                    <div class="print-logo">
+                        <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height:60px;">
+                    </div>
 
-        <div class="print-category">
-
-            <div class="print-header">
-                <div class="print-logo">
-                    <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height:60px;">
+                    <div class="print-title">
+                        <strong>Compétition {{ competition.name }}</strong><br>
+                        {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
+                        {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} - 
+                        <strong>{{ test }}</strong>
+                        <br><br>
+                        <strong>Catégorie {{ category }}</strong>
+                    </div>
                 </div>
 
-                <div class="print-title">
-                    <strong>Compétition {{ competition.name }}</strong><br>
-                    {{ competition.startDate|format_datetime(locale='fr', pattern='dd MMMM') }} au 
-                    {{ competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} - 
-                    <strong>{{ test }}</strong>
-                    <br><br>
-                    <strong>Catégorie {{ category }}</strong>
-                </div>
+                {% include '_partials/_results_details_table.html.twig' %}
+
             </div>
+        {% endfor %}
+    </div>
+   <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sélectionner toutes les tables
+            document.querySelectorAll('.table').forEach(table => {
+                const headers = table.querySelectorAll('th.sort-column, th[data-key]');
 
-            {% include '_partials/_results_details_table.html.twig' %}
+                headers.forEach(header => {
+                    const key = header.dataset.key;
+                    const icon = header.querySelector('.sort-arrow');
+                    if (!key || !icon) return;
 
-        </div>
+                    let ascending = true;
 
-    {% endfor %}
+                    icon.addEventListener('click', () => {
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
 
-</div>
+                        const index = Array.from(header.parentNode.children).indexOf(header);
 
+                        rows.sort((a, b) => {
+                            const aVal = parseFloat(a.children[index]?.dataset.value ?? -1);
+                            const bVal = parseFloat(b.children[index]?.dataset.value ?? -1);
+                            return ascending ? aVal - bVal : bVal - aVal;
+                        });
+
+                        ascending = !ascending;
+
+                        rows.forEach(row => tbody.appendChild(row));
+
+                        // reset flèches
+                        headers.forEach(h => {
+                            const i = h.querySelector('.sort-arrow');
+                            if(i) { i.classList.remove('fa-sort-up','fa-sort-down'); i.classList.add('fa-sort'); }
+                        });
+
+                        icon.classList.remove('fa-sort');
+                        icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
+
+                        // recalculer Class.
+                        let rank = 0;
+                        let displayRank = 0;
+                        let lastScore = null;
+                        rows.forEach(row => {
+                            rank++;
+                            const val = parseFloat(row.querySelector('[data-value]:last-child')?.dataset.value ?? -1);
+                            if(val !== lastScore) displayRank = rank;
+                            row.children[0].textContent = val === -999 ? '-' : displayRank;
+                            lastScore = val;
+                        });
+                    });
+                });
+            });
+        });
+    </script>
 {% endblock %}

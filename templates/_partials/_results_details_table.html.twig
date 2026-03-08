@@ -3,18 +3,33 @@
         <tr>
             <th class="text-center">Class.</th>
             <th class="text-center">Équipage</th>
-            <th class="text-center">Nav</th>
-            {% if competition.typecompetition.id != 3 %}
-                <th class="text-center">Obs</th>
-            {% endif %}
-            <th class="text-center">
-                {% if competition.typecompetition.id == 2 %}
-                    Théo
-                {% else %}
-                    Att
-                {% endif %}
+            <th class="text-center" data-key="navigation">
+                Nav
+                <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
             </th>
-            <th class="text-center">Total</th>
+            {% if competition.typecompetition.id != 3 %}
+                <th class="text-center" data-key="observation">
+                    Obs
+                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                </th>
+            {% endif %}
+                {% if competition.typecompetition.id == 2 %}
+                    <th class="text-center" data-key="flightPlanning">
+                        Théo                   
+                        <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                    </th>
+                {% else %}
+                   <th class="text-center" data-key="landing">
+                        Att                  
+                        <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                    </th>
+                {% endif %}
+            <th class="text-center sort-column" data-key="total">
+                <span class="fw-bold">
+                    Total
+                    <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+                </span>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -57,43 +72,47 @@
                 </td>
 
                 {# Colonnes de pénalités #}
-                <td class="text-center">
-                    {% if row.dns %}
-                        --
-                    {% else %}
+                {% if row.dns %}
+                    <td class="text-center">--</td>
+                {% else %}
+                    <td class="text-center" data-value="{{ row.navigation ?? -1 }}">
                         {{ row.navigation }}
-                    {% endif %}
-                </td>
-
-                {% if competition.typecompetition.id != 3 %}
-                    <td class="text-center">
-                        {% if row.dns %}
-                            --
-                        {% else %}
-                            {{ row.observation }}
-                        {% endif %}
                     </td>
                 {% endif %}
 
-                <td class="text-center">
+                {% if competition.typecompetition.id != 3 %}
                     {% if row.dns %}
-                        --
+                        <td class="text-center" data-value="-999">--</td>
                     {% else %}
-                        {% if competition.typecompetition.id == 2 %}
-                            {{ row.flightPlanning }}
-                        {% else %}
-                            {{ row.landing }}
-                        {% endif %}
+                        <td class="text-center" data-value="{{ row.observation ?? -1 }}">
+                            {{ row.observation }}
+                        </td>
                     {% endif %}
-                </td>
+                {% endif %}
 
-                <td class="text-center">
-                    {% if row.dns %}
-                        DNS
+
+                {% if row.dns %}
+                    <td class="text-center" data-value="-999">--</td>
+                {% else %}
+                    {% if competition.typecompetition.id == 2 %}
+                        <td class="text-center" data-value="{{ row.flightPlanning ?? -1 }}">
+                            {{ row.flightPlanning }}
+                        </td>
                     {% else %}
-                        {{ row.total }}
+                        <td class="text-center" data-value="{{ row.landing ?? -1 }}">
+                            {{ row.landing }}
+                        </td>
                     {% endif %}
-                </td>
+                {% endif %}
+
+
+                {% if row.dns %}
+                    <td class="text-center" data-value="-999"> DNS</td>
+                {% else %}
+                    <td class="text-center" data-value="{{ row.total ?? -1 }}">
+                        {{ row.total }}
+                    </td>
+                {% endif %}
             </tr>
 
             {% if not row.dns %}
