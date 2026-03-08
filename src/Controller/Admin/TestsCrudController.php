@@ -4,11 +4,13 @@ namespace App\Controller\Admin;
 
 use App\Entity\Competitions;
 use App\Entity\Enum\TestCompet;
+use App\Entity\TestResults;
 use App\Entity\Tests;
 use App\Entity\Users;
-use App\Entity\TestResults;
-use App\Repository\CompetitionsRepository;
+use App\Repository\CrewsRepository;
 use App\Repository\TestsRepository;
+use App\Repository\CompetitionsRepository;
+use App\Repository\TestResultsRepository;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,6 +40,8 @@ class TestsCrudController extends AbstractCrudController
     public function __construct(
         private Security $security,
         private CompetitionsRepository $competitionsRepository,       
+        private CrewsRepository $crewsRepository,       
+        private TestResultsRepository $testResultsRepository,       
         private TestsRepository $testsRepository,
         private UserPasswordHasherInterface $passwordHasher,
         private RequestStack $requestStack,
@@ -372,50 +376,94 @@ class TestsCrudController extends AbstractCrudController
     }
 
     #[Route('/admin/tests/update-scores', name: 'admin_update_scores', methods: ['POST'])]
-    public function updateScores(Request $request): Response
+    public function updateScores(Request $request, EntityManagerInterface $entityManager): Response
     {
         $testId = $request->query->get('entityId');
 
-        $test = $this->entityManager
-            ->getRepository(Tests::class)
-            ->find($testId);
+        $test = $entityManager->getRepository(Tests::class)->find($testId);
 
         if ($test->isResultsValidated()) {
             $this->addFlash('warning', 'Les résultats sont validés, modification impossible.');
-            return $this->redirectToRoute('admin_update_scores'); // page liste des tests
+            return $this->redirectToRoute('admin');
         }
-        $competitionType = $test->getCompetition()->getTypecompetition()->getId(); // not delete, to load competition type
 
-        $testResults = $this->entityManager
-            ->getRepository(TestResults::class)
-            ->findBy(['test' => $test]);
+        $competition = $test->getCompetition();
+
+        $crews = $this->crewsRepository->findBy([
+            'competition' => $competition
+        ]);
+        $results = $this->testResultsRepository->findBy(['test' => $test]);
+
+        $resultsByCrew = [];
+        foreach ($results as $result) {
+            $resultsByCrew[$result->getCrew()->getId()] = $result;
+        }
+
+        $rows = [];
+
+        foreach ($crews as $crew) {
+
+            if (isset($resultsByCrew[$crew->getId()])) {
+                $rows[] = [
+                    'crew' => $crew,
+                    'scores' => $resultsByCrew[$crew->getId()],
+                    'isNew' => false
+                ];
+            } else {
+                $rows[] = [
+                    'crew' => $crew,
+                    'scores' => null,
+                    'isNew' => true
+                ];
+            }
+        }
 
         if ($request->isMethod('POST')) {
 
             $data = $request->request->all('results');
 
-            foreach ($data as $resultId => $scores) {
-                $result = $this->entityManager->getRepository(TestResults::class)->find($resultId);
-                if (!$result) continue;
+            foreach ($data as $crewId => $scores) {
 
-                // Convertir en int ou null
+                $result = $this->testResultsRepository->findOneBy([
+                    'crew' => $crewId,
+                    'test' => $test
+                ]);
+
                 $navigation  = $scores['navigation'] !== '' ? (int)$scores['navigation'] : null;
                 $observation = $scores['observation'] !== '' ? (int)$scores['observation'] : null;
                 $landing     = $scores['landing'] !== '' ? (int)$scores['landing'] : null;
 
-                $result->setNavigation($navigation);
-                $result->setObservation($observation);
-                $result->setLanding($landing);
+                if ($result) {
+
+                    // UPDATE
+                    $result->setNavigation($navigation);
+                    $result->setObservation($observation);
+                    $result->setLanding($landing);
+
+                } elseif (isset($scores['isNew'])) {
+
+                    // CREATE
+                    $crew = $this->crewsRepository->find($crewId);
+
+                    $result = new TestResults();
+                    $result->setCrew($crew);
+                    $result->setTest($test);
+                    $result->setNavigation($navigation);
+                    $result->setObservation($observation);
+                    $result->setLanding($landing);
+
+                    $entityManager->persist($result);
+                }
             }
 
-            $this->entityManager->flush();
+            $entityManager->flush();
 
             $this->addFlash('success', 'Scores mis à jour');
         }
 
         return $this->render('admin/tests/test_scores.html.twig', [
-            'test' => $test,
-            'testResults' => $testResults
+            'rows' => $rows,
+            'test' => $test
         ]);
     }
 

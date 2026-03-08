@@ -1,7 +1,7 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block content_title %}
-Scores - {{ test.name }}
+{{ test.competition.name }} - Scores - {{ test.name }}
 {% endblock %}
 
 
@@ -31,94 +31,99 @@ Scores - {{ test.name }}
             <form method="post">
 
                 <table class="table">
-                    <thead>
+                        <thead>
                         <tr>
-                            <th>Crew</th>                                
-                            {% if competType == 2 %}
-                                <th>Pilote</th>
-                            {% else %}
-                                <th>Équipage</th>   
-                            {% endif %}                       
-  
-                            {% if showNav %}
-                                <th>Nav</th>   
-                            {% endif %}
-                            {% if showObs %}
-                                <th>Obs</th>
-                            {% endif %}
-                            {% if showTheo %}                       
-                                <th>Théo</th>
-                            {% endif %}
-                            {% if showAtt %}
-                                <th>Att</th>
-                            {% endif %}
-                            <th>Total</th>
+                        <th>Crew</th>
+
+                        {% if competType == 2 %}
+                        <th>Pilote</th>
+                        {% else %}
+                        <th>Équipage</th>
+                        {% endif %}
+
+                        {% if showNav %}<th>Nav</th>{% endif %}
+                        {% if showObs %}<th>Obs</th>{% endif %}
+                        {% if showTheo %}<th>Théo</th>{% endif %}
+                        {% if showAtt %}<th>Att</th>{% endif %}
+
+                        <th>Total</th>
+                        <th>
+                            New
+                            <input type="checkbox" id="checkAllNew" class="form-check-input ms-1">
+                        </th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        {% for result in testResults %}
+
+                        {% for row in rows %}
                             {% set penalty = 0 %}
                             <tr>
-                                {% if result.crew is not null %}
-                                   <td>{{ result.crew.id }}</td>
+                                <td>{{ row.crew.id }}</td>
 
-                                    {% if competType == 2 %}
-                                        <td>
-                                            {{ result.crew.pilot.lastname ?? '' }} {{ result.crew.pilot.firstname ?? '' }}
-                                        </td>                                
-                                    {% else %}
-                                        <td>
-                                            {{ result.crew.pilot.lastname ?? '' }} {{ result.crew.pilot.firstname ?? '' }}<br>
-                                            {{ result.crew.navigator.lastname ?? '' }} {{ result.crew.navigator.firstname ?? '' }}
-                                        </td>                                  
-                                    {% endif %}  
-
+                                {% if competType == 2 %}
+                                    <td>
+                                        {{ row.crew.pilot.lastname ?? '' }}
+                                        {{ row.crew.pilot.firstname ?? '' }}
+                                    </td>
                                 {% else %}
-                                    <td>{{ result.id }}</td>
-                                    <td>{{ result.literalCrew }}</td>                               
+                                    <td>
+                                        {{ row.crew.pilot.lastname ?? '' }}
+                                        {{ row.crew.pilot.firstname ?? '' }}<br>
+                                        {{ row.crew.navigator.lastname ?? '' }}
+                                        {{ row.crew.navigator.firstname ?? '' }}
+                                    </td>
                                 {% endif %}
-
 
                                 {% if showNav %}
                                     <td>
                                         <input type="number"
-                                            name="results[{{ result.id }}][navigation]"
-                                            value="{{ result.navigation }}"
-                                            class="score-input nav form-control form-control-sm">
+                                        name="results[{{ row.crew.id }}][navigation]"
+                                        value="{{ row.scores ? row.scores.navigation : 0 }}"
+                                        class="score-input nav form-control form-control-sm">
                                     </td>
-                                    {% set penalty = penalty + (result.navigation|default(0)) %}
+                                    {% set penalty = penalty + (row.scores ? row.scores.navigation|default(0) : 0) %}
                                 {% endif %}
 
                                 {% if showObs %}
                                     <td>
                                         <input type="number"
-                                            name="results[{{ result.id }}][observation]"
-                                            value="{{ result.observation }}"
-                                            class="score-input obs form-control form-control-sm">
+                                        name="results[{{ row.crew.id }}][observation]"
+                                        value="{{ row.scores ? row.scores.observation : 0 }}"
+                                        class="score-input obs form-control form-control-sm">
                                     </td>
-                                    {% set penalty = penalty + (result.observation|default(0)) %}
+                                    {% set penalty = penalty + (row.scores ? row.scores.observation|default(0) : 0) %}
                                 {% endif %}
-                                {% if showTheo %}                       
-                                    <td> <input type="number"
-                                        name="results[{{ result.id }}][flightPlanning]"
-                                        value="{{ result.flightPlanning }}"
+
+                                {% if showTheo %}
+                                    <td>
+                                        <input type="number"
+                                        name="results[{{ row.crew.id }}][flightPlanning]"
+                                        value="{{ row.scores ? row.scores.flightPlanning : 0 }}"
                                         class="score-input nav form-control form-control-sm">
                                     </td>
-                                    {% set penalty = penalty + (result.navigation|default(0)) %}  
-                                {% endif %}
+                                    {% set penalty = penalty + (row.scores ? row.scores.flightPlanning|default(0) : 0) %}
+                                    {% endif %}
 
                                 {% if showAtt %}
                                     <td>
                                         <input type="number"
-                                            name="results[{{ result.id }}][landing]"
-                                            value="{{ result.landing }}"
-                                            class="score-input att form-control form-control-sm">
+                                        name="results[{{ row.crew.id }}][landing]"
+                                        value="{{ row.scores ? row.scores.landing : 0 }}"
+                                        class="score-input att form-control form-control-sm">
                                     </td>
-                                    {% set penalty = penalty + (result.landing|default(0)) %}
+                                    {% set penalty = penalty + (row.scores ? row.scores.landing|default(0) : 0) %}
                                 {% endif %}
 
                                 <td class="total"><strong>{{ penalty }}</strong></td>
+
+                                <td>
+                                    {% if row.isNew %}
+                                        <input type="checkbox"
+                                        name="results[{{ row.crew.id }}][isNew]"
+                                        class="form-check-input is-new-checkbox">
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -137,6 +142,18 @@ Scores - {{ test.name }}
     <script>
         // Mettre à jour le total à chaque modification
         document.addEventListener('DOMContentLoaded', function() {
+            const checkAll = document.getElementById('checkAllNew');
+
+            if(!checkAll) 
+                return;
+
+            checkAll.addEventListener('change', function () {
+
+                document.querySelectorAll('.is-new-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+
+            });
             document.querySelectorAll('.score-input').forEach(input => {
                 input.addEventListener('input', function() {
                     const row = this.closest('tr');

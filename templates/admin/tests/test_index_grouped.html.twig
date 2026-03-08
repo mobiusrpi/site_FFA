@@ -47,7 +47,7 @@
                         <td>{{ test.id }}</td>                        
                         <td>{{ test.name }}</td>                          
                         <td>{{ test.code }}</td>                          
-                        <td>{{ test.type.value }}</td>                         
+                        <td>{{ test.type.label }}</td>                         
         
                         <td>
                             <input type="checkbox"
@@ -67,42 +67,42 @@
                      
                         <td>
                             <div class="d-flex gap-2">
- <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}"
-   class="btn btn-sm btn-primary edit-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
-   {% if test.resultsValidated %}
-       tabindex="-1"
-       aria-disabled="true"
-       title="Résultats validés"
-       onclick="return false;"
-   {% endif %}>
-    Modifier
-</a>
+                                <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}"
+                                class="btn btn-sm btn-primary edit-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
+                                {% if test.resultsValidated %}
+                                    tabindex="-1"
+                                    aria-disabled="true"
+                                    title="Résultats validés"
+                                    onclick="return false;"
+                                {% endif %}>
+                                    Modifier
+                                </a>
 
-<a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
-   class="btn btn-sm btn-primary scores-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
-   {% if test.resultsValidated %}
-       tabindex="-1"
-       aria-disabled="true"
-       title="Résultats validés"
-       onclick="return false;"
-   {% endif %}>
-    Scores
-</a>
+                                <a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
+                                class="btn btn-sm btn-primary scores-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
+                                {% if test.resultsValidated %}
+                                    tabindex="-1"
+                                    aria-disabled="true"
+                                    title="Résultats validés"
+                                    onclick="return false;"
+                                {% endif %}>
+                                    Scores
+                                </a>
 
-<form method="post"
-      class="delete-test"
-      action="{{ ea_url()
-                 .setController('App\\Controller\\Admin\\TestsCrudController')
-                 .setAction('delete')
-                 .setEntityId(test.id) }}">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
-    <button class="btn btn-sm btn-outline text-danger"
-            {% if test.resultsValidated %}
-                disabled aria-disabled="true" title="Résultats validés"
-            {% endif %}>
-        <i class="fas fa-trash"></i> Supprimer
-    </button>
-</form>             
+                                <form method="post"
+                                    class="delete-test"
+                                    action="{{ ea_url()
+                                                .setController('App\\Controller\\Admin\\TestsCrudController')
+                                                .setAction('delete')
+                                                .setEntityId(test.id) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
+                                    <button class="btn btn-sm btn-outline text-danger"
+                                            {% if test.resultsValidated %}
+                                                disabled aria-disabled="true" title="Résultats validés"
+                                            {% endif %}>
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </form>             
                             </div>
                         </td>
                     </tr>
@@ -219,6 +219,7 @@
                                     btn.setAttribute('aria-disabled','true');
                                     btn.style.pointerEvents = 'none';
                                     btn.title = 'Résultats validés';
+                                    btn.removeAttribute('onclick');  
                                 }
                             });
                             if (deleteBtn) {
@@ -234,6 +235,7 @@
                                     btn.removeAttribute('aria-disabled');
                                     btn.style.pointerEvents = '';
                                     btn.title = '';
+                                    btn.removeAttribute('onclick');  
                                 }
                             });
                             if (deleteBtn) {
