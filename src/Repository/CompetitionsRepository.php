@@ -56,6 +56,7 @@ class CompetitionsRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('compet')
             ->where('compet.startDate > :displayDate')                    
             ->setParameter('displayDate', $day)
+            ->orderBy('compet.startDate', 'ASC') 
             ->getQuery()
             ->getResult()
         ;
