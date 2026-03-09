@@ -10,16 +10,24 @@
     {% for message in app.flashes('danger') %}
         <div class="alert alert-danger">{{ message }}</div>
     {% endfor %}
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" action="{{ path('admin_results_import_page') }}" enctype="multipart/form-data">
         <div class="mb-3">
-            <label for="competition" class="form-label">Compétition</label>
-            <select name="competition_id" id="competition" class="form-select" required>
-                <option value="">-- Choisir une compétition --</option>
+            <label for="test" class="form-label">Epreuve</label>
+            <select name="test_id" id="test" class="form-select" required>
+                <option value="">-- Choisir une épreuve --</option>
                 {% for competition in competitions %}
-                    <option value="{{ competition.id }}">{{ competition.name }}</option>
+                    <optgroup label="{{ competition.name }}">
+                        {% for test in competition.tests %}
+                            {% if not test.isResultsValidated %}
+                                <option value="{{ test.id }}">
+                                    {{competition.name }} - {{ test.code }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </optgroup>
                 {% endfor %}
             </select>
-        </div>
+        </div> 
  
         <div class="mb-3" style="max-width: 400px;">
             <label for="csv_file" class="form-label">Fichier CSV</label>

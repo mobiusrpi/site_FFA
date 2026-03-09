@@ -62,6 +62,20 @@ class CompetitionsRepository extends ServiceEntityRepository
         ;
     }
 
+    public function getQueryTestToImport(\DateTime $day): array
+    {
+        return $this->createQueryBuilder('compet')
+            ->join('compet.tests', 'test')
+            ->where('compet.startDate > :displayDate')
+            ->andWhere('test.resultsValidated = false')
+            ->setParameter('displayDate', $day)
+            ->orderBy('compet.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+        ;
+    }
+
+
     public function getQueryCrewsPilot($competId)
     {    
         return $this->createQueryBuilder('compet')  
