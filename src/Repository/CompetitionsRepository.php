@@ -22,10 +22,10 @@ class CompetitionsRepository extends ServiceEntityRepository
     public function findCompetition($competId)
     {  
         $qb = $this->createQueryBuilder('u')
-        ->select('u')
-        ->join('App\Entity\typecompetition','tc','WITH','tc.id = u.typecompetition')
-        ->where('u.id = :cptid')
-        ->setParameter('cptid', $competId);
+            ->select('u')
+            ->join('App\Entity\typecompetition','tc','WITH','tc.id = u.typecompetition')
+            ->where('u.id = :cptid')
+            ->setParameter('cptid', $competId);
         $query = $qb->getQuery();
 
         return $query->getOneOrNullResult();

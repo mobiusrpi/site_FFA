@@ -393,6 +393,12 @@ class TestsCrudController extends AbstractCrudController
         $crews = $this->crewsRepository->findBy([
             'competition' => $competition
         ]);
+
+        if (!$crews) {
+            $this->addFlash('warning', 'Aucun concurrent inscrit pour cette épreuve.');
+            return $this->redirectToRoute('admin_tests_index');
+        }
+
         $results = $this->testResultsRepository->findBy(['test' => $test]);
 
         $resultsByCrew = [];
