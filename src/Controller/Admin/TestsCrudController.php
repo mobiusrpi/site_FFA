@@ -381,6 +381,7 @@ class TestsCrudController extends AbstractCrudController
         $testId = $request->query->get('entityId');
 
         $test = $entityManager->getRepository(Tests::class)->find($testId);
+        $compType =($test->getCompetition()->getTypecompetition());  //Load lazy object
 
         if ($test->isResultsValidated()) {
             $this->addFlash('warning', 'Les résultats sont validés, modification impossible.');

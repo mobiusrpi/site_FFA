@@ -31,50 +31,85 @@
             <form method="post">
 
                 <table class="table">
-                        <thead>
+                    <thead>
                         <tr>
-                        <th>Crew</th>
+                            <th class="text-center sort-column" data-key="category">
+                                <span class="d-inline-flex align-items-center">
+                                    Ordre
+                                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                                </span>
+                            </th>
+                            <th class="text-center sort-column" data-key="id">
+                                <span class="d-inline-flex align-items-center justify-content-center">
+                                    Id
+                                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                                </span>
+                            </th>
+                            <th class="text-center sort-column" data-key="crew">
+                                <span class="d-inline-flex align-items-center justify-content-center">
+                                    {% if competType == 2 %}
+                                        Pilote
+                                    {% else %}
+                                        Équipage
+                                    {% endif %}
+                                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                                </span>
+                            </th>
+                            <th class="text-center sort-column" data-key="category">
+                                <span class="d-inline-flex align-items-center justify-content-center">
+                                    Catégorie
+                                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                                </span>
+                            </th>
+                            {% if showNav %}
+                                <th>Nav</th>
+                            {% endif %}
+                            {% if (showObs) and (competType != 3) %}
+                                <th>Obs</th>
+                            {% endif %}
+                            {% if showTheo %}
+                                <th>Théo</th>
+                            {% endif %}
+                            {% if showAtt %}
+                                <th>Att</th>
+                            {% endif %}
 
-                        {% if competType == 2 %}
-                        <th>Pilote</th>
-                        {% else %}
-                        <th>Équipage</th>
-                        {% endif %}
-
-                        {% if showNav %}<th>Nav</th>{% endif %}
-                        {% if showObs %}<th>Obs</th>{% endif %}
-                        {% if showTheo %}<th>Théo</th>{% endif %}
-                        {% if showAtt %}<th>Att</th>{% endif %}
-
-                        <th>Total</th>
-                        <th>
-                            New
-                            <input type="checkbox" id="checkAllNew" class="form-check-input ms-1">
-                        </th>
+                            <th class="text-center">
+                                Total
+                            </th>
+                            <th>
+                                <span class="d-inline-flex align-items-center justify-content-center">
+                                    New 
+                                    <input type="checkbox" id="checkAllNew" class="form-check-input ms-1">
+                                </span>
+                            </th>
                         </tr>
                     </thead>
-
                     <tbody>
-
                         {% for row in rows %}
-                            {% set penalty = 0 %}
-                            <tr>
-                                <td>{{ row.crew.id }}</td>
-
-                                {% if competType == 2 %}
-                                    <td>
+                            <tr data-initial-order="{{ loop.index }}">
+                                <td class="text-center" data-value="{{ loop.index }}">
+                                    {{ loop.index }}
+                                </td>
+                                {% set penalty = 0 %}
+                            
+                                <td class="text-center" data-value="{{ row.crew.id ?? -1 }}"> 
+                                    {{ row.crew.id }}
+                                </td>
+                                <td class="text-center" data-value="{{ row.crew.pilot.lastname ?? -1 }}"> 
+                                    {% if competType == 2 %}
                                         {{ row.crew.pilot.lastname ?? '' }}
                                         {{ row.crew.pilot.firstname ?? '' }}
-                                    </td>
-                                {% else %}
-                                    <td>
+                                    {% else %}
                                         {{ row.crew.pilot.lastname ?? '' }}
                                         {{ row.crew.pilot.firstname ?? '' }}<br>
                                         {{ row.crew.navigator.lastname ?? '' }}
                                         {{ row.crew.navigator.firstname ?? '' }}
-                                    </td>
-                                {% endif %}
-
+                                    {% endif %}
+                                </td>   
+                                <td class="text-center" data-value="{{ row.crew.category.label ?? -1 }}"> 
+                                    {{ row.crew.category.label ?? '' }}
+                                </td>
                                 {% if showNav %}
                                     <td>
                                         <input type="number"
@@ -154,6 +189,7 @@
                 });
 
             });
+
             document.querySelectorAll('.score-input').forEach(input => {
                 input.addEventListener('input', function() {
                     const row = this.closest('tr');
@@ -166,6 +202,88 @@
 
                     row.querySelector('.total').textContent = total;
                 });
+            });
+
+            // Sélectionner toutes les tables
+            document.querySelectorAll('.table').forEach(table => {
+
+                const headers = table.querySelectorAll('th.sort-column');
+
+                headers.forEach(header => {
+
+                    const key = header.dataset.key;
+                    const icon = header.querySelector('.sort-arrow');
+
+                    if (!key || !icon) return;
+
+                    let ascending = true;
+
+                    header.addEventListener('click', function () {
+
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                        const columnIndex = Array.from(header.parentNode.children).indexOf(header);
+
+                        rows.sort((a, b) => {
+
+                            const aCell = a.children[columnIndex];
+                            const bCell = b.children[columnIndex];
+
+                            const aVal = (aCell.dataset.value ?? aCell.textContent).trim();
+                            const bVal = (bCell.dataset.value ?? bCell.textContent).trim();
+
+                            const aNum = parseFloat(aVal);
+                            const bNum = parseFloat(bVal);
+
+                            let result;
+
+                            // tri principal
+                            if (!isNaN(aNum) && !isNaN(bNum)) {
+                                result = aNum - bNum;
+                            } else {
+                                result = aVal.localeCompare(bVal, 'fr', { sensitivity: 'base' });
+                            }
+
+                            // inversion uniquement du tri principal
+                            if (!ascending) {
+                                result = -result;
+                            }
+
+                            // tri secondaire équipage (toujours croissant)
+                            if (result === 0) {
+
+                                const crewIndex = table.querySelector('th[data-key="crew"]').cellIndex;
+
+                                const aCrew = (a.children[crewIndex].dataset.value ?? a.children[crewIndex].textContent).trim();
+                                const bCrew = (b.children[crewIndex].dataset.value ?? b.children[crewIndex].textContent).trim();
+
+                                result = aCrew.localeCompare(bCrew, 'fr', { sensitivity: 'base' });
+                            }
+
+                            return result;
+                        });
+
+                        ascending = !ascending;
+
+                        rows.forEach(row => tbody.appendChild(row));
+
+                        // reset icones
+                        headers.forEach(h => {
+                            const i = h.querySelector('.sort-arrow');
+                            if (i) {
+                                i.classList.remove('fa-sort-up','fa-sort-down');
+                                i.classList.add('fa-sort');
+                            }
+                        });
+
+                        icon.classList.remove('fa-sort');
+                        icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
+
+                    });
+
+                });
+
             });
         });
     </script>
