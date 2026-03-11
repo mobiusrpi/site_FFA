@@ -61,6 +61,8 @@
                                     <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
                                 </span>
                             </th>
+                            <th>DNS</th>
+                            <th>DNF</th>
                             {% if showNav %}
                                 <th>Nav</th>
                             {% endif %}
@@ -79,15 +81,21 @@
                             </th>
                             <th>
                                 <span class="d-inline-flex align-items-center justify-content-center">
-                                    New 
+                                    Ajout 
                                     <input type="checkbox" id="checkAllNew" class="form-check-input ms-1">
+                                </span>
+                            </th>
+                           <th>
+                                <span class="d-inline-flex align-items-center justify-content-center">
+                                    Supprime 
+                                    <input type="checkbox" id="checkAllDelete" class="form-check-input ms-1">
                                 </span>
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in rows %}
-                            <tr data-initial-order="{{ loop.index }}">
+                            <trata-initial-order="{loop.index }}">
                                 <td class="text-center" data-value="{{ loop.index }}">
                                     {{ loop.index }}
                                 </td>
@@ -109,6 +117,20 @@
                                 </td>   
                                 <td class="text-center" data-value="{{ row.crew.category.label ?? -1 }}"> 
                                     {{ row.crew.category.label ?? '' }}
+                                </td>
+                                <td>
+                                    <input type="checkbox"
+                                        name="results[{{ row.crew.id }}][dns]"
+                                        class="form-check-input"
+                                        value="1"
+                                        {% if row.scores and row.scores.dns == -1 %} checked {% endif %}>
+                                </td>
+                                <td>
+                                    <input type="checkbox"
+                                        name="results[{{ row.crew.id }}][dnf]"
+                                        class="form-check-input"
+                                        value="1"
+                                        {% if row.scores and row.scores.dns == 1 %} checked {% endif %}>
                                 </td>
                                 {% if showNav %}
                                     <td>
@@ -159,12 +181,19 @@
                                         class="form-check-input is-new-checkbox">
                                     {% endif %}
                                 </td>
+                                <td>
+                                    {% if not row.isNew %}
+                                        <input type="checkbox"
+                                        name="results[{{ row.crew.id }}][isDelete]"
+                                        class="form-check-input is-delete-checkbox">
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
 
-                <button class="btn btn-success">
+                <button type="submit" class="btn btn-success">
                     Enregistrer les modifications
                 </button>
                 <button type="button" class="btn btn-online" onclick="history.back();">
@@ -177,18 +206,29 @@
     <script>
         // Mettre à jour le total à chaque modification
         document.addEventListener('DOMContentLoaded', function() {
-            const checkAll = document.getElementById('checkAllNew');
 
-            if(!checkAll) 
-                return;
+            const checkAllNew = document.getElementById('checkAllNew');
+            const checkAllDelete = document.getElementById('checkAllDelete');
 
-            checkAll.addEventListener('change', function () {
+            if (checkAllNew) {
+                checkAllNew.addEventListener('change', function () {
 
-                document.querySelectorAll('.is-new-checkbox').forEach(cb => {
-                    cb.checked = this.checked;
+                    document.querySelectorAll('.is-new-checkbox').forEach(cb => {
+                        cb.checked = this.checked;
+                    });
+
                 });
+            }
 
-            });
+            if (checkAllDelete) {
+                checkAllDelete.addEventListener('change', function () {
+
+                    document.querySelectorAll('.is-delete-checkbox').forEach(cb => {
+                        cb.checked = this.checked;
+                    });
+
+                });
+            }
 
             document.querySelectorAll('.score-input').forEach(input => {
                 input.addEventListener('input', function() {
@@ -284,6 +324,34 @@
 
                 });
 
+            });
+            document.querySelectorAll('table tbody tr').forEach(row => {
+                const dnsCheckbox = row.querySelector('input[name$="[dns]"]');
+                const dnfCheckbox = row.querySelector('input[name$="[dnf]"]');
+
+                if (!dnsCheckbox || !dnfCheckbox) return;
+
+                dnsCheckbox.addEventListener('change', () => {
+                    if (dnsCheckbox.checked) dnfCheckbox.checked = false;
+                });
+
+                dnfCheckbox.addEventListener('change', () => {
+                    if (dnfCheckbox.checked) dnsCheckbox.checked = false;
+                });
+            });
+        });
+        document.querySelectorAll('.is-delete-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const row = this.closest('tr');
+                if (!row) return;
+
+                const dnsCheckbox = row.querySelector('input[name$="[dns]"]');
+                const dnfCheckbox = row.querySelector('input[name$="[dnf]"]');
+
+                if (this.checked) {
+                    if (dnsCheckbox) dnsCheckbox.checked = false;
+                    if (dnfCheckbox) dnfCheckbox.checked = false;
+                }
             });
         });
     </script>

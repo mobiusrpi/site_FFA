@@ -80,12 +80,20 @@
         {% set position = 0 %}
 
         {% for row in ranking %}
-
+            {% set isDNS = row.dns == -1 %}
+            {% set isDNF = row.dns == 1 %}
+            {% set isOut = isDNS or isDNF %}
             {% set crew = row.crew ?? null %}
-            {% set pilot = crew and crew.pilot ? crew.pilot : null %}
-            {% set navigator = crew and crew.navigator ? crew.navigator : null %}
-                    
-            {% if not row.dns %}
+
+            {% if crew and crew.pilot is defined %}
+                {% set pilot = crew.pilot %}
+                {% set navigator = crew.navigator ?? null %}
+            {% else %}
+                {% set pilot = null %}
+                {% set navigator = null %}
+            {% endif %}
+
+            {% if not isOut %}
                 {% set position = position + 1 %}
 
                 {% if row.total != lastScore %}
@@ -165,38 +173,46 @@
                 <td class="text-center"
                     data-key="navigation"
                     data-value="{{ row.navigation ?? -1 }}">
-                    {{ row.dns ? '-' : (row.navigation ?? '-') }}
+                    {{ isOut ? '-' : (row.navigation ?? '-') }}
                 </td>
 
                 {% if competition.typecompetition and competition.typecompetition.id != 3 %}
                     <td class="text-center"
                         data-key="observation"
                         data-value="{{ row.observation ?? -1 }}">
-                        {{ row.dns ? '-' : (row.observation ?? '-') }}
+                        {{ isOut ? '-' : (row.observation ?? '-') }}
                     </td>
                 {% endif %}
                 <td class="text-center"
                     data-key="landing"
                     data-value="{{ row.landing ?? -1 }}">
-                    {{ row.dns ? '-' : (row.landing ?? '-') }}
+                    {{ isOut ? '-' : (row.landing ?? '-') }}
                 </td>
 
                 {% if  competition.typecompetition and competition.typecompetition.id == 2 %}
                     <td class="text-center"
                         data-key="flightPlanning"
                         data-value="{{ row.flightPlanning ?? -1 }}">
-                        {{ row.dns ? '-' : (row.flightPlanning ?? '-') }}
+                        {{ isOut ? '-' : (row.flightPlanning ?? '-') }}
                     </td>
                 {% endif %}
 
                 <td class="text-center"
                     data-key="total"
-                    data-value="{{ row.total ?? -1 }}">
-                    {{ row.dns ? 'DNS' : row.total }}
+                    data-value="{{ isDNS ? 99999 : (isDNF ? 99998 : (row.total ?? -1)) }}">
+                    {% if isDNS %}
+                        DNS
+                    {% elseif isDNF %}
+                        DNF
+                    {% else %}
+                        {{ row.total }}
+                    {% endif %}
                 </td>
             </tr>
 
-            {% set lastScore = row.total %}
+            {% if not isOut %}
+                {% set lastScore = row.total %}
+            {% endif %}
 
         {% endfor %}
 

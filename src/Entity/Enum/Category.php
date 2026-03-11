@@ -9,11 +9,11 @@ enum Category: string
 {
     case Elite = 'Elite'; 
     case Honneur = 'Honneur'; 
-    case Discovery = 'Découverte'; 
+    case Discovery = 'Decouverte'; 
 
     public function getLabel(): string {
         return match ($this) {
-            self::Elite  => 'Elite',
+            self::Elite  => 'Ėlite',
             self::Honneur  => 'Honneur',
             self::Discovery  => 'Découverte',
         };

@@ -33,6 +33,34 @@ class TestsRepository extends ServiceEntityRepository
             ->getResult();
     }
     
+    public function getQueryTestToImport(\DateTime $day): array
+    {
+        return $this->createQueryBuilder('test')
+            ->join('test.competition', 'compet')
+            ->leftJoin('test.testResults', 'result')
+            ->where('compet.startDate >= :displayDate')
+            ->andWhere('test.resultsValidated = false OR result.id IS NULL') // résultats non validés ou inexistants
+            ->setParameter('displayDate', $day)
+            ->orderBy('compet.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getQueryAllowedUsers(int $userId): array
+    {
+        return $this->createQueryBuilder('compet')
+            ->innerJoin('compet.competitionsUsers', 'cu') // Join CompetitionsUsers
+            ->innerJoin('cu.user', 'user') // Join User
+            ->leftJoin('compet.tests', 'test') // <-- ajouter les tests
+            ->addSelect('test') // pour que Doctrine hydrate les tests
+            ->where('user.id = :userId')
+            ->andWhere('test.resultsValidated = false') // seulement tests non validés
+            ->setParameter('userId', $userId)
+            ->orderBy('compet.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * Find all navigation tests for a competition
      */

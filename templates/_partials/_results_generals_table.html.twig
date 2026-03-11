@@ -39,25 +39,40 @@
     </thead>
     <tbody>
         {% for rank, crewData in crews %}
+            {# Détecte si le crew a au moins une épreuve DNS ou DNF #}
+            {% set hasOut = crewData.tests|filter(t => t.dns != 0)|length > 0 %}
+
             <tr data-score="{{ crewData.total ?? -1 }}">
-                <td class="text-center class-col">{{ loop.index }}</td>
+                <td class="text-center class-col">
+                    {% if hasOut %}
+                        --
+                    {% else %}
+                        {{ loop.index }}
+                    {% endif %}
+                </td>
                 <td>
                     <small>
                         {{ crewData.crew is iterable ? (crewData.crew.fullName ?? crewData.crew.name ?? '—') : crewData.crew }}
                     </small>
                 </td>
                 {% for testKey, displayName in testNames %}
-                    {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': false} %}
+                    {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': 0} %}
                     <td class="text-center"
                         data-key="{{ loop.index }}"
                         data-value="{{ result.total ?? -1 }}">
+                    {% if result.dns == -1 %}
+                        DNS
+                    {% elseif result.dns == 1 %}
+                        DNF
+                    {% else %} 
                         {{ result.total is same as(null) ? '_' : result.total }}
+                    {% endif %}
                     </td>
                 {% endfor %}
                 <td class="text-center"
                     data-key="total"
-                    data-value="{{ crewData.total ?? -1 }}">
-                    <strong>{{ crewData.total is same as(null) ? '_' : crewData.total }}</strong>
+                    data-value="{{ hasOut ? -1 : crewData.total ?? -1 }}">
+                    <strong>{{ hasOut ? '--' : (crewData.total is same as(null) ? '_' : crewData.total) }}</strong>
                 </td>          
             </tr>
         {% endfor %}

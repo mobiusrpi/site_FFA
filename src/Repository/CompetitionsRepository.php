@@ -62,20 +62,6 @@ class CompetitionsRepository extends ServiceEntityRepository
         ;
     }
 
-    public function getQueryTestToImport(\DateTime $day): array
-    {
-        return $this->createQueryBuilder('compet')
-            ->join('compet.tests', 'test')
-            ->where('compet.startDate > :displayDate')
-            ->andWhere('test.resultsValidated = false')
-            ->setParameter('displayDate', $day)
-            ->orderBy('compet.startDate', 'ASC')
-            ->getQuery()
-            ->getResult();
-        ;
-    }
-
-
     public function getQueryCrewsPilot($competId)
     {    
         return $this->createQueryBuilder('compet')  
@@ -104,18 +90,30 @@ class CompetitionsRepository extends ServiceEntityRepository
         ;
     }
 
-    public function getQueryAllowedUsers( $userId)
+    public function findCompetitionForScores(int $id): ?Competitions
     {
-        return $this->createQueryBuilder('compet')
-            ->innerJoin('compet.competitionsUsers', 'competitionsUsers') // Join the CompetitionsUsers entity
-            ->innerJoin('competitionsUsers.user', 'user') // Join the User entity through CompetitionsUsers
-            ->where('user.id = :userId')
-            ->setParameter('userId', $userId)
-            ->orderBy('compet.startDate', 'ASC') // Assuming you want to order by user's lastname
-            ->getQuery()
-            ->getResult();
-    }
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.tests', 't')
+            ->addSelect('t')
 
+            ->leftJoin('t.testResults', 'tr')
+            ->addSelect('tr')
+
+            ->leftJoin('tr.crew', 'cr')
+            ->addSelect('cr')
+
+            ->leftJoin('cr.pilot', 'p')
+            ->addSelect('p')
+
+            ->leftJoin('cr.navigator', 'n')
+            ->addSelect('n')
+
+            ->where('c.id = :id')
+            ->setParameter('id', $id)
+
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
     public function findDistinctYears(): array
     {
         $dates = $this->createQueryBuilder('c')
@@ -137,21 +135,31 @@ class CompetitionsRepository extends ServiceEntityRepository
         return $years;
     }
 
-    public function resultCompetitions($start,$end): array
+    public function resultCompetitions($start, $end): array
     {
         return $this->createQueryBuilder('c')
-            ->innerJoin('c.tests', 'r')
-            ->addSelect('r')
-            ->leftJoin('c.crew', 'cr') // charger les crews
+
+            ->innerJoin('c.tests', 't')
+            ->addSelect('t')
+
+            ->leftJoin('t.testResults', 'tr')
+            ->addSelect('tr')
+
+            ->leftJoin('tr.crew', 'cr')
             ->addSelect('cr')
-            ->leftJoin('cr.pilot', 'p') // charger les users liés
+
+            ->leftJoin('cr.pilot', 'p')
             ->addSelect('p')
+
             ->leftJoin('cr.navigator', 'n')
             ->addSelect('n')
+
             ->where('c.startDate BETWEEN :start AND :end')
             ->setParameter('start', $start)
             ->setParameter('end', $end)
+
             ->orderBy('c.startDate', 'DESC')
+
             ->getQuery()
             ->getResult();
     }

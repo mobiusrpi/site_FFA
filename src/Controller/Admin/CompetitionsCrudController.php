@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Accommodations;
 use App\Entity\CompetitionAccommodation;
 use App\Entity\Competitions;
 use App\Entity\CompetitionsUsers;
@@ -466,7 +467,8 @@ class CompetitionsCrudController extends AbstractCrudController
         EntityManagerInterface $entityManager)
     {             
         $competition = $repositoryCompetition->find($competId); 
-
+        
+        /** @var Accommodations[] $accommodations */
         $accommodations = $repositoryAccommodation->findAll(); 
         $existing = $repositoryCompetAccom->findBy(['competition' => $competition]);
 

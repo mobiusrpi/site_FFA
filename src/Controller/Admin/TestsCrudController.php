@@ -426,48 +426,68 @@ class TestsCrudController extends AbstractCrudController
         }
 
         if ($request->isMethod('POST')) {
-
             $data = $request->request->all('results');
 
             foreach ($data as $crewId => $scores) {
-
                 $result = $this->testResultsRepository->findOneBy([
                     'crew' => $crewId,
                     'test' => $test
                 ]);
-
+                
+                if (!empty($scores['isDelete'])) {
+                    $entityManager->remove($result);  // supprime la ligne de TestResults
+                    continue;  // on ne fait plus de calcul de score pour cette ligne
+                }
+                // Récupération des valeurs de pénalités
                 $navigation  = $scores['navigation'] !== '' ? (int)$scores['navigation'] : null;
                 $observation = $scores['observation'] !== '' ? (int)$scores['observation'] : null;
                 $landing     = $scores['landing'] !== '' ? (int)$scores['landing'] : null;
 
-                if ($result) {
+                // Déterminer le statut : normal = 0, DNS = -1, DNF = 1
+                if (!empty($scores['dnf'])) {
+                    $dns = 1; // DNF
+                } elseif (!empty($scores['dns'])) {
+                    $dns = -1; // DNS
+                } else {
+                    $dns = 0; // normal
+                }
 
-                    // UPDATE
-                    $result->setNavigation($navigation);
-                    $result->setObservation($observation);
-                    $result->setLanding($landing);
-
-                } elseif (isset($scores['isNew'])) {
-
-                    // CREATE
+                // Si pas de résultat existant, mais qu'une case est cochée, on crée
+                if (!$result && (!empty($scores['isNew']) || $dns !== 0)) {
                     $crew = $this->crewsRepository->find($crewId);
 
                     $result = new TestResults();
                     $result->setCrew($crew);
                     $result->setTest($test);
-                    $result->setNavigation($navigation);
-                    $result->setObservation($observation);
-                    $result->setLanding($landing);
-
-                    $entityManager->persist($result);
+                    $result->setRanking(0);
+                    $entityManager->persist($result);               
                 }
+
+                // Si résultat existe ou vient d’être créé, on applique les valeurs
+                if ($result) {
+                    if ($dns !== 0) {
+                        // DNS ou DNF → pénalités nulles
+                        $result->setNavigation(null);
+                        $result->setObservation(null);
+                        $result->setLanding(null);
+                    } else {
+                        $result->setNavigation($navigation);
+                        $result->setObservation($observation);
+                        $result->setLanding($landing);
+                    }
+
+                    $result->setDns($dns);
+                }
+
+
             }
 
             $entityManager->flush();
-
             $this->addFlash('success', 'Scores mis à jour');
-        }
 
+            // redirige vers la page des épreuves
+            return $this->redirectToRoute('admin_tests_index'); 
+        }
         return $this->render('admin/tests/test_scores.html.twig', [
             'rows' => $rows,
             'test' => $test

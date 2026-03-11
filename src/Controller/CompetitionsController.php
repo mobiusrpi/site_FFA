@@ -27,7 +27,7 @@ final class CompetitionsController extends AbstractController
     {
         $today = (new \DateTime())->setTime(0, 0, 0);
         $sortList = $competitionsRepository->getQueryCompetitionSorted($today);
-        
+
         $inscriptionsByCompetition = [];
 
         foreach ($sortList as $competition) {
@@ -42,7 +42,6 @@ final class CompetitionsController extends AbstractController
     }
     
     #[Route('/competitions/{id}/results', name: 'competitions_results')]
-
 /**
  * Competitions results function
  *

@@ -47,26 +47,57 @@ class CompetitionScoringService
 
         $typeId = (int) $competition->getTypecompetition()?->getId();
 
-        foreach ($competition->getTests() as $test) {
+        $validTests = $competition->getTests()->filter(fn($t) => $t->isResultsValidated());
 
-            if (!$test->isResultsValidated()) {
+        if ($validTests->isEmpty()) {
+        // Aucun test validé => on ne construit pas de tableau pour cette compétition
+            return $scoreByCategory; // ou tu peux retourner [] pour ne rien afficher
+        }
+
+        // --- Initialisation des équipages ---
+        foreach ($competition->getCrew() as $crew) {
+            // Récupérer tous les résultats de ce crew pour les tests validés
+            $results = $crew->getTestResults()->filter(fn($r) => $validTests->contains($r->getTest()));
+
+            if ($results->isEmpty()) {
+                // Aucun résultat => ne pas ajouter dans $scoreByCategory
                 continue;
             }
+
+            $categoryEnum = $crew->getCategory();
+            if (!$categoryEnum instanceof Category) {
+                continue;
+            }
+            if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
+                continue;
+            }
+
+            $category = $categoryEnum->getLabel();
+            $key      = $crew->getId();
+
+            $pilot     = trim(($crew->getPilot()?->getLastname() ?? '') . ' ' . ($crew->getPilot()?->getFirstname() ?? ''));
+            $navigator = trim(($crew->getNavigator()?->getLastname() ?? '') . ' ' . ($crew->getNavigator()?->getFirstname() ?? ''));
+            $crewValue = $typeId === 2 ? $pilot : trim("$pilot - $navigator");
+
+            $scoreByCategory[$category][$key] = [
+                'crew'  => $crewValue,
+                'tests' => [],
+                'total' => 0,
+                'dns'   => 0, // 0 = normal, -1 = DNS, 1 = DNF
+            ];
+        }
+
+        // --- Calcul des résultats par test ---
+        foreach ($validTests as $test) {
 
             $testId = $test->getId();
 
             foreach ($test->getTestResults() as $result) {
-
                 $crew = $result->getCrew();
+                $key  = $crew?->getId() ?? $result->getLiteralCrew();
 
-                // -----------------------
                 // Catégorie
-                // -----------------------
-
-                $categoryEnum = $crew
-                    ? $crew->getCategory()
-                    : $result->getCategory();
-
+                $categoryEnum = $crew?->getCategory() ?? $result->getCategory();
                 if (is_string($categoryEnum)) {
                     try {
                         $categoryEnum = Category::from($categoryEnum);
@@ -74,247 +105,204 @@ class CompetitionScoringService
                         continue;
                     }
                 }
-
-                if (!$categoryEnum instanceof Category) {
+                if (!$categoryEnum instanceof Category || !in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
                     continue;
                 }
-
-                if (!in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
-                    continue;
-                }
-
                 $category = $categoryEnum->getLabel();
 
-                // -----------------------
                 // Equipage
-                // -----------------------
-
                 if ($crew) {
-
-                    $key = $crew->getId();
-
-                    if (method_exists($crew, 'getFullName') && $crew->getFullName()) {
-                        $crewValue = $crew->getFullName();
-                    } else {
-
-                        $pilot = ($crew->getPilot()?->getLastname() ?? '') . ' ' . ($crew->getPilot()?->getFirstname() ?? '');
-                        $navigator = ($crew->getNavigator()?->getLastname() ?? '') . ' ' . ($crew->getNavigator()?->getFirstname() ?? '');
-
-                        if ($competition->getTypecompetition()?->getId() === 2) {
-                            $crewValue = $pilot;
-                        } else {
-                            $crewValue = trim($pilot . ' - ' . $navigator);
-                        }
-                    }
+                    $pilot     = ($crew->getPilot()?->getFullName() ?? '');
+                    $navigator = ($crew->getNavigator()?->getFullName() ?? '');
+                    $crewValue = $typeId === 2 ? $pilot : trim("$pilot - $navigator");
                 } else {
-
                     $crewValue = $result->getLiteralCrew();
-                    $key = $crewValue;
                 }
 
-                // -----------------------
-                // Initialisation
-                // -----------------------
-
+                // Initialisation si absent
                 if (!isset($scoreByCategory[$category][$key])) {
-
                     $scoreByCategory[$category][$key] = [
-                        'crew' => $crewValue,
+                        'crew'  => $crewValue,
                         'tests' => [],
                         'total' => 0,
-                        'dns' => false,
+                        'dns'   => 0,
                     ];
                 }
 
-                // -----------------------
-                // DNS
-                // -----------------------
+                // DNS / DNF
+                $status = $result->getDns() ?? 0; // 0 = normal, -1 = DNS, 1 = DNF
+                $isOut  = $status !== 0;
 
-                $dns = $result->isDns() ?? false;
-
-                if ($dns) {
-
-                    $nav = $att = $sum = null;
-
-                } else {
-
+                // Calcul des pénalités
+                $nav = $att = $fp = $sum = null;
+                if (!$isOut) {
                     switch ($typeId) {
-
                         case 2: // Précision
-
-                            $nav = $this->computeNullableSum([
-                                $result->getNavigation(),
-                                $result->getObservation(),
-                                $result->getFlightPlanning(),
-                            ]);
-
-                            $att = $result->getLanding() !== null
-                                ? (int)$result->getLanding()
-                                : null;
-
-                            $sum = ($nav === null && $att === null)
-                                ? null
-                                : (($nav ?? 0) + ($att ?? 0));
-
+                            $nav = $this->computeNullableSum([$result->getNavigation(), $result->getObservation(), $result->getFlightPlanning()]);
+                            $att = $result->getLanding() ?? null;
+                            $sum = ($nav ?? 0) + ($att ?? 0);
                             break;
 
                         case 1: // Rallye
-
-                            $nav = $this->computeNullableSum([
-                                $result->getNavigation(),
-                                $result->getObservation(),
-                                $result->getLanding(),
-                            ]);
-
-                            $att = null;
+                            $nav = $this->computeNullableSum([$result->getNavigation(), $result->getObservation(), $result->getLanding()]);
                             $sum = $nav;
-
                             break;
 
                         case 3: // ANR
                         default:
-
-                            $nav = $this->computeNullableSum([
-                                $result->getNavigation()
-                            ]);
-
-                            $att = $result->getLanding() !== null
-                                ? (int)$result->getLanding()
-                                : null;
-
-                            $sum = ($nav === null && $att === null)
-                                ? null
-                                : (($nav ?? 0) + ($att ?? 0));
+                            $nav = $this->computeNullableSum([$result->getNavigation()]);
+                            $att = $result->getLanding() ?? null;
+                            $sum = ($nav ?? 0) + ($att ?? 0);
                     }
                 }
 
+                // Stockage
                 $scoreByCategory[$category][$key]['tests'][$testId] = [
-                    'nav' => $nav,
-                    'att' => $att,
-                    'total' => $sum,
-                    'dns' => $dns,
+                    'nav'   => $isOut ? null : $nav,
+                    'att'   => $isOut ? null : $att,
+                    'total' => $isOut ? null : $sum,
+                    'dns'   => $status,
                 ];
             }
         }
 
-        // Calcul total général et flag DNS pour le classement final
+        // --- Calcul du total général et flag DNS/DNF ---
         foreach ($scoreByCategory as &$list) {
             foreach ($list as &$crewData) {
                 $total = 0;
-                $hasDnsTest = false;
+                $status = 0; // 0=normal, -1=DNS, 1=DNF
 
-                foreach ($crewData['tests'] as $testResult) {
-                    if ($testResult['dns']) {
-                        $hasDnsTest = true;
-                    } elseif ($testResult['total'] !== null) {
-                        $total += $testResult['total'];
+                foreach ($crewData['tests'] as $t) {
+                    if ($t['dns'] === 1) { // DNF
+                        $status = 1;
+                        break;
+                    }
+                    if ($t['dns'] === -1) { // DNS
+                        $status = -1;
+                        break;
+                    }
+                    if ($t['total'] !== null) {
+                        $total += $t['total'];
                     }
                 }
 
-                $crewData['total'] = $hasDnsTest ? null : $total;
-                $crewData['dns'] = $hasDnsTest;
+                $crewData['total'] = $status !== 0 ? null : $total;
+                $crewData['dns'] = $status;
             }
         }
 
-        // Tri final : DNS en bas
+        // --- Tri final : DNS en bas ---
         foreach ($scoreByCategory as &$list) {
             uasort($list, function ($a, $b) {
-                if (($a['dns'] ?? false) && !($b['dns'] ?? false)) return 1;
-                if (!($a['dns'] ?? false) && ($b['dns'] ?? false)) return -1;
-                if (($a['dns'] ?? false) && ($b['dns'] ?? false)) return 0;
-                return $a['total'] <=> $b['total'];
+                $aOut = $a['dns'] !== 0;
+                $bOut = $b['dns'] !== 0;
+
+                if ($aOut !== $bOut) {
+                    return $aOut ? 1 : -1;
+                }
+
+                return ($a['total'] ?? PHP_INT_MAX) <=> ($b['total'] ?? PHP_INT_MAX);
             });
         }
 
         return $scoreByCategory;
     }
 
-    public function calculateLiveScores(
-       int $testId,
-    ): array {
+    public function calculateScoresLive(Competitions $competition, int $typeId): array
+    {
         $scoreByCategory = [
             'Elite' => [],
             'Honneur' => [],
         ];
-        $test = $this->testsRepository->find($testId);
-        $competition = $test->getCompetition();
-        $typeId = $competition->getTypecompetition()?->getId();
 
-        foreach ($test->getTestResults() as $result) {
-            $category = $result->getCategory();
-            if (!in_array($category, ['Elite', 'Honneur'])) {
-                continue; // on ignore les autres catégories
-            }
+        foreach ($competition->getTests() as $test) {
+            // Tous les tests, même non validés
+            foreach ($test->getTestResults() as $result) {
+                $crew = $result->getCrew();
+                if (!$crew) {
+                    continue; // pas de literalCrew pour le live
+                }
 
-            // === Étape 1 : On extrait les différentes composantes du score ===
-            // Pour le type "Précision"
-            if ($typeId === 2) {
-                $navParts = [
-                    $result->getNavigation(),
-                    $result->getObservation(),
-                    $result->getFlightPlanning(),
-                ];
-                $attPart = $result->getLanding();
+                $categoryEnum = $crew->getCategory();
+                if (!$categoryEnum instanceof Category || !in_array($categoryEnum, [Category::Elite, Category::Honneur], true)) {
+                    continue;
+                }
+                $category = $categoryEnum->value ?? null;                
 
-                $hasNav = array_filter($navParts, fn($val) => $val !== null);
-                $hasAtt = $attPart !== null;
+                $key = $crew->getId();
 
-                $nav = !empty($hasNav) ? array_sum(array_map(fn($v) => $v ?? 0, $navParts)) : null;
-                $att = $hasAtt ? $attPart : null;
-                $sum = ($nav ?? 0) + ($att ?? 0);
+                if (!isset($scoreByCategory[$category][$key])) {
+                    if ($crew) {
+                        $pilotName = trim(
+                            ($crew->getPilot()?->getLastname() ?? '') . ' ' . ($crew->getPilot()?->getFirstname() ?? '')
+                        );
 
-            } else { // Pour les autres types (ex: Rallye, ANR)
-                $parts = [
-                    $result->getNavigation(),
-                    $result->getObservation(),
-                    $result->getLanding(),
-                ];
-                $hasValues = array_filter($parts, fn($val) => $val !== null);
+                        if ($typeId === 2) { // Solo
+                            $crewValue = $pilotName;
+                        } else { // Équipage complet
+                            $navigatorName = trim(
+                                ($crew->getNavigator()?->getLastname() ?? '') . ' ' . ($crew->getNavigator()?->getFirstname() ?? '')
+                            );
+                            $crewValue = "$pilotName - $navigatorName";
+                        }
+                    } else {
+                        // Pas de crew, cas import literalCrew
+                        $crewValue = $result->getLiteralCrew();
+                    }
 
-                $nav = !empty($hasValues) ? array_sum(array_map(fn($v) => $v ?? 0, $parts)) : null;
-                $att = $result->getLanding() ?? null;
-                $sum = $nav ?? 0;
-            }
+                    $scoreByCategory[$category][$key] = [
+                        'crew'  => $crewValue,
+                        'tests' => [],
+                        'total' => 0,
+                        'dns'   => $result->getDns() ?? 0,
+                    ];
+                }
 
-            // === Étape 2 : Identifier l’équipage ===
-            if ($result->getCrew()) {
-                $key = $result->getCrew()->getId();     // identifiant unique de l’équipage
-                $crewValue = $result->getCrew();        // entité complète
-            } else {
-                $key = $result->getLiteralCrew();       // nom texte si pas d’entité
-                $crewValue = $result->getLiteralCrew();
-            }
+                $status = $result->getDns() ?? 0;
+                $nav = $result->getNavigation() ?? 0;
+                $obs = $result->getObservation() ?? 0;
+                $att = $result->getLanding() ?? 0;
+                $fp  = $result->getFlightPlanning() ?? 0;
 
-            // === Étape 3 : Initialisation de l’équipage dans la catégorie ===
-            if (!isset($scoreByCategory[$category][$key])) {
-                $scoreByCategory[$category][$key] = [
-                    'crew' => $crewValue,
-                    'tests' => [],
-                    'total' => 0,
-                ];
-            }
-
-            // === Étape 4 : Enregistrement du score du test ===
-            $scoreByCategory[$category][$key]['tests'][$testId] = [
-                'nav' => $nav,
-                'att' => $att,
-                'total' => ($nav !== null || $att !== null) ? $sum : null,
-            ];
-
-            // === Étape 5 : Ajout au total général (si test réellement couru) ===
-            if ($nav !== null || $att !== null) {
-                $scoreByCategory[$category][$key]['total'] += $sum;
+                // Si DNS/DNF, total reste inchangé
+                if ($status === 0) {
+                    $sum = $nav + ($typeId != 3 ? $obs : 0) + $att + ($typeId == 2 ? $fp : 0);
+                    $scoreByCategory[$category][$key]['tests'][$test->getId()] = [
+                        'nav'   => $nav,
+                        'obs'   => $obs,
+                        'att'   => $att,
+                        'fp'    => $fp,
+                        'total' => $sum,
+                        'dns'   => $status,
+                    ];
+                    $scoreByCategory[$category][$key]['total'] += $sum;
+                } else {
+                    $scoreByCategory[$category][$key]['tests'][$test->getId()] = [
+                        'nav'   => null,
+                        'obs'   => null,
+                        'att'   => null,
+                        'fp'    => null,
+                        'total' => null,
+                        'dns'   => $status,
+                    ];
+                    $scoreByCategory[$category][$key]['dns'] = $status;
+                }
             }
         }
 
-        // Sort each category
+        // Trier DNS en bas
         foreach ($scoreByCategory as &$list) {
-            uasort($list, fn($a, $b) => $a['total'] <=> $b['total']);
+            uasort($list, function($a, $b) {
+                $aOut = $a['dns'] !== 0;
+                $bOut = $b['dns'] !== 0;
+                if ($aOut !== $bOut) return $aOut ? 1 : -1;
+                return ($a['total'] ?? PHP_INT_MAX) <=> ($b['total'] ?? PHP_INT_MAX);
+            });
         }
 
         return $scoreByCategory;
     }
-
+    
     public function calculateAggregateScores(array $results, int $typeId): array
     {
         $scoresByCategory = [];

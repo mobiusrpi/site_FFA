@@ -15,12 +15,12 @@
             <label for="test" class="form-label">Epreuve</label>
             <select name="test_id" id="test" class="form-select" required>
                 <option value="">-- Choisir une épreuve --</option>
-                {% for competition in competitions %}
-                    <optgroup label="{{ competition.name }}">
-                        {% for test in competition.tests %}
+                {% for compGroup in competitions %}
+                    <optgroup label="{{ compGroup.competition.name }}">
+                        {% for test in compGroup.tests %}
                             {% if not test.isResultsValidated %}
                                 <option value="{{ test.id }}">
-                                    {{competition.name }} - {{ test.code }}
+                                    {{ compGroup.competition.name }} - {{ test.code }}
                                 </option>
                             {% endif %}
                         {% endfor %}

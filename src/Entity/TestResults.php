@@ -34,11 +34,23 @@ class TestResults
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $literalCrew = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?bool $status = null;
+    #[ORM\Column]
+    private ?int $ranking = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $dns = false;
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $gender = null;
+
+    #[ORM\Column(length: 128, nullable: true)]
+    private ?string $flyingclub = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $committee = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $status = null; // 0 not valdated
+
+    #[ORM\Column(type: 'smallint')]
+    private int $dns = 0; // 0 = normal, -1 = DNS, 1 = DNF
 
     #[ORM\ManyToOne(inversedBy: 'testResults')]
     #[ORM\JoinColumn(nullable: false)]
@@ -129,19 +141,8 @@ class TestResults
 
         return $this;
     }
-
-    public function isDns(): ?bool
-    {
-        return $this->dns;
-    }
-
-    public function setDns(?bool $dns): static
-    {
-        $this->dns = $dns;
-        return $this;
-    }
-
-        public function getStatus(): ?string
+    
+    public function getStatus(): ?string
     {
         return $this->status;
     }
@@ -152,6 +153,32 @@ class TestResults
         return $this;
     }
 
+    public function getDns(): int
+    {
+        return $this->dns;
+    }
+
+    public function setDns(int $dns): self
+    {
+        $this->dns = $dns;
+        return $this;
+    }
+
+    public function isDns(): bool
+    {
+        return $this->dns === -1;
+    }
+
+    public function isDnf(): bool
+    {
+        return $this->dns === 1;
+    }
+
+    public function isFinished(): bool
+    {
+        return $this->dns === 0;
+    }
+
     public function getLiteralCrew(): ?string
     {
         return $this->literalCrew;
@@ -160,6 +187,54 @@ class TestResults
     public function setLiteralCrew(?string $literalCrew): static
     {
         $this->literalCrew = $literalCrew;
+
+        return $this;
+    }
+
+    public function getRanking(): ?int
+    {
+        return $this->ranking;
+    }
+
+    public function setRanking(int $ranking): static
+    {
+        $this->ranking = $ranking;
+
+        return $this;
+    }
+
+    public function getGender(): ?string
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?string $gender): static
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    public function getFlyingclub(): ?string
+    {
+        return $this->flyingclub;
+    }
+
+    public function setFlyingclub(?string $flyingclub): static
+    {
+        $this->flyingclub = $flyingclub;
+
+        return $this;
+    }
+
+    public function getCommittee(): ?string
+    {
+        return $this->committee;
+    }
+
+    public function setCommittee(?string $committee): static
+    {
+        $this->committee = $committee;
 
         return $this;
     }

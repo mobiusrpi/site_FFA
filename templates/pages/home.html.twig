@@ -68,6 +68,9 @@
       position: relative;
       height: 3rem;
     }
+    .banner-overlay .responsive-lead {
+      color: blue;
+  }
 
     .scroll-track {
       display: flex;
@@ -95,7 +98,8 @@
     <img src="{{ asset('images/banner_top.jpg') }}" alt="FFA" class="img-fluid w-100" style="height: auto;">
 
     <div class="position-absolute top-0 start-0 w-100 text-center text-white banner-overlay">
-      <h1 class="responsive-title">Sports aériens : Rallye - Pilotage de précision - ANR</h1>
+      <h1 class="responsive-title">Sports de Navigation aérienne :</h1>
+      <h4 class="responsive-lead text-navy">Rallye - Pilotage de précision – Course de Navigation aérienne (ANR)</h4>
     </div>
   </div>
   {% if nextCompetitions is not empty %}
@@ -180,7 +184,8 @@
                   <div class="col-md-6">
                     <h6><strong>Elite</strong></h6>
                     <ol class="ps-3">
-                      {% for result in item.elite|slice(0, 3) %}
+                      {% set eliteResults = item.elite|filter(r => r.dns == 0) %}
+                      {% for result in eliteResults|slice(0, 3) %}
                         <li>
                           {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : loop.index) ) }}
                           {{ result.crew }} – {{ result.total }} pts
@@ -193,7 +198,9 @@
                   <div class="col-md-6">
                     <h6><strong>Honneur</strong></h6>
                     <ol class="ps-3">
-                      {% for result in item.honneur|slice(0, 3) %}
+                      {% set honneurResults = item.honneur|filter(r => r.dns == 0) %}
+
+                      {% for result in honneurResults|slice(0, 3) %}
                         <li>
                           {{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : (loop.index == 3 ? '🥉' : '') ) }}
                           {{ result.crew }} – {{ result.total }} pts

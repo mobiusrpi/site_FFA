@@ -3,6 +3,15 @@
 {% block title %}Résultats en direct – {{ testName }}{% endblock %}
 
 {% block body %}
+    <style>
+        .bg-silver {
+            background-color: #c0c0c0;
+        }
+
+        .bg-bronze {
+            background-color: #cd7f32;
+        }
+    </style>
     <div class="row align-items-center mb-3 no-print">
         <div class="col-md-2 col-12 text-center text-md-start">
             <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height:80px; max-width:100%;">
@@ -21,20 +30,30 @@
             </h2>
         </div>
         <div class="row">
-            {% for category in ['elite', 'honneur'] %}
+            {% for categoryKey, rows in scoreByCategory %}
                 <div class="col-md-6 mb-4">
-                    <h4 class="text-center text-uppercase">{{ category }}</h4>
+                    <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm text-center" id="table-{{ category }}">
-                            <thead class="table-dark">
+                        <table class="table table-bordered table-sm text-center table-striped" id="table-{{ categoryKey }}">
+                            <thead class="table-secondary">
                                 <tr>
                                     <th>Rang</th>
                                     <th>Équipage</th>
-                                    <th>Points</th>
+                                    <th>Pénalités</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="3"><em>Chargement...</em></td></tr>
+                                {% if rows is empty %}
+                                    <tr><td colspan="3"><em>Aucun résultat</em></td></tr>
+                                {% else %}
+                                    {% for key, row in rows %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td class="text-start">{{ row.crew }}</td>
+                                            <td>{{ row.total }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -45,59 +64,49 @@
 {% endblock %}
 
 {% block javascripts %}
-{{ parent() }}
-<script>
-    async function loadData() {
-        try {
-            const response = await fetch('{{ path('results_data_json', { testId: testId }) }}');
-            const data = await response.json();
-            updateTable('elite', data.elite);
-            updateTable('honneur', data.honneur);
-        } catch (e) {
-            console.error("Erreur lors du chargement des résultats :", e);
-        }
-    }
-
-    function updateTable(category, rows) {
-        const tbody = document.querySelector(`#table-${category} tbody`);
-        tbody.innerHTML = '';
-
-        if (rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3"><em>Aucun résultat</em></td></tr>';
-            return;
+    {{ parent() }}
+    <script>
+        async function loadData() {
+            try {
+                const response = await fetch('{{ path('results_data_json', { testId: testId }) }}');
+                const data = await response.json();
+                updateTable('elite', data.Elite ?? []);
+                updateTable('honneur', data.Honneur ?? []);
+            } catch (e) {
+                console.error("Erreur lors du chargement des résultats :", e);
+            }
         }
 
-        rows.forEach((row, index) => {
-            const tr = document.createElement('tr');
+        function updateTable(category, rows) {
+            const tbody = document.querySelector(`#table-${category} tbody`);
+            tbody.innerHTML = '';
 
-            let cssClass = '';
-            if (row.rank === 1) cssClass = 'bg-warning text-dark fw-bold';       // Or
-            else if (row.rank === 2) cssClass = 'bg-silver text-dark fw-bold';   // Argent
-            else if (row.rank === 3) cssClass = 'bg-bronze text-dark fw-bold';  // Bronze
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3"><em>Aucun résultat</em></td></tr>';
+                return;
+            }
 
-            tr.innerHTML = `
-                <td class="${cssClass} text-center">${row.rank}</td>
-                <td class="${cssClass} text-start">
-                    <small>${row.pilot ?? ''}<br>${row.navigator ?? ''}</small>
-                </td>
-                <td class="${cssClass} text-center">${row.total}</td>
-            `;
+            rows.forEach((row, index) => {
+                const tr = document.createElement('tr');
 
-            tbody.appendChild(tr);
-        });
-    }
+                let cssClass = '';
+                if (row.rank === 1) cssClass = 'bg-warning text-dark fw-bold';       // Or
+                else if (row.rank === 2) cssClass = 'bg-silver text-dark fw-bold';   // Argent
+                else if (row.rank === 3) cssClass = 'bg-bronze text-dark fw-bold';  // Bronze
 
-    loadData();
-    setInterval(loadData, 10000);
-</script>
+                tr.innerHTML = `
+                    <td class="${cssClass} text-center">${row.rank}</td>
+                    <td class="${cssClass} text-start">
+                        <small>${row.pilot ?? ''}<br>${row.navigator ?? ''}</small>
+                    </td>
+                    <td class="${cssClass} text-center">${row.total}</td>
+                `;
 
-<style>
-    .bg-silver {
-        background-color: #c0c0c0;
-    }
+                tbody.appendChild(tr);
+            });
+        }
 
-    .bg-bronze {
-        background-color: #cd7f32;
-    }
-</style>
+        loadData();
+        setInterval(loadData, 10000);
+    </script>
 {% endblock %}

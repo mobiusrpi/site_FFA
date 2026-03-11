@@ -31,35 +31,36 @@ final class HomeController extends AbstractController
     ): Response {
         $selectedYear = $request->query->get('year') ?? (new \DateTime())->format('Y');
         
-        $start = new \DateTime("$selectedYear-01-01");
-        $end = new \DateTime("$selectedYear-12-31 23:59:59");
+        $start = new \DateTimeImmutable("$selectedYear-01-01");
+        $end = new \DateTimeImmutable("$selectedYear-12-31 23:59:59");
         $today = new \DateTimeImmutable();
         
         $competitionsFinished = $competitionRepository->resultCompetitions($start, $end);
-
         $liveTests = $testRepository->liveTests( $today);
-
         $nextCompetitions = $competitionRepository->nextCompetition();
+        
         $groupedCompetitions = [];
 
         foreach ($competitionsFinished as $competition) {
+
             $scores = $scoringService->calculateScores($competition);
 
-            if (empty($scores['Elite']) && empty($scores['Honneur'])) {
+            if (!$scores['Elite'] && !$scores['Honneur']) {
                 continue;
-            } 
+            }
 
             $groupedCompetitions[] = [
                 'competition' => $competition,
                 'elite' => array_values($scores['Elite']),
                 'honneur' => array_values($scores['Honneur']),
-            ];
+            
+    ];
         }
         $years = $competitionRepository->findDistinctYears();
         $testWithResults = [];
         foreach ($liveTests as $test) {
             $results = $test->getTestResults();
-            if ($results){
+            if (!$test->getTestResults()->isEmpty()) {
                 $testWithResults[] = $test;
             }
         }
