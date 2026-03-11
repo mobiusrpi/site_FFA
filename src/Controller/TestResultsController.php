@@ -306,7 +306,7 @@ final class TestResultsController extends AbstractController
             foreach ($test->getTestResults() as $result) {
                 // Catégorie : pour literalCrew, on utilise la catégorie du résultat
                 $crew = $result->getCrew();
-                $categoryLabel = $crew?->getCategory()?->getLabel() ?? $result->getCategory();
+                $categoryLabel = $crew?->getCategory()?->value() ?? $result->getCategory();
                 if ($categoryLabel !== $category) continue;
 
                 // DNS/DNF/Normal

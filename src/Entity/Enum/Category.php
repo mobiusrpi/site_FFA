@@ -13,7 +13,7 @@ enum Category: string
 
     public function getLabel(): string {
         return match ($this) {
-            self::Elite  => 'Ėlite',
+            self::Elite  => 'Elite',
             self::Honneur  => 'Honneur',
             self::Discovery  => 'Découverte',
         };
