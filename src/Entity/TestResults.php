@@ -34,8 +34,8 @@ class TestResults
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $literalCrew = null;
 
-    #[ORM\Column]
-    private ?int $ranking = null;
+    #[ORM\Column(options: ['default' => 0])]
+    private int $ranking = 0;
 
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $gender = null;

@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Crews;
 use App\Entity\Tests;
 use App\Entity\TestResults;
-use App\Entity\Competitions;
 use Psr\Log\LoggerInterface;
 use App\Entity\TestStartOrder;
 use App\Repository\CrewsRepository;
@@ -46,7 +45,7 @@ class TrackanalyzerController extends AbstractController
         CacheItemPoolInterface $cache,
         EntityManagerInterface $em,
         TestsRepository $repositoryTest,
-        CrewsRepository $repositoryCrew,
+        CrewsRepository $repositoryCrew, 
     ): JsonResponse {
         $authHeader = $request->headers->get('Authorization');
         $rawJson = $request->getContent();
@@ -265,14 +264,19 @@ class TrackanalyzerController extends AbstractController
  * @return JsonResponse
  */
     #[Route('/3rdparty/trackanalyzer/import-test-scores', name: 'import_trackanalyzer_test_scores', methods: ['POST'])]
-    public function importResultsScores(Request $request): JsonResponse
+    public function importResultsScores(Request $request, LoggerInterface $logger,): JsonResponse
     {
+        $rawJson = $request->getContent(); // ← ce que Symfony a reçu
+        $logger->critical('JSON DATA', [
+            'json' => $rawJson,
+        ]);  
+        
         $authHeader = $request->headers->get('Authorization');
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
         }
-        $rawJson = $request->getContent(); // ← ce que Symfony a reçu
-        
+ 
+   
         $data = json_decode($rawJson, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
