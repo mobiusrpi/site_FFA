@@ -1,15 +1,15 @@
+{% set competTypeId = competition.typecompetition.id %}
 <table class="table table-bordered table-sm result-table w-100 mb-4">
     <thead>
         <tr>
             <th class="small-header class-col">Class.</th>
-            <th class="text-center ">
+            <th class="text-center">
              <small>
-                    {% if competition.typecompetition.id == 2 %}
-                        Pilote
-                    {% else %}
-                        Équipage
-                    {% endif %}
- 
+                {% if competTypeId == 2 %}
+                    Pilote
+                {% else %}
+                    Équipage
+                {% endif %}
             </th>
             {% for testId, test in testNames %}
                 {% set isNavOrAnrTest = test.label|slice(0, 3) in ['NAV', 'ANR'] %}
@@ -32,8 +32,9 @@
             {% endfor %}
             <th class="text-center sort-column" data-key="total">
                 <span class="fw-bold" style="white-space: nowrap;">
-                    Total <i class="fa-solid fa-sort sort-arrow ms-2"></i>
+                    Total 
                 </span>
+                <i class="fa-solid fa-sort sort-arrow ms-2"></i>
             </th>
         </tr>
     </thead>
