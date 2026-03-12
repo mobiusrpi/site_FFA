@@ -118,13 +118,17 @@ final class TestResultsController extends AbstractController
         ];
 
         foreach ($test->getTestResults() as $result) {
+            $crew = $result->getCrew();
+            if ($crew) {
+                $category = $crew->getCategory()->value;
+            } else {
+                $category = $result->getCategory();
+            }
 
-            $category = $result->getCategory();
             if (!$category) {
                 continue;
             }
             $dns = $result->getDns() ?? 0;
-            $crew = $result->getCrew();
             $crewKey = $crew ? $crew->getId() : $result->getLiteralCrew();
 
             if (!isset($rankingByCategory[$category][$crewKey])) {
@@ -175,7 +179,14 @@ final class TestResultsController extends AbstractController
         ];
 
         foreach ($test->getTestResults() as $result) {
-            $category = $result->getCategory();
+            $crew = $result->getCrew();
+            $crew = $result->getCrew();
+            if ($crew) {
+                $category = $crew->getCategory()->value;
+            } else {
+                $category = $result->getCategory();
+            }
+
             if (!$category) continue;
 
             $dns = $result->getDns() ?? 0;
@@ -185,7 +196,6 @@ final class TestResultsController extends AbstractController
             $att = $result->getLanding() ?? 0;
             $fp  = $result->getFlightPlanning() ?? 0;
 
-            $crew = $result->getCrew();
             $crewKey = $crew ? $crew->getId() : $result->getLiteralCrew();
 
             if (!isset($rankingByCategory[$category][$crewKey])) {
@@ -232,18 +242,22 @@ final class TestResultsController extends AbstractController
 
         foreach ($test->getTestResults() as $result) {
 
-            $crew = $result->getCrew();
+            $crew = $result->getCrew();           
             if (!$crew) {
                 continue;
             }
 
-            $crewId = $crew->getId();
-            $category = $result->getCategory();
+            if ($crew) {
+                $category = $crew->getCategory()->value;
+            } else {
+                $category = $result->getCategory();
+            }
 
             if (!$category) {
                 continue;
             }
 
+            $crewId = $crew->getId();
             $dns = $result->getDns() ?? 0;
 
             if (!isset($rankingByCategory[$category][$crewId])) {
@@ -306,8 +320,12 @@ final class TestResultsController extends AbstractController
             foreach ($test->getTestResults() as $result) {
                 // Catégorie : pour literalCrew, on utilise la catégorie du résultat
                 $crew = $result->getCrew();
-                $categoryLabel = $crew?->getCategory()?->value() ?? $result->getCategory();
-                if ($categoryLabel !== $category) continue;
+
+                $categoryLabel = $crew?->getCategory()?->value ?? $result->getCategory();
+
+                if ($categoryLabel !== $category) {
+                    continue;
+                }
 
                 // DNS/DNF/Normal
                 $dns = $result->getDns() ?? 0;

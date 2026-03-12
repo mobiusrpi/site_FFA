@@ -28,18 +28,19 @@
             </div>
         </div>
 
-    <div class="row g-0 ">
-        {% for category, results in rankingByCategory %}
-            <div class="results-category px-1 mb-4">
-                <div class="text-center">
-                    <h5><strong>Catégorie {{ category }}</strong></h5>
-                </div>
+        <div class="row g-0 ">
+            {% for category, results in rankingByCategory %}
+                <div class="results-category px-1 mb-4">
+                    <div class="text-center">
+                        <h5><strong>Catégorie {{ category }}</strong></h5>
+                    </div>
 
-                <div class="table-responsive">
-                    {% include '_partials/_results_details_table.html.twig' %}
+                    <div class="table-responsive">
+                        {% include '_partials/_results_details_table.html.twig' %}
+                    </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>    
     </div>
 
     {# ================= IMPRESSION ================= #}
