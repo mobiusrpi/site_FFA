@@ -19,7 +19,7 @@ class LoginListener
         private RequestStack $requestStack,        
         private EntityManagerInterface $entityManager,        
         private SmileService $smileService,
-        private LoggerInterface $logger,   // ← ajouter ici
+        private LoggerInterface $logger,   
     ){}
 
 

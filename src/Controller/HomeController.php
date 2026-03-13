@@ -7,7 +7,6 @@ use App\Repository\CompetitionsRepository;
 use App\Service\CompetitionScoringService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 

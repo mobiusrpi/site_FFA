@@ -2,10 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\Tests;
 use App\Entity\Users;
 use App\Entity\Competitions;
-use App\Entity\CompetitionsUsers;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 

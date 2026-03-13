@@ -4,7 +4,6 @@ namespace App\Form;
 
 use App\Entity\Users;
 use App\Entity\Enum\Gender;
-use App\Entity\Enum\CRAList;
 use App\Entity\Enum\Polosize;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
