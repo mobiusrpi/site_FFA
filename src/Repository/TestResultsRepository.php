@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\TestResults;
+use App\Entity\Tests;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -33,5 +34,28 @@ class TestResultsRepository extends ServiceEntityRepository
         ->setParameter('competition', $competition)
         ->getQuery()
         ->getResult();
+    }
+    
+    /**
+     * Retourne tous les TestResults pour un test donné
+     * 
+     * @param int $testId
+     * @return TestResults[]
+    */
+    public function findResultsForLive(int $testId): array
+    {
+        return $this->createQueryBuilder('r')      
+            ->join('r.test', 't')                 
+            ->addSelect('t')
+            ->join('r.crew', 'c')                 
+            ->addSelect('c')
+            ->join('c.pilot', 'p')
+            ->addSelect('p')
+            ->leftJoin('c.navigator', 'n')
+            ->addSelect('n')
+            ->where('t.id = :testId')
+            ->setParameter('testId', $testId)
+            ->getQuery()
+            ->getResult();                        // tableau de TestResults
     }
 }

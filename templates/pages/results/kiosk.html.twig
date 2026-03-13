@@ -66,15 +66,20 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
+        let lastData = null;
+
         async function loadData() {
-            try {
-                const response = await fetch('{{ path('results_data_json', { testId: testId }) }}');
-                const data = await response.json();
-                updateTable('elite', data.Elite ?? []);
-                updateTable('honneur', data.Honneur ?? []);
-            } catch (e) {
-                console.error("Erreur lors du chargement des résultats :", e);
+            const response = await fetch('{{ path('results_data_json', { testId: testId }) }}');
+            const data = await response.json();
+
+            if (JSON.stringify(data) === JSON.stringify(lastData)) {
+                return; // rien n'a changé
             }
+
+            lastData = data;
+
+            updateTable('elite', data.elite ?? []);
+            updateTable('honneur', data.honneur ?? []);
         }
 
         function updateTable(category, rows) {

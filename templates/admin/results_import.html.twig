@@ -30,7 +30,7 @@
         </div>
     {% elseif importableTests == 0 %}
         <div class="alert alert-info mt-4">
-            Toutes vos épreuves sont validés, aucun import n'est possible.
+            Toutes vos épreuves ont des résultats validés, aucun import n'est possible.
         </div>    
     {% else %}
         <form method="post" action="{{ path('admin_results_import_page') }}" enctype="multipart/form-data">

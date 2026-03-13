@@ -2,34 +2,54 @@
 
 namespace App\Controller;
 
+
+use App\Entity\Tests;
+use App\Entity\Crews;
 use App\Entity\Competitions;
 use App\Entity\Enum\Category;
-use App\Entity\Enum\CompetitionRole;
 use App\Entity\Enum\TestCompet;
-use App\Entity\Tests;
+use App\Entity\Enum\CompetitionRole;
 use App\Repository\CompetitionsRepository;
 use App\Repository\TestResultsRepository;
 use App\Repository\TestsRepository;
 use App\Service\CompetitionScoringService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 final class TestResultsController extends AbstractController
 {
+
+    public function __construct(
+        private LoggerInterface $logger
+    ) {  }
 
     private function formatCrewResult(array $row): array
     {
         $crew = $row['crew'];
 
+        $pilot = '';
+        $navigator = '';
+
+        if ($crew instanceof Crews) {
+            $pilot = $crew->getPilot()?->getFullname() ?? '';
+            $navigator = $crew->getNavigator()?->getFullname() ?? '';
+        } elseif (is_string($crew)) {
+            // cas fallback si une ancienne donnée contient déjà le texte
+            [$pilot, $navigator] = array_pad(explode(' - ', $crew), 2, '');
+        }
+
         return [
             'rank' => $row['rank'],
             'total' => $row['total'],
-            'pilot' => $crew->getPilot()?->getLastname() . ' ' . $crew->getPilot()?->getFirstname(),
-            'navigator' => $crew->getNavigator()?->getLastname() . ' ' . $crew->getNavigator()?->getFirstname(),
+            'pilot' => $pilot,
+            'navigator' => $navigator,
         ];
     }
 
@@ -459,19 +479,22 @@ final class TestResultsController extends AbstractController
     #[Route('/kiosk/{testId}', name: 'public_results_kiosk')]
     public function displayResults(
         int $testId,
-        TestsRepository $testRepository,
+        TestsRepository $testsRepository,        
+        TestResultsRepository $testResultsRepository,
         CompetitionScoringService $scoringService
     ): Response {
-        $test = $testRepository->find($testId);
+        $test = $testsRepository->find($testId);
 
         if (!$test) {
             throw $this->createNotFoundException('Test non trouvé');
         }
 
         $competition = $test->getCompetition();
+        $typeId = $competition?->getTypecompetition()?->getId() ?? 0;
+        $results = $testResultsRepository->findResultsForLive($testId); 
 
         // Calcul des scores pour ce test seulement, clé = enum->value
-        $scoreByCategory = $scoringService->calculateScoresLive($competition, $testId);
+        $scoreByCategory = $scoringService->calculateScoresLive($typeId,$results);
 
         // Pour JSON/JS, préparer les clés 'elite' et 'honneur' selon enum->value
         $categories = [
@@ -488,6 +511,44 @@ final class TestResultsController extends AbstractController
         ]);
     }
 
+    #[Route('/results/data/{testId}', name: 'results_data_json')]
+    public function resultsDataJson(
+        int $testId,
+        TestsRepository $testsRepository,
+        TestResultsRepository $testResultsRepository,
+        CompetitionScoringService $scoringService,
+        CacheInterface $cache
+    ): JsonResponse {
+
+    $data = $cache->get('kiosk_results_'.$testId, 
+        function(ItemInterface $item)
+            use ($testId, $testsRepository, $testResultsRepository, $scoringService) {
+            $item->expiresAfter(10); // cache 10 secondes
+
+            $test = $testsRepository->find($testId);
+            if (!$test) {
+                return ['elite' => [], 'honneur' => []];
+            }
+
+
+            // Récupérer tous les TestResults en une seule requête
+            $results = $testResultsRepository->findResultsForLive($testId);
+            $competition = $test->getCompetition();
+            $typeId = $competition?->getTypecompetition()?->getId() ?? 0;
+
+            $scores = $scoringService->calculateScoresLive($typeId, $results);
+
+            return [
+                'elite'   => $this->assignRanksAndFormat($scores['Elite']),
+                'honneur' => $this->assignRanksAndFormat($scores['Honneur']),
+            ];
+        });
+
+        return $this->json($data, 200, [
+            'Cache-Control' => 'public, max-age=5'
+        ]);
+    }
+    
     private function assignRanksAndFormat(array $rows): array
     {
         $formatted = [];
@@ -512,31 +573,6 @@ final class TestResultsController extends AbstractController
         }
 
         return $formatted;
-    }
-    
-    #[Route('/results/data/{testId}', name: 'results_data_json', methods: ['GET'])]
-    public function resultsData(
-        int $testId,
-        TestsRepository $testRepository,
-        CompetitionScoringService $scoringService
-    ): JsonResponse {
-
-        $test = $testRepository->find($testId);
-
-        if (!$test) {
-            return $this->json(['error' => 'Test not found'], 404);
-        }
-
-        $competition = $test->getCompetition();
-
-        $scores = $scoringService->calculateScoresLive($competition, $testId);
-
-        $formatted = [
-            'elite' => $this->assignRanksAndFormat($scores['Elite']),
-            'honneur' => $this->assignRanksAndFormat($scores['Honneur']),
-        ];
-
-        return $this->json($formatted);
     }
 
     #[Route('/results/aggregate/{id}', name: 'test_results_aggregate', methods:['GET'])]
