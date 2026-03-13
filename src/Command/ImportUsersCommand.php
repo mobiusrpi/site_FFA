@@ -3,23 +3,21 @@
 namespace App\Command;
 
 
-use DateTimeImmutable;
-use App\Entity\users;
 use App\Entity\Enum\CRAList;
-use App\Entity\Enum\Category;
 use App\Entity\Enum\Polosize;
-use App\Entity\Enum\SpeedList;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Users;
 use App\Repository\UsersRepository;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 #[AsCommand(
     name: 'Importusers',

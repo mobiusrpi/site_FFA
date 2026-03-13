@@ -91,7 +91,6 @@ class ResultsImportService
         $result = new TestResults();
         $result->setTest($test);
         $result->setCategory($row[4]);
-        $result->setRanking(is_numeric($row[15]) ? (int)$row[15] : 0);
         $result->setLiteralCrew($row[16]);
         $result->setGender(in_array($row[17], ['M','F']) ? $row[17] : '');
         $result->setFlyingclub($row[18]);
@@ -114,7 +113,6 @@ class ResultsImportService
         $result = new TestResults();
         $result->setTest($test);
         $result->setCategory($row[4]);
-        $result->setRanking(is_numeric($row[16]) ? (int)$row[16] : 0);
         $result->setLiteralCrew($row[17]);
         $result->setGender(in_array($row[18], ['M','F']) ? $row[18] : '');
         $result->setFlyingclub($row[19]);
@@ -133,7 +131,6 @@ class ResultsImportService
         $result = new TestResults();
         $result->setTest($test);
         $result->setCategory($row[1]);
-        $result->setRanking(is_numeric($row[16]) ? (int)$row[0] : 0);
         $result->setLiteralCrew($row[2]);
         $result->setGender(in_array($row[18], ['M','F']) ? $row[3] : '');
         $result->setFlyingclub($row[4]);

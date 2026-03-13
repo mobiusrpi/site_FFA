@@ -34,9 +34,6 @@ class TestResults
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $literalCrew = null;
 
-    #[ORM\Column(options: ['default' => 0])]
-    private int $ranking = 0;
-
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $gender = null;
 
@@ -49,7 +46,7 @@ class TestResults
     #[ORM\Column(nullable: true)]
     private ?bool $status = null; // 0 not valdated
 
-    #[ORM\Column(type: 'smallint')]
+    #[ORM\Column(type: 'smallint',options: ['default' => 0])]
     private int $dns = 0; // 0 = normal, -1 = DNS, 1 = DNF
 
     #[ORM\ManyToOne(inversedBy: 'testResults')]
@@ -187,18 +184,6 @@ class TestResults
     public function setLiteralCrew(?string $literalCrew): static
     {
         $this->literalCrew = $literalCrew;
-
-        return $this;
-    }
-
-    public function getRanking(): ?int
-    {
-        return $this->ranking;
-    }
-
-    public function setRanking(int $ranking): static
-    {
-        $this->ranking = $ranking;
 
         return $this;
     }
