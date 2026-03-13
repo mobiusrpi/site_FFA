@@ -39,7 +39,6 @@ class TestsRepository extends ServiceEntityRepository
             ->join('test.competition', 'compet')
             ->leftJoin('test.testResults', 'result')
             ->where('compet.startDate >= :displayDate')
-            ->andWhere('test.resultsValidated = false OR result.id IS NULL') // résultats non validés ou inexistants
             ->setParameter('displayDate', $day)
             ->orderBy('compet.startDate', 'ASC')
             ->getQuery()
