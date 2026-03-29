@@ -635,8 +635,11 @@ class UsersCrudController extends AbstractCrudController
             // Forcer subject et body en string
             $replyTo = $form->get('replyTo')->getData() ?? $this->getParameter('mailer_from');
 
-             /** @var SubmitButton $previewButton */
+            /** @var SubmitButton $previewButton */
             $previewButton = $form->get('preview');
+            /** @var SubmitButton $sendButton */    
+            $sendButton = $form->get('send');
+
             // 🟢 BOUTON PREVIEW
             if ($previewButton->isClicked()) {
 
@@ -656,7 +659,7 @@ class UsersCrudController extends AbstractCrudController
             }
 
             // 🟢 BOUTON ENVOYER
-            if ($previewButton->isClicked()) {
+            if ($sendButton->isClicked()) {
 
                 try {
                     foreach ($users as $user) {

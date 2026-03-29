@@ -688,8 +688,10 @@ class CompetitionsCrudController extends AbstractCrudController
             $data = $form->getData();;
             $attachment = $form->get('attachment')->getData();
             /** @var SubmitButton $previewButton */
-
-            $previewButton = $form->get('preview');
+            $previewButton = $form->get('preview');        
+            /** @var SubmitButton $sendButton */    
+            $sendButton = $form->get('send');
+dd($previewButton);
             // 🟢 BOUTON PREVIEW
             if ($previewButton->isClicked()) {
 
@@ -706,9 +708,9 @@ class CompetitionsCrudController extends AbstractCrudController
                     'message' => nl2br($personalizedMessage),
                 ]);
             }
-
+dd($sendButton);
             // 🟢 BOUTON ENVOYER
-            if ($previewButton->isClicked()) {
+            if ($sendButton->isClicked()) {
 
                 try {
                     $users = [];
