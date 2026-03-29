@@ -233,11 +233,8 @@ class CompetitionsCrudController extends AbstractCrudController
         $request = $this->getContext()?->getRequest();
         $year = $request?->query->get('year') ?? (int) date('Y');
 
-        $qb
-            ->join('entity.competition', 'c')
-            ->addSelect('c');
-
         if ($year) {
+            // ⚠️ Version PERFORMANTE (sans YEAR())
             $start = new \DateTimeImmutable("$year-01-01 00:00:00");
             $end   = new \DateTimeImmutable("$year-12-31 23:59:59");
 
@@ -246,8 +243,6 @@ class CompetitionsCrudController extends AbstractCrudController
                 ->setParameter('start', $start)
                 ->setParameter('end', $end);
         }
-
-        $qb->orderBy('c.date', 'ASC');
 
         return $qb;
     }
@@ -696,7 +691,7 @@ class CompetitionsCrudController extends AbstractCrudController
             $previewButton = $form->get('preview');        
             /** @var SubmitButton $sendButton */    
             $sendButton = $form->get('send');
-
+dd($previewButton);
             // 🟢 BOUTON PREVIEW
             if ($previewButton->isClicked()) {
 
@@ -713,7 +708,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     'message' => nl2br($personalizedMessage),
                 ]);
             }
-
+dd($sendButton);
             // 🟢 BOUTON ENVOYER
             if ($sendButton->isClicked()) {
 
