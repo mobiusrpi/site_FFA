@@ -66,7 +66,7 @@ class SmileService
 
             $this->logger->info('Résultat Smile reçu', [
                 'license' => $license,
-                'statut' => $dataSmile['Statut'] ?? null,                
+                'validity_licence' => $dataSmile['Licence_Valide'] ?? null,                
                 'code_cra' => $dataSmile['code_cra'] ?? null,
             ]);
 
@@ -80,7 +80,7 @@ class SmileService
             $emailSmile     = $dataSmile['email'] ?? null;
             $idClub         = $dataSmile['code_fna'] ?? null;
             $flyingclub     = $dataSmile['nom_aeroclub'] ?? null;
-
+            $licenseValid   = $dataSmile['Licence_Valide'] ?? null;
             $statut = isset($dataSmile['Statut']) ? (int)$dataSmile['Statut'] : null;
 
             $endingDate = null;
@@ -91,12 +91,12 @@ class SmileService
             if ($statut === -1) {
                 return [
                     'isValid' => false,
-                    'error' => $dataSmile['Erreur'] ?? 'Licence introuvable ou date incorrecte',
+                    'error' => $dataSmile['Erreur'] ?? 'Licence introuvable',
                     'endingDate' => $endingDate,
                 ];
             }
 
-            if ($statut === 0) {
+            if ($licenseValid != 'Oui') {
                 return [
                     'isValid' => false,
                     'error' => 'Licence '.$license.' non renouvelée',
