@@ -691,7 +691,6 @@ class CompetitionsCrudController extends AbstractCrudController
             $previewButton = $form->get('preview');        
             /** @var SubmitButton $sendButton */    
             $sendButton = $form->get('send');
-dd($previewButton);
             // 🟢 BOUTON PREVIEW
             if ($previewButton->isClicked()) {
 
@@ -708,7 +707,6 @@ dd($previewButton);
                     'message' => nl2br($personalizedMessage),
                 ]);
             }
-dd($sendButton);
             // 🟢 BOUTON ENVOYER
             if ($sendButton->isClicked()) {
 
