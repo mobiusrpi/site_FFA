@@ -56,18 +56,15 @@ final class HomeController extends AbstractController
     ];
         }
         $years = $competitionRepository->findDistinctYears();
-        $testWithResults = [];
+        $testsInProgress = [];
         foreach ($liveTests as $test) {
-            $results = $test->getTestResults();
-            if (!$test->getTestResults()->isEmpty()) {
-                $testWithResults[] = $test;
-            }
+            $testsInProgress[] = $test;
         }
 
         return $this->render('pages/home.html.twig', [
             'groupedCompetitions' => $groupedCompetitions,
             'years' => $years,
-            'live' => $testWithResults,            
+            'live' => $testsInProgress,            
             'selectedYear' => $selectedYear,
             'nextCompetitions' => $nextCompetitions,
         ]);

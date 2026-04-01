@@ -60,6 +60,12 @@ class TrackAnalyzerImporter
         $existingResults = $this->em->getRepository(TestResults::class)->findBy(['test' => $test]);
         $existingByCrew = [];
         foreach ($existingResults as $res) {
+            if (!$res->getCrew()) {
+                $this->logger->warning('Orphan TestResult detected', [
+                    'testResultId' => $res->getId()
+                ]);
+                continue;
+            }
             $existingByCrew[$res->getCrew()->getId()] = $res;
         }
 

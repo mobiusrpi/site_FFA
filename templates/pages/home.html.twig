@@ -146,8 +146,8 @@
           </select>
 
           {% if live is not empty %}
-          <div class="mt-4">
-            <strong>Résultats en direct</strong>
+            <div class="mt-4">
+              <strong>Résultats en direct</strong>
               {% for test in live %}
                 <div class="mt-2">
                   <a href="{{ path('public_results_kiosk', { testId: test.id }) }}"

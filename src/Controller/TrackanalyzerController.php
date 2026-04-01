@@ -276,7 +276,6 @@ class TrackanalyzerController extends AbstractController
             return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
         }
  
-   
         $data = json_decode($rawJson, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
