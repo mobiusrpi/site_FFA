@@ -11,6 +11,11 @@
         .bg-bronze {
             background-color: #cd7f32;
         }
+        .scroll-container {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+        }
     </style>
     <div class="row align-items-center mb-3 no-print">
         <div class="col-md-2 col-12 text-center text-md-start">
@@ -34,7 +39,7 @@
                 <div class="col-md-6 mb-4">
                     <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm text-center table-striped" id="table-{{ categoryKey }}">
+                        <table class="table table-bordered table-sm text-center table-striped">
                             <thead class="table-secondary">
                                 <tr>
                                     <th>Rang</th>
@@ -42,20 +47,29 @@
                                     <th>Pénalités</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% if rows is empty %}
-                                    <tr><td colspan="3"><em>Aucun résultat</em></td></tr>
-                                {% else %}
-                                    {% for key, row in rows %}
-                                        <tr>
-                                            <td>{{ loop.index }}</td>
-                                            <td class="text-start">{{ row.crew }}</td>
-                                            <td>{{ row.total }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                {% endif %}
-                            </tbody>
                         </table>
+
+                        <!-- TOP 3 FIXE -->
+                        <table class="table table-bordered table-sm text-center table-striped mb-0">
+                            <colgroup>
+                                <col style="width: 10%">
+                                <col style="width: 75%">
+                                <col style="width: 15%">
+                            </colgroup>                            
+                            <tbody id="top3-{{ categoryKey }}"></tbody>
+                        </table>
+
+                        <!-- SCROLL -->
+                        <div class="scroll-container">
+                            <table class="table table-bordered table-sm text-center table-striped">
+                                <colgroup>
+                                    <col style="width: 10%">
+                                    <col style="width: 75%">
+                                    <col style="width: 15%">
+                                </colgroup>
+                                <tbody id="scroll-{{ categoryKey }}"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
@@ -83,11 +97,14 @@
         }
 
         function updateTable(category, rows) {
-            const tbody = document.querySelector(`#table-${category} tbody`);
-            tbody.innerHTML = '';
+            const top3 = document.querySelector(`#top3-${category}`);
+            const scroll = document.querySelector(`#scroll-${category}`);
+
+            top3.innerHTML = '';
+            scroll.innerHTML = '';
 
             if (rows.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3"><em>Aucun résultat</em></td></tr>';
+                scroll.innerHTML = '<tr><td colspan="3"><em>Aucun résultat</em></td></tr>';
                 return;
             }
 
@@ -95,22 +112,75 @@
                 const tr = document.createElement('tr');
 
                 let cssClass = '';
-                if (row.rank === 1) cssClass = 'bg-warning text-dark fw-bold';       // Or
-                else if (row.rank === 2) cssClass = 'bg-silver text-dark fw-bold';   // Argent
-                else if (row.rank === 3) cssClass = 'bg-bronze text-dark fw-bold';  // Bronze
+                if (row.rank === 1) cssClass = 'bg-warning text-dark fw-bold';
+                else if (row.rank === 2) cssClass = 'bg-silver text-dark fw-bold';
+                else if (row.rank === 3) cssClass = 'bg-bronze text-dark fw-bold';
 
                 tr.innerHTML = `
-                    <td class="${cssClass} text-center">${row.rank}</td>
+                    <td class="${cssClass}">${row.rank}</td>
                     <td class="${cssClass} text-start">
                         <small>${row.pilot ?? ''}<br>${row.navigator ?? ''}</small>
                     </td>
-                    <td class="${cssClass} text-center">${row.total}</td>
+                    <td class="${cssClass}">${row.total}</td>
                 `;
 
-                tbody.appendChild(tr);
+                if (index < 3) {
+                    top3.appendChild(tr);
+                } else {
+                    scroll.appendChild(tr);
+                }
             });
+
+            startAutoScroll(category);
         }
 
+        let scrollInterval = null;
+        let isPaused = false;
+
+        function startAutoScroll() {
+            const c = document.querySelector('.scroll-container');
+            if (!c) return;
+
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+            }
+
+            let direction = 1; // 1 = descendre, -1 = remonter (optionnel)
+            let speed = 1;
+
+            function pause(ms) {
+                isPaused = true;
+                setTimeout(() => {
+                    isPaused = false;
+                }, ms);
+            }
+
+            // 👉 pause au début
+            c.scrollTop = 0;
+            pause(2000);
+
+            scrollInterval = setInterval(() => {
+                if (isPaused) return;
+
+                const max = c.scrollHeight - c.clientHeight;
+                if (max <= 0) return;
+
+                c.scrollTop += speed * direction;
+
+                // 👉 arrivée en bas
+                if (c.scrollTop >= max) {
+                    c.scrollTop = max;
+                    pause(2000);
+
+                    // reset après pause
+                    setTimeout(() => {
+                        c.scrollTop = 0;
+                        pause(2000); // pause en haut
+                    }, 2000);
+                }
+
+            }, 30);
+        }
         loadData();
         setInterval(loadData, 10000);
     </script>
