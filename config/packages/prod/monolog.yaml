@@ -17,3 +17,4 @@ monolog:
             path: '%kernel.logs_dir%/prod-critical.log'
             level: critical
             max_files: 30
+            

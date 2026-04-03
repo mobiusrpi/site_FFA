@@ -118,43 +118,28 @@ class ExportCsvController extends AbstractController
         foreach ($crews as $crew) {
             // check if pilot is null
             $pilot = $crew->getPilot();
-            if ($pilot) {
-                $pilLastname  = $pilot->getLastname();
-                $pilFirstname = $pilot->getFirstname();
-                $pilFullname  = trim(($pilLastname ?? '') . ' ' . ($pilFirstname ?? ''));
-            } else {
-                $pilFullname = '';
-            }
-            // check if navigator is null
             $navigator = $crew->getNavigator();
-            if ($navigator) {
-                $navLastname  = $navigator->getLastname();
-                $navFirstname = $navigator->getFirstname();
-                $navFullname  = trim(($navLastname ?? 'Inconnu') . ' ' . ($navFirstname ?? ''));
-            } else {
-                $navFullname = '';
-            }
+            $pilFullname = $pilot ? trim(($pilot->getFullname() ?? '')) : '';
+            $navFullname = $navigator ? trim(($navigator->getFullname() ?? '')) : '';
             $row = [
                 'Concurrent' => $crew->getId(),
                 'Categorie' => $crew->getCategory()?->value ?? '',   
                 'Pilote' => $pilFullname,
-                'Pilote_Licence_FFA' => $crew->getPilot()->getLicenseFfa() ,
-                'Pilote_Telephone' => $crew->getPilot()->getPhone() ? $crew->getPilot()->getPhone() : '',
-                'Pilote_Email' => $crew->getPilot()->getEmail() ,
-                'Pilote_Date_Naissance' => $this->DateFormated($crew->getPilot()->getBirthdate()),
-                'Pilote_Aeroclub' => $crew->getPilot()->getFlyingclub() ? $crew->getPilot()->getFlyingclub() : '',
-                'Pilote_CRA' => $crew->getPilot()->getCommittee()?->value ?? '',                          
-                'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
-                'Pilote_taille_polo' => $crew->getPilot()->getPoloSize() ?->value ?? '',
-                'Pilote_Sexe' => $crew->getPilot()->getGender()?->value ?? '',
+                'Pilote_Licence_FFA' => $pilot?->getLicenseFfa() ?? '',
+                'Pilote_Telephone' => $pilot?->getPhone() ?? '','Pilote_Email' => $pilot?->getEmail() ?? '',
+                'Pilote_Date_Naissance' => $this->DateFormated($pilot?->getBirthdate()),
+                'Pilote_Aeroclub' => $pilot?->getFlyingclub() ?? '',
+                'Pilote_CRA' => $pilot?->getCommittee()?->value ?? '',
+                'Pilote_Sexe' => $pilot?->getGender()?->value ?? '',
+                'Pilote_taille_polo' => $pilot?->getPoloSize()?->value ?? '',
                 'Navigateur' => $navFullname,
-                'Navigateur_Licence_FFA' => $crew->getNavigator()->getLicenseFfa() ?? '',
-                'Navigateur_Telephone' => $crew->getNavigator()->getPhone() ? $crew->getNavigator()->getPhone() : '',
-                'Navigateur_Email' => $crew->getNavigator()->getEmail() ??'',
-                'Navigateur_Date_Naissance' => $this->DateFormated($crew->getNavigator()->getBirthbate()),
-                'Navigateur_Aeroclub' => $crew->getNavigator()->getFlyingclub() ? $crew->getNavigator()->getFlyingclub() : '',
-                'Navigateur_CRA' => $crew->getNavigator()->getCommittee() ?->value ?? '',
-                'Navigateur_taille_polo' => $crew->getNavigator()->getPoloSize() ?->value ?? '',
+                'Navigateur_Licence_FFA' => $navigator?->getLicenseFfa() ?? '',
+                'Navigateur_Telephone' => $navigator?->getPhone() ?? '',
+                'Navigateur_Email' => $navigator?->getEmail() ?? '',
+                'Navigateur_Date_Naissance' => $this->DateFormated($navigator?->getBirthdate()),
+                'Navigateur_Aeroclub' => $navigator?->getFlyingclub() ?? '',
+                'Navigateur_CRA' => $navigator?->getCommittee()?->value ?? '',
+                'Navigateur_taille_polo' => $navigator?->getPoloSize()?->value ?? '',
                 'Immatriculation' => $crew->getCallsign() ? $crew->getCallSign() : '',
                 'Vitesse' => $crew->getAircraftSpeed() ?->value ?? '', 
                 'OACI' => $crew->getAircraftOaci() ?$crew->getAircraftOaci() : '', 
