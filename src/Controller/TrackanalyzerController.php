@@ -579,4 +579,10 @@ class TrackanalyzerController extends AbstractController
             ]
         ]);
     }
+
+    #[Route('/3rdparty/trackanalyzer/ping', methods: ['GET'])]
+    public function ping(): JsonResponse
+    {
+        return new JsonResponse(['status' => 'ok']);
+    }
 };

@@ -1,0 +1,28 @@
+monolog:
+    handlers:
+        # Logs principaux pour la prod, rotation quotidienne
+        main:
+            type: fingers_crossed       # déclenche l'écriture uniquement si action_level atteint
+            action_level: error         # déclenche sur erreur ou plus grave
+            handler: nested_main        # handler sous-jacent qui fait la rotation
+            channels: ["!event"]
+
+        # Handler réel pour rotation de fichiers
+        nested_main:
+            type: rotating_file
+            path: '%kernel.logs_dir%/%kernel.environment%.log'
+            level: info                 # niveau minimal pour enregistrer (après déclenchement)
+            max_files: 15               # conserve les 15 derniers fichiers
+
+        # Logs d'erreurs critiques et exceptions
+        critical:
+            type: rotating_file
+            path: '%kernel.logs_dir%/%kernel.environment%-critical.log'
+            level: critical
+            max_files: 30
+
+        # Optional: envoie des logs d'erreur critiques vers syslog ou email
+        # syslog:
+        #     type: syslog
+        #     level: error
+        #     ident: symfony

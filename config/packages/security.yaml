@@ -18,7 +18,7 @@ security:
             pattern: ^/3rdparty/trackanalyzer
             provider: app_user_provider
             stateless: true
-            custom_authenticators:                
+            custom_authenticator:                
                 - App\Security\BearerTokenAuthenticator
 
         main:
@@ -47,7 +47,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-
+        - { path: ^/3rdparty/trackanalyzer/ping, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }         
         - { path: ^/admin, roles: ROLE_MANAGER }
         - { path: ^/registration, roles: ROLE_USER }

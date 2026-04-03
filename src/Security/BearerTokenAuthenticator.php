@@ -29,15 +29,24 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
+        $path = $request->getPathInfo();
+
         $this->logger->debug('BearerTokenAuthenticator supports check', [
+            'path' => $path,
             'Authorization' => $request->headers->get('Authorization')
         ]);
-        // Check that URL start by /3rdparty/trackanalyzer
-        if (str_starts_with($request->getPathInfo(), '/3rdparty/trackanalyzer')) {
+
+        // ✅ EXCLUSION DU PING
+        if ($path === '/3rdparty/trackanalyzer/ping') {
+            return false;
+        }
+
+        // 🔐 API sécurisée
+        if (str_starts_with($path, '/3rdparty/trackanalyzer')) {
             return $request->headers->has('Authorization');
         }
-        
-        return false; 
+
+        return false;
     }
 
     public function authenticate(Request $request): Passport
