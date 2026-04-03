@@ -1,21 +1,19 @@
 monolog:
     handlers:
-        # Logs principaux pour la prod, rotation quotidienne
         main:
+            type: fingers_crossed
+            action_level: error       # déclenche l'écriture sur erreur ou critique
+            handler: nested_main
+            channels: ["!event"]     # ignore les events si tu veux
+
+        nested_main:
             type: rotating_file
             path: '%kernel.logs_dir%/prod.log'
             level: debug
-            max_files: 15             # conserve les 15 derniers fichiers
+            max_files: 15
 
-        # Logs d'erreurs critiques et exceptions
         critical:
             type: rotating_file
             path: '%kernel.logs_dir%/prod-critical.log'
             level: critical
             max_files: 30
-
-        # Optional: envoie des logs d'erreur critiques vers syslog ou email
-        # syslog:
-        #     type: syslog
-        #     level: error
-        #     ident: symfony
