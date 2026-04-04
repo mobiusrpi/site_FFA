@@ -31,6 +31,9 @@ class CrewsType extends AbstractType
                 'choices' => [], // Placeholder; updated dynamically
                 'placeholder' => 'Sélectionner un hébergement',
                 'required' => false,
+                'multiple' => true,  
+                'expanded' => true, // checkboxes 👍
+                'by_reference' => false,     
             ])
             ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
                 /** @var Crews $crew */

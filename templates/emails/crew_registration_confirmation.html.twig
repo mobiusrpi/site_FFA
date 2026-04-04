@@ -1,0 +1,65 @@
+<h2>Confirmation d'inscription</h2>
+
+<p>Bonjour {{ pilot.firstname }},</p>
+
+<p>
+Votre inscription à la compétition 
+<strong>{{ competition.name }} - {{ competition.typecompetition.typecomp }}</strong> 
+a bien été enregistrée.
+</p>
+
+<p>
+Indicatif avion : {{ crew.callsign }}</br>
+Vitesse : {{ crew.aircraftSpeed.value }} Nm
+</p>
+
+{% if crew.navigator %}
+<p>
+Navigateur : {{ crew.navigator.firstname }} {{ crew.navigator.lastname }}
+</p>
+{% endif %}
+
+<p>
+{% if crew.competitionAccommodation|length > 0 %}
+<p><strong>Hébergement(s) sélectionné(s) :</strong></p>
+<ul>
+    {% for ca in crew.competitionAccommodation %}
+        <li>
+            {{ ca.accommodation.room }} - Prix : {{ (ca.price / 100)|number_format(2, ',', ' ') }} €
+        </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Aucun hébergement sélectionné.</p>
+{% endif %}
+</p>
+
+<p>
+Vous pouvez consulter votre inscription et la modifier à tout moment depuis </br>
+<strong> Mon Compte &rarr; Mes inscriptions &rarr; Modifier </strong>.
+Voir la doc du serveur <a href="https://sports.ffa-aero.fr/docs/index.php/Serveur_-_Espace_concurrents" target="_blank">Wiki sports.ffa</a>
+</p>
+
+<p>
+Informations pour le réglement : </br>
+{{competition.paymentInfo|raw }}}
+</p>
+<p>
+En cas de besoin d'informations complémentaires contacter les organisateurs.</br>
+{% if managers|length > 0 %}
+<p><strong>Organisateur(s) :</strong></p>
+<ul>
+    {% for mu in managers %}
+        <li>
+            {{ mu.user.firstname }} {{ mu.user.lastname }}<br>
+            Email: {{ mu.user.email }}<br>
+            Téléphone: {{ mu.user.phone ?? 'non renseigné' }}
+        </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Aucun organisateur DIRECTOR ou ROUTER trouvé.</p>
+{% endif %}
+
+</p>
+<p>Merci 👍</p>

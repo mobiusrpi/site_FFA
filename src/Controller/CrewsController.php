@@ -7,19 +7,21 @@ use App\Entity\Aircrafts;
 use App\Entity\Competitions;
 use App\Entity\Crews;
 use App\Entity\Enum\Category;
+use App\Entity\Enum\CompetitionRole;
 use App\Entity\Enum\CRAList;
 use App\Entity\Enum\SpeedList;
 use App\Entity\Users;
-use Symfony\Component\Form\FormInterface;
 use App\Form\EventListener\AddNavigatorFieldListener;
 use App\Form\RegistrationCrewType;
 use App\Repository\AircraftsRepository;
 use App\Repository\CompetitionsRepository;
 use App\Repository\CrewsRepository;
+use App\Service\SendMailService;
 use App\Service\SmileService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,10 +29,11 @@ use Symfony\Component\Security\Core\Security;
 
 final class CrewsController extends AbstractController
 {    
-    public function __construct(         
-        private SmileService $smileService,
-        private AddNavigatorFieldListener $addNavigatorFieldListener)
-    { }      
+public function __construct(         
+    private SmileService $smileService, 
+    private SendMailService $mailService,
+    private AddNavigatorFieldListener $addNavigatorFieldListener
+) { }    
 
 /**
  * Delete crew's registration function
@@ -253,13 +256,33 @@ final class CrewsController extends AbstractController
 
                 $entityManager->persist($aircraft);
             }
-            $entityManager->persist($crew);
 
             if ($fixSpeed instanceof SpeedList) {
                 $crew->setAircraftSpeed($fixSpeed);
             }
+
+            foreach ($crew->getCompetitionAccommodation() as $acc) {
+                $acc->addCrewAccommodation($crew);
+                $entityManager->persist($acc); // 🔥 très important
+            }
+            $entityManager->persist($crew);
             $entityManager->flush();
 
+            $managers = $crew->getCompetition()->getCompetitionsUsers()->filter(function($cu) {
+                return in_array($cu->getRole(), [CompetitionRole::DIRECTOR, CompetitionRole::ROUTER]);
+            });
+
+            $this->mailService->send(
+                $crew->getPilot()->getEmail(),
+                'Confirmation d\'inscription',
+                'crew_registration_confirmation', // => templates/emails/crew_registration_confirmation.html.twig
+                [
+                    'pilot' => $crew->getPilot(),
+                    'competition' => $crew->getCompetition(),
+                    'managers' => $managers, 
+                    'crew' => $crew,
+                ]
+            );
             return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         }
 
