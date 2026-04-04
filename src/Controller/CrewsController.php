@@ -283,6 +283,24 @@ public function __construct(
                     'crew' => $crew,
                 ]
             );
+
+            foreach ($managers as $manager) {
+                $this->mailService->send(
+                    $manager->getUser()->getEmail(),
+                    'Inscription d\'un nouveau concurrent',
+                    'crew_registration_new', // => templates/emails/crew_registration_new.html.twig
+                    [
+                        'pilot' => $crew->getPilot(),
+                        'competition' => $crew->getCompetition(),
+                        'crew' => $crew,
+                    ]
+                );
+
+            }
+
+
+            $this->addFlash('success', 'Votre inscription a été enregistrée avec succès.');
+
             return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
         }
 

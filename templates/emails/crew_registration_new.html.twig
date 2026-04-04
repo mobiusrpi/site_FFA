@@ -1,0 +1,34 @@
+<h2>Insciption</h2>
+
+<p>Bonjour ,</p>
+
+<p>
+Nouvelle inscription à la compétition 
+<strong>{{ competition.name }} - {{ competition.typecompetition.typecomp }}</strong> 
+</p>
+
+<p>
+Pilote :{{ pilot.fullname }}</br>
+{% if crew.navigator %}
+    Navigateur : {{ crew.navigator.fullname }}</br>
+{% endif %}
+Indicatif avion : {{ crew.callsign }}</br>
+Vitesse : {{ crew.aircraftSpeed.value }} Kt
+</p>
+
+<p>
+{% if crew.competitionAccommodation|length > 0 %}
+<p><strong>Hébergement(s) sélectionné(s) :</strong></p>
+<ul>
+    {% for ca in crew.competitionAccommodation %}
+        <li>
+            {{ ca.accommodation.room }} - Prix : {{ (ca.price / 100)|number_format(2, ',', ' ') }} €
+        </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Aucun hébergement sélectionné.</p>
+{% endif %}
+</p>
+
+<p>Merci 👍</p>

@@ -1,0 +1,26 @@
+Insciption
+
+Bonjour ,
+
+Nouvelle inscription à la compétition 
+{{ competition.name }} - {{ competition.typecompetition.typecomp }} 
+
+
+Pilote :{{ pilot.fullname }}\n
+{% if crew.navigator %}
+    Navigateur : {{ crew.navigator.fullname }}\n
+{% endif %}
+Indicatif avion : {{ crew.callsign }}\n
+Vitesse : {{ crew.aircraftSpeed.value }} Kt
+
+{% if crew.competitionAccommodation|length > 0 %}
+Hébergement(s) sélectionné(s) :
+{% for ca in crew.competitionAccommodation %} 
+    - {{ ca.accommodation.room }} - Prix : {{ (ca.price / 100)|number_format(2, ',', ' ') }} €
+{% endfor %}
+{% else %}
+Aucun hébergement sélectionné.
+{% endif %}
+
+
+Merci 👍

@@ -1,0 +1,48 @@
+Confirmation d'inscription
+
+Bonjour {{ pilot.firstname }},
+
+Votre inscription à la compétition 
+{{ competition.name }} - {{ competition.typecompetition.typecomp }} 
+a bien été enregistrée.
+
+Indicatif avion : {{ crew.callsign }} \n
+Vitesse : {{ crew.aircraftSpeed.value }} Kt
+
+{% if crew.navigator %}
+    Navigateur : {{ crew.navigator.firstname }} {{ crew.navigator.lastname }}
+{% endif %}
+
+
+{% if crew.competitionAccommodation|length > 0 %}
+    Hébergement(s) sélectionné(s) :\n
+    {% for ca in crew.competitionAccommodation %}
+        - {{ ca.accommodation.room }} - Prix : {{ (ca.price / 100)|number_format(2, ',', ' ') }} €
+    {% endfor %}
+
+{% else %}
+    Aucun hébergement sélectionné.<
+{% endif %}
+
+
+Vous pouvez consulter votre inscription et la modifier à tout moment depuis \n
+ Mon Compte -> Mes inscriptions -> Modifier.\n
+Voir la doc du serveur https://sports.ffa-aero.fr/docs/index.php/Serveur_-_Espace_concurrents\n
+
+Informations pour le règlement : voir le site\n
+
+En cas de besoin d'informations complémentaires contacter les organisateurs.</br>
+{% if managers|length > 0 %}
+    Organisateur(s) :\n
+
+    {% for mu in managers %}
+        - {{ mu.user.firstname }} {{ mu.user.lastname }}\n
+        Email: {{ mu.user.email }}\n
+        Téléphone: {{ mu.user.phone ?? 'non renseigné' }}\n
+    {% endfor %}
+
+{% else %}
+    Aucun organisateur DIRECTOR ou ROUTER trouvé.\n
+{% endif %}
+
+Merci
