@@ -33,12 +33,6 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th class="text-center sort-column" data-key="category">
-                                <span class="d-inline-flex align-items-center">
-                                    Ordre
-                                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                                </span>
-                            </th>
                             <th class="text-center sort-column" data-key="id">
                                 <span class="d-inline-flex align-items-center justify-content-center">
                                     Id
@@ -76,8 +70,11 @@
                                 <th>Att</th>
                             {% endif %}
 
-                            <th class="text-center">
-                                Total
+                            <th class="text-center sort-column" data-key="category">
+                                <span class="d-inline-flex align-items-center justify-content-center">
+                                    Total
+                                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                                </span>
                             </th>
                             <th>
                                 <span class="d-inline-flex align-items-center justify-content-center">
@@ -95,10 +92,7 @@
                     </thead>
                     <tbody>
                         {% for row in rows %}
-                            <trata-initial-order="{loop.index }}">
-                                <td class="text-center" data-value="{{ loop.index }}">
-                                    {{ loop.index }}
-                                </td>
+                            <data-initial-order="{loop.index }}">
                                 {% set penalty = 0 %}
                             
                                 <td class="text-center" data-value="{{ row.crew.id ?? -1 }}"> 

@@ -425,6 +425,24 @@ class TestsCrudController extends AbstractCrudController
             }
         }
 
+        usort($rows, function ($a, $b) {
+
+            // 1. Catégorie
+            $catA = $a['crew']->getCategory()?->getLabel() ?? '';
+            $catB = $b['crew']->getCategory()?->getLabel() ?? '';
+
+            $cmp = strcmp($catA, $catB);
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+
+            // 2. Nom pilote
+            $nameA = $a['crew']->getPilot()?->getFullname() ?? '';
+            $nameB = $b['crew']->getPilot()?->getFullname() ?? '';
+
+            return strcmp($nameA, $nameB);
+        });
+
         if ($request->isMethod('POST')) {
             $data = $request->request->all('results');
 
@@ -488,6 +506,7 @@ class TestsCrudController extends AbstractCrudController
             // redirige vers la page des épreuves
             return $this->redirectToRoute('admin_tests_index'); 
         }
+
         return $this->render('admin/tests/test_scores.html.twig', [
             'rows' => $rows,
             'test' => $test
