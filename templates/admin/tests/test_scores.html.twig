@@ -6,25 +6,29 @@
 
 
 {% block main %}
-    {% set showNav = test.type in [
-        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION') , 
-        constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'), 
-        constant('App\\Entity\\Enum\\TestCompet::NAV_TG')] 
-    %}
 
-    {% set showObs = showNav %}   
-    
-    {% set showTheo = test.type in [
-        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION') ]
-    %}
+    {% set competType = test.competition.typecompetition.id %}
+    {% set isANR = competType == 3 %}
+
+    {% set showNav = test.type in [
+        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION'),
+        constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'),
+        constant('App\\Entity\\Enum\\TestCompet::NAV_TG')
+    ] %}
+
+    {% set showObs = showNav and not isANR %}
+
+    {% set showTheo = (test.type in [
+        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION')
+    ]) and not isANR %}
 
     {% set showAtt = test.type in [
-        constant('App\\Entity\\Enum\\TestCompet::LANDING'), 
-        constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'), 
-        constant('App\\Entity\\Enum\\TestCompet::NAV_TG')] 
-    %}    
+        constant('App\\Entity\\Enum\\TestCompet::LANDING'),
+        constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'),
+        constant('App\\Entity\\Enum\\TestCompet::NAV_TG')
+    ] or (isANR and showNav) %} 
     
-    {% set competType = test.competition.typecompetition.id %}
+
 
     <div class="card">
         <div class="card-body">

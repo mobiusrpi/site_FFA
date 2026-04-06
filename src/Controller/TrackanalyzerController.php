@@ -72,12 +72,12 @@ class TrackanalyzerController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
         if (!$data || empty($data['TestId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
-            return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
+            return new JsonResponse(['error' => 'Invalid JSON structure'], 200);
         }
 
         $test = $repositoryTest->findOneBy(['code' => $data['TestId']]); // adjust if you use a different field
         if (!$test) {
-            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu'], 404);
+            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu'], 200);
         }
 
         $results = [];
@@ -132,22 +132,31 @@ class TrackanalyzerController extends AbstractController
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
         }
+ 
         $rawJson = $request->getContent(); // ← ce que Symfony a reçu
 
         $data = json_decode($rawJson, true);
-        if (!$data) {
-            $this ->logger->error('Invalid JSON received', ['raw' => $rawJson]);
-        }
-        $this->logger->debug('Parsed JSON:', $data);
+        
+        $this->logger->debug('Parsed JSON', ['data' => $data]);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
-            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+            return new JsonResponse([
+                'error' => 'Malformed JSON',
+                'message' => json_last_error_msg(),
+                'raw' => $rawJson // utile pour debug Delphi
+            ], 200);
         }
+
         $result = $this->importer->importResultsData($data, false);
+
         if (isset($result['error'])) {
-            $this->logger->debug('Results JSON:', $result);
-            return new JsonResponse($result, 400);
+            $this->logger->debug('Message d\erreur :', $result);
+            return new JsonResponse([
+                'success' => false,
+                'error' => $result['error'],
+                'details' => $result['details'] ?? null
+            ]);
         }
 
         return new JsonResponse($result);
@@ -193,12 +202,12 @@ class TrackanalyzerController extends AbstractController
         ]);
 
         if (!$data || empty($data['TestId']) || empty($data['Crews']) || !is_array($data['Crews'])) {
-            return new JsonResponse(['error' => 'Invalid JSON structure'], 400);
+            return new JsonResponse(['error' => 'Invalid JSON structure'], 200);
         }
 
         $test = $testsRepository->findOneBy(['code' => $data['TestId']]); 
         if (!$test) {
-            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu : ' . $data['TestId']], 404);
+            return new JsonResponse(['error' => 'Code de l\'épreuve inconnu : ' . $data['TestId']], 200);
             exit();
         }
 
@@ -275,21 +284,21 @@ class TrackanalyzerController extends AbstractController
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
         }
- 
+
         $data = json_decode($rawJson, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
-            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 200);
         }
 
         if (!is_array($data)) {
-            return new JsonResponse(['error' => 'Invalid or empty JSON'], 400);
+            return new JsonResponse(['error' => 'Invalid or empty JSON'], 200);
         }
 
         $result = $this->importer->importResultsData($data, true);
         if (isset($result['error'])) {
-            return new JsonResponse(['error' => $result['error']], 400);
+            return new JsonResponse(['error' => $result['error']], 200);
         }
 
         return new JsonResponse($result);
@@ -394,18 +403,18 @@ class TrackanalyzerController extends AbstractController
         $data = json_decode($request->getContent(), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
-            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 200);
         }
         $testCode = $data['testCode'] ?? null;
         if (!$testCode) {
             $this->logger->error('From update-start-order : TestCode not found ');
-            return $this->json(['error' =>'Code' . $testCode . '  not found '],404);
+            return $this->json(['error' =>'Code' . $testCode . '  not found '],200);
         }         
 
         $test = $em->getRepository(Tests::class)->findOneBy(['code' => $testCode]);
         if (!$test) {
             $this->logger->error('From update-start-order : Code' . $testCode . ' not found ');
-            return $this->json(['error' => 'Code' . $testCode . ' not found in DB'], 404);
+            return $this->json(['error' => 'Code' . $testCode . ' not found in DB'], 200);
         }
 
         $items = $data['data'] ?? [];
@@ -413,11 +422,11 @@ class TrackanalyzerController extends AbstractController
         foreach ($items as $item) { 
             $crewId = $item['crewId'] ?? null;       
             if (!$test->getId() || !$crewId) {
-                return $this->json(['error' => 'Crew missing'], 400);
+                return $this->json(['error' => 'Crew missing'], 200);
             }
             $crew = $em->getRepository(Crews::class)->find($crewId);
             if (!$crew) {
-                return $this->json(['error' => "Crew $crewId not found"], 404);
+                return $this->json(['error' => "Crew $crewId not found"], 200);
             }
             
             $testStartOrder = $em->getRepository(TestStartOrder::class)
@@ -465,13 +474,13 @@ class TrackanalyzerController extends AbstractController
         $testCode = $data['testCode'] ?? null;
 
         if (!$testCode) {
-            return $this->json(['error' => 'TestCode missing'], 400);
+            return $this->json(['error' => 'TestCode missing'], 200);
         }
 
         // Récupérer le test courant
         $currentTest = $testsRepository->findOneBy(['code' => $testCode]);
         if (!$currentTest) {
-            return $this->json(['error' => 'Test not found'], 404);
+            return $this->json(['error' => 'Test not found'], 200);
         }
 
         // Récupérer la compétition
@@ -521,18 +530,18 @@ class TrackanalyzerController extends AbstractController
         $data = json_decode($request->getContent(), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
-            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 200);
         }
         $testCode = $data['testCode'] ?? null;
         if (!$testCode) {
             $this->logger->error('From clear-start-order : TestCode not found ');
-            return $this->json(['error' =>'Code' . $testCode . '  not found '],404);
+            return $this->json(['error' =>'Code' . $testCode . '  not found '],200);
         }         
 
         $test = $em->getRepository(Tests::class)->findOneBy(['code' => $testCode]);
         if (!$test) {
             $this->logger->error('From clear-start-order : Code' . $testCode . ' not found ');
-            return $this->json(['error' => 'Code' . $testCode . ' not found in DB'], 404);
+            return $this->json(['error' => 'Code' . $testCode . ' not found in DB'], 200);
         }
 
         $qb = $em->createQueryBuilder();

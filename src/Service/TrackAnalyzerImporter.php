@@ -36,20 +36,33 @@ class TrackAnalyzerImporter
             $this->logger->error('Invalid JSON structure', ['data' => $data]);
             return ['error' => 'Invalid JSON structure'];
         }
+
         $test = $this->testsRepository->findOneBy(['code' => $data['TestId']]);
+
         if (!$test) {
-            $this->logger->ERROR('Test code inconnu', ['code' => $data['TestId']]);
+            $this->logger->ERROR('Test code inconnu', ['code' => $data['TestId']] );
 
             return [
-                'error' => 'Code de l\'épreuve inconnu',
+                'error' => 'Épreuve inconnue',
                 'details' => [
-                    'field' => 'TestId',
-                    'value' => $data['TestId'],
-                    'message' => 'Le code "' . $data['TestId'] . '" n\'existe pas en base.).'
+                    '-' => 'Le code "' . $data['TestId'] . '" n\'existe pas en database..'
                 ]
             ];
         }
 
+        if ( $test->isResultsValidated()) {
+            $this->logger->warning('Tentative d\'import sur un test déjà validé', [
+                'testId' => $test->getId(),
+                'testCode' => $test->getCode()]
+            );
+
+            return [
+                'error' => 'Les résultats de l\'épreuve ' . $data['TestId'] . ' sont validés',
+                'details' => [
+                    '-' => 'Les scores de ce concurrent n\'ont pas été enregistrés.'
+                ]
+            ];
+        }
         $competition = $test->getCompetition();
         $typeCompet = $competition?->getTypecompetition()?->getId();
 

@@ -381,7 +381,7 @@ class TestsCrudController extends AbstractCrudController
         $testId = $request->query->get('entityId');
 
         $test = $entityManager->getRepository(Tests::class)->find($testId);
-        $compType =($test->getCompetition()->getTypecompetition());  //Load lazy object
+
 
         if ($test->isResultsValidated()) {
             $this->addFlash('warning', 'Les résultats sont validés, modification impossible.');
@@ -445,7 +445,6 @@ class TestsCrudController extends AbstractCrudController
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all('results');
-
             foreach ($data as $crewId => $scores) {
                 $result = $this->testResultsRepository->findOneBy([
                     'crew' => $crewId,
@@ -457,9 +456,9 @@ class TestsCrudController extends AbstractCrudController
                     continue;  // on ne fait plus de calcul de score pour cette ligne
                 }
                 // Récupération des valeurs de pénalités
-                $navigation  = $scores['navigation'] !== '' ? (int)$scores['navigation'] : null;
-                $observation = $scores['observation'] !== '' ? (int)$scores['observation'] : null;
-                $landing     = $scores['landing'] !== '' ? (int)$scores['landing'] : null;
+                $navigation  = ($scores['navigation'] ?? '') !== '' ? (int)$scores['navigation'] : null;
+                $observation = ($scores['observation'] ?? '') !== '' ? (int)$scores['observation'] : null;
+                $landing     = ($scores['landing'] ?? '') !== '' ? (int)$scores['landing'] : null;
 
                 // Déterminer le statut : normal = 0, DNS = -1, DNF = 1
                 if (!empty($scores['dnf'])) {
@@ -477,7 +476,6 @@ class TestsCrudController extends AbstractCrudController
                     $result = new TestResults();
                     $result->setCrew($crew);
                     $result->setTest($test);
-                    $result->setRanking(0);
                     $entityManager->persist($result);               
                 }
 
@@ -509,7 +507,8 @@ class TestsCrudController extends AbstractCrudController
 
         return $this->render('admin/tests/test_scores.html.twig', [
             'rows' => $rows,
-            'test' => $test
+            'test' => $test,
+            'typecompetition' => $test->getCompetition()->getTypecompetition()?->getTypecomp()
         ]);
     }
 
