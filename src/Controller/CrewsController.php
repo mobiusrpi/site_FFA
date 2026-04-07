@@ -48,6 +48,7 @@ public function __construct(
  * @return Response
  */
     #[Route('/crews/{competId}/delete', name: 'crews_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function delete(
         int $competId, 
         Request $request, 
@@ -59,16 +60,6 @@ public function __construct(
     {   
        /** @var Users|null $user */
         $user = $security->getUser();
-
-        if (!$user instanceof Users) {       
-            $this->addFlash('warning', 'a non authentifié.');
-
-            // ✅ Redirect to EasyAdmin Competitions index page
-            return $this->redirect($this->generateUrl('admin', [
-                'crudControllerFqcn' => CrewsCrudController::class,
-                'action' => 'index',
-            ]));
-        }
 
         if (!$user->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
@@ -86,8 +77,15 @@ public function __construct(
     
         $compet = $repositoryCompetition->find($competId);  
 
-        $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
+        if (!$compet) {
+            throw $this->createNotFoundException();
+        }
 
+        $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
+        if (!$crew) {
+            throw $this->createNotFoundException();
+        }
+        
         $submittedToken = $request->request->get('_token');
 
         if ($this->isCsrfTokenValid('delete'.$competId, $submittedToken)) {
