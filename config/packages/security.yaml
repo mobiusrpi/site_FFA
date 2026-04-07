@@ -50,7 +50,7 @@ security:
         - { path: ^/3rdparty/trackanalyzer/ping, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }         
         - { path: ^/admin, roles: ROLE_MANAGER }
-        - { path: ^/crews/userRegistration, roles: ROLE_USER }
+        - { path: ^/crews, roles: ROLE_USER }
         - { path: ^/registration, roles: ROLE_USER }
         - { path: ^/registration/crews, roles: ROLE_USER }
         - { path: ^/edit_register, roles: ROLE_USER }  
