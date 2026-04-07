@@ -408,10 +408,7 @@ public function registration_listt(
     {       
         /** @var Users|null $user */
         $user = $security->getUser();
-dump($security->getUser());
-dump($user);
-dump($security->getUser()?->getRoles());
-die();
+
         $competByUser = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
 
         return $this->render('pages/crews/registrationCrewsList.html.twig', [
