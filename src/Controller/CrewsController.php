@@ -408,6 +408,9 @@ public function registration_listt(
     {       
         /** @var Users|null $user */
         $user = $security->getUser();
+            
+    dump( $security->getUser());
+    die();
 
         $competByUser = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
 
