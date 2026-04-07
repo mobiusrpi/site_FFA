@@ -234,7 +234,6 @@ class RegistrationCrewType extends AbstractType
                 'label_attr' => ['class' => 'form-label'],
                 'attr' => ['class' => 'form-control'],
                 'placeholder' => $fixSpeed ? false : 'Choisir sa vitesse',
-                'data' => $fixSpeed ?? null, // facultatif si pas de donnée initiale
             ])
         ;
     }

@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class CrewsController extends AbstractController
 {    
@@ -399,24 +400,16 @@ public function __construct(
  * @param Security $security
  * @return Response
  */
-    #[Route(path :'/crews/userRegistration/list', name: 'user_registrations_list', methods:['GET','POST'])]
-    public function registration_list(
+
+#[Route('/crews/userRegistration/list', name: 'user_registrations_list')]
+#[IsGranted('ROLE_USER')]
+public function registration_listt(
         CrewsRepository $repositoryCrew,
         Security $security,                 
     ): Response 
     {       
         /** @var Users|null $user */
         $user = $security->getUser();
-
-        if (!$user instanceof Users) {       
-            $this->addFlash('warning', 'Non authentifié.');
-
-            // ✅ Redirect to EasyAdmin Competitions index page
-            return $this->redirect($this->generateUrl('admin', [
-                'crudControllerFqcn' => CrewsCrudController::class,
-                'action' => 'index',
-            ]));
-        }
 
         $competByUser = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
 
