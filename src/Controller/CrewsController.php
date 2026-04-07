@@ -503,6 +503,9 @@ public function registration_listt(
 
                 $entityManager->persist($aircraft);
             }
+            foreach ($crew->getCompetitionAccommodation() as $acc) {
+                $acc->addCrewAccommodation($crew);
+            }
             $entityManager->persist($crew);
             
             if ($fixSpeed instanceof SpeedList) {
