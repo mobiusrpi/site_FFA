@@ -32,103 +32,109 @@
                     <i class="fas fa-plus"></i> Ajouter une épreuve
             </a>
         </h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Id</th>                     
-                    <th>Name</th>                      
-                    <th>Code</th>     
-                    <th>Type d'épreuve</th>                  
-                    <th>En cours</th>                          
-                    <th>Resultats validés</th>                    
-                </tr>
-            </thead>
-            <tbody>
-                {% for test in groupData.tests %}
+        {% if groupData.tests is not empty %}
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ test.id }}</td>                        
-                        <td>{{ test.name }}</td>                          
-                        <td>{{ test.code }}</td>                          
-                        <td>{{ test.type.label }}</td>                         
-        
-                        <td>
-                            <input type="checkbox"
-                                class="form-check-input toggle-switch"
-                                data-test-id="{{ test.id }}"
-                                data-field="inProgress"
-                                {% if test.inProgress %}checked{% endif %}>
-                        </td>
-
-                        <td>
-                            <input type="checkbox"
-                                class="form-check-input toggle-switch"
-                                data-test-id="{{ test.id }}"
-                                data-field="resultsValidated"
-                                {% if test.resultsValidated %}checked{% endif %}>
-                        </td>
-                     
-                        <td>
-                            <div class="d-flex gap-2">
-                                <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}"
-                                class="btn btn-sm btn-primary edit-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
-                                {% if test.resultsValidated %}
-                                    tabindex="-1"
-                                    aria-disabled="true"
-                                    title="Résultats validés"
-                                    onclick="return false;"
-                                {% endif %}>
-                                    Modifier
-                                </a>
-
-                                <a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
-                                class="btn btn-sm btn-primary scores-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
-                                {% if test.resultsValidated %}
-                                    tabindex="-1"
-                                    aria-disabled="true"
-                                    title="Résultats validés"
-                                    onclick="return false;"
-                                {% endif %}>
-                                    Scores
-                                </a>
-
-                                <form method="post"
-                                    class="delete-test"
-                                    action="{{ ea_url()
-                                                .setController('App\\Controller\\Admin\\TestsCrudController')
-                                                .setAction('delete')
-                                                .setEntityId(test.id) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
-                                    <button class="btn btn-sm btn-outline text-danger"
-                                            {% if test.resultsValidated %}
-                                                disabled aria-disabled="true" title="Résultats validés"
-                                            {% endif %}>
-                                        <i class="fas fa-trash"></i> Supprimer
-                                    </button>
-                                </form>             
-                            </div>
-                        </td>
+                        <th>Id</th>                     
+                        <th>Name</th>                      
+                        <th>Code</th>     
+                        <th>Type d'épreuve</th>                  
+                        <th>En cours</th>                          
+                        <th>Resultats validés</th>                    
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmer la validation</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="passwordInput">Mot de passe :</label>
-                    <input type="password" id="passwordInput" class="form-control" placeholder="Entrez votre mot de passe">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmer</button>
-                </div>
-                </div>
+                </thead>
+                <tbody>
+                    {% for test in groupData.tests %}
+                        <tr>
+                            <td>{{ test.id }}</td>                        
+                            <td>{{ test.name }}</td>                          
+                            <td>{{ test.code }}</td>                          
+                            <td>{{ test.type.label }}</td>                         
+            
+                            <td>
+                                <input type="checkbox"
+                                    class="form-check-input toggle-switch"
+                                    data-test-id="{{ test.id }}"
+                                    data-field="inProgress"
+                                    {% if test.inProgress %}checked{% endif %}>
+                            </td>
+
+                            <td>
+                                <input type="checkbox"
+                                    class="form-check-input toggle-switch"
+                                    data-test-id="{{ test.id }}"
+                                    data-field="resultsValidated"
+                                    {% if test.resultsValidated %}checked{% endif %}>
+                            </td>
+                        
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ ea_url().setAction('edit').setEntityId(test.id) }}"
+                                    class="btn btn-sm btn-primary edit-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
+                                    {% if test.resultsValidated %}
+                                        tabindex="-1"
+                                        aria-disabled="true"
+                                        title="Résultats validés"
+                                        onclick="return false;"
+                                    {% endif %}>
+                                        Modifier
+                                    </a>
+
+                                    <a href="{{ ea_url().setAction('updateScores').setEntityId(test.id) }}"
+                                    class="btn btn-sm btn-primary scores-test {% if test.resultsValidated %}disabled btn-secondary{% endif %}"
+                                    {% if test.resultsValidated %}
+                                        tabindex="-1"
+                                        aria-disabled="true"
+                                        title="Résultats validés"
+                                        onclick="return false;"
+                                    {% endif %}>
+                                        Scores
+                                    </a>
+
+                                    <form method="post"
+                                        class="delete-test"
+                                        action="{{ ea_url()
+                                                    .setController('App\\Controller\\Admin\\TestsCrudController')
+                                                    .setAction('delete')
+                                                    .setEntityId(test.id) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ test.id) }}">
+                                        <button class="btn btn-sm btn-outline text-danger"
+                                                {% if test.resultsValidated %}
+                                                    disabled aria-disabled="true" title="Résultats validés"
+                                                {% endif %}>
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    </form>             
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmer la validation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="passwordInput">Mot de passe :</label>
+                        <input type="password" id="passwordInput" class="form-control" placeholder="Entrez votre mot de passe">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmer</button>
+                    </div>
+                    </div>
+                </div>            
             </div>
+        {% else %}
+            <div class="text-muted fst-italic mb-3">
+                Aucune épreuve pour cette compétition
             </div>
+        {% endif %}
     {% endfor %}
     <script>
         let currentSwitch = null;
