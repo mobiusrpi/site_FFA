@@ -282,9 +282,8 @@ class TestsCrudController extends AbstractCrudController
 
         $tests = $this->testsRepository->findByCompetitions($competitions);
 
-        usort($competitions, function ($a, $b) {
-            return $a->getStartdate() <=> $b->getStartdate();
-        });
+        $competitions = $this->competitionsRepository
+            ->findAccessibleCompetitionsForUserByYear($user, $userRoles, $year);
 
         $grouped = [];
 
@@ -293,9 +292,9 @@ class TestsCrudController extends AbstractCrudController
                 'competition' => $competition
             ]);
 
-            $grouped[$competition->getId()] = [
+            $grouped[] = [
                 'competition' => $competition,
-                'tests' => $tests, // peut être vide 👍
+                'tests' => $tests,
             ];
         }
 

@@ -269,7 +269,8 @@ class CompetitionsRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('c')
             ->andWhere('c.startDate BETWEEN :start AND :end')
             ->setParameter('start', $start)
-            ->setParameter('end', $end);
+            ->setParameter('end', $end)
+            ->orderBy('c.startDate', 'ASC');
 
         if (in_array('ROLE_ADMIN', $userRoles, true)) {
             // ADMIN : toutes les compétitions de l'année
