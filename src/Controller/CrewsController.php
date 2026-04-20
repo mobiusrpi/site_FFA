@@ -18,6 +18,7 @@ use App\Repository\CompetitionsRepository;
 use App\Repository\CrewsRepository;
 use App\Service\SendMailService;
 use App\Service\SmileService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -401,7 +402,7 @@ public function __construct(
 
 #[Route('/crews/userRegistration/list', name: 'user_registrations_list')]
 #[IsGranted('ROLE_USER')]
-public function registration_listt(
+public function registration_list(
         CrewsRepository $repositoryCrew,
         Security $security,                 
     ): Response 
@@ -474,12 +475,42 @@ public function registration_listt(
                     'fix_speed' => $fixSpeed,
         ]);       
 
+        $originalAccommodations = new ArrayCollection();
+        foreach ($crew->getCompetitionAccommodation() as $acc) {
+            $originalAccommodations->add($acc);
+        }
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
             $crew = $form->getData();
-                        $shouldRegisterAircraft = $form->get('aircraftRegistration')->getData();
+
+            $response = $this->verifyAndUpdateLicense(
+                $crew->getPilot(),
+                'pilote',
+                $compet,
+                $form,
+                $entityManager
+            );
+
+            if ($response !== null) {
+                return $response;
+            }
+
+            $response = $this->verifyAndUpdateLicense(
+                $crew->getNavigator(),
+                'navigateur',
+                $compet,
+                $form,
+                $entityManager
+            );
+
+            if ($response !== null) {
+                return $response;
+            }
+          
+            $shouldRegisterAircraft = $form->get('aircraftRegistration')->getData();
 
             if ($shouldRegisterAircraft) {
                 $callsign = $form->get('callsign')->getData();
@@ -503,8 +534,16 @@ public function registration_listt(
 
                 $entityManager->persist($aircraft);
             }
+            // delete accommodation if checkbox unchecked
+            foreach ($originalAccommodations as $acc) {
+                if (!$crew->getCompetitionAccommodation()->contains($acc)) {
+                    $acc->removeCrewAccommodation($crew);
+                }
+            }
+
             foreach ($crew->getCompetitionAccommodation() as $acc) {
                 $acc->addCrewAccommodation($crew);
+                $entityManager->persist($acc); // 🔥 très important
             }
             $entityManager->persist($crew);
             
