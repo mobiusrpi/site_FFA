@@ -285,7 +285,7 @@ class TestsCrudController extends AbstractCrudController
         usort($competitions, function ($a, $b) {
             return $a->getStartdate() <=> $b->getStartdate();
         });
-        
+
         $grouped = [];
 
         foreach ($competitions as $competition) {
@@ -298,9 +298,6 @@ class TestsCrudController extends AbstractCrudController
                 'tests' => $tests, // peut être vide 👍
             ];
         }
- 
-        
-        ksort($grouped);
 
         return $this->render('admin/tests/test_index_grouped.html.twig', [
             'grouped' => $grouped,
