@@ -283,24 +283,17 @@ class TestsCrudController extends AbstractCrudController
         $tests = $this->testsRepository->findByCompetitions($competitions);
         $grouped = [];
 
-        foreach ($tests as $test) {
-            $competition = $test->getCompetition();
-            if (!$competition) {
-                continue; 
-            }
+        foreach ($competitions as $competition) {
+            $tests = $this->testsRepository->findBy([
+                'competition' => $competition
+            ]);
 
-            $competitionId = $competition->getId();
-            // Force loading competition
-            $competitionName = $competition ? $competition->getName() : null;
-            
-            if (!isset($grouped[$competitionId])) {
-                $grouped[$competitionId] = [
-                    'competition' => $competition,
-                    'tests' => [],
-                ];
-            }
-            $grouped[$competitionId]['tests'][] = $test;
-        }    
+            $grouped[$competition->getId()] = [
+                'competition' => $competition,
+                'tests' => $tests, // peut être vide 👍
+            ];
+        }
+ 
         
         ksort($grouped);
 
