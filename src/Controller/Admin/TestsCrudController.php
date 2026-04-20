@@ -281,6 +281,11 @@ class TestsCrudController extends AbstractCrudController
         }
 
         $tests = $this->testsRepository->findByCompetitions($competitions);
+
+        usort($competitions, function ($a, $b) {
+            return $a->getStartdate() <=> $b->getStartdate();
+        });
+        
         $grouped = [];
 
         foreach ($competitions as $competition) {
