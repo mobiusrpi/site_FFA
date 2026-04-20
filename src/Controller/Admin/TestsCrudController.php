@@ -288,15 +288,17 @@ class TestsCrudController extends AbstractCrudController
         $grouped = [];
 
         foreach ($competitions as $competition) {
-            $tests = $this->testsRepository->findBy([
-                'competition' => $competition
-            ]);
-
             $grouped[] = [
                 'competition' => $competition,
-                'tests' => $tests,
+                'tests' => $this->testsRepository->findBy([
+                    'competition' => $competition
+                ]),
             ];
         }
+
+        usort($grouped, fn($a, $b) =>
+            $a['competition']->getStartDate() <=> $b['competition']->getStartDate()
+        );
 
         return $this->render('admin/tests/test_index_grouped.html.twig', [
             'grouped' => $grouped,
