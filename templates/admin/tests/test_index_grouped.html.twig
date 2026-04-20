@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block content_title %}
+
     Épreuves par compétition
 
 {% endblock %}
@@ -19,6 +20,9 @@
 {% block main %}
 
     {% for groupData in grouped %}
+         <div>
+            {{ loop.index }} - {{ groupData.competition.startDate|date('Y-m-d') }} - {{ groupData.competition.name }}
+        </div>
         <h5 class="d-flex justify-content-between align-items-center mb-2">
             {{ groupData.competition.name}}
 
