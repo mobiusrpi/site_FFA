@@ -57,47 +57,50 @@
                 {{ testName }}
             </h2>
         </div>
-   <div class="kiosk-row">
-    {% for categoryKey, rows in scoreByCategory %}
-        <div class="kiosk-col">
-            <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
+        <div class="kiosk-row">
+            {% for categoryKey, rows in scoreByCategory %}
+                <div class="kiosk-col">
+                    <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
 
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm text-center table-striped">
-                    <colgroup>
-                        <col style="width: 10%">
-                        <col style="width: 75%">
-                        <col style="width: 15%">
-                    </colgroup>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm text-center table-striped">
+                            <colgroup>
+                                <col style="width: 10%">
+                                <col style="width: 75%">
+                                <col style="width: 15%">
+                            </colgroup>
 
-                    <thead class="table-secondary">
-                        <tr>
-                            <th>Rang</th>
-                            <th>Équipage</th>
-                            <th>Pénalités</th>
-                        </tr>
-                    </thead>
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Équipage</th>
+                                    <th>Pénalités</th>
+                                </tr>
+                            </thead>
 
-                    <tbody id="table-{{ categoryKey }}"></tbody>
-                </table>
-            </div>
+                            <tbody id="table-{{ categoryKey }}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-    {% endfor %}
-</div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
     <script>
+        console.log("JS chargé !");
+
         let lastData = null;
 
         async function loadData() {
             const response = await fetch('{{ path('results_data_json', { testId: testId }) }}');
             const data = await response.json();
 
+            console.log("DATA:", data);
+
             if (JSON.stringify(data) === JSON.stringify(lastData)) {
-                return; // rien n'a changé
+                return;
             }
 
             lastData = data;
@@ -108,6 +111,12 @@
 
         function updateTable(category, rows) {
             const table = document.querySelector(`#table-${category}`);
+
+            if (!table) {
+                console.warn("Table non trouvée:", category);
+                return;
+            }
+
             table.innerHTML = '';
 
             if (rows.length === 0) {
@@ -134,5 +143,8 @@
                 table.appendChild(tr);
             });
         }
+
+        loadData();
+        setInterval(loadData, 10000);
     </script>
 {% endblock %}
