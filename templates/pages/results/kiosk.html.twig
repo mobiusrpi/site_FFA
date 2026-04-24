@@ -62,63 +62,63 @@
             }
         }
     </style>
-    <div class="d-flex align-items-center mb-3 no-print">
+    <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
 
-    <div style="flex: 0 0 120px;">
-        <img src="{{ asset('images/logo_ffa_sports.png') }}"
-             style="max-height:80px; max-width:100%;">
-    </div>
-
-    <div class="flex-grow-1 text-center">
-        <h3 class="mb-1">
-            <strong>Compétition {{ competition.name }}</strong>
-        </h3>
-
-        <h2 class="mb-0">
-            {% if resultsValidated %} 
-                Résultats –
-            {% else %}
-                Résultats provisoires –
-            {% endif %}
-            {{ testName }}
-        </h2>
-    </div>
-
-</div>
-        <div class="kiosk-row">
-
-            {% for categoryKey, rows in scoreByCategory %}           
-                {% set categoryLabels = {
-                    'elite': 'Elite',
-                    'honneur': 'Honneur'
-                } %}
-                <div class="kiosk-col">
-                    <h4 class="text-center">
-                        {{ categoryLabels[categoryKey]|default(categoryKey) }}
-                    </h4>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm text-center table-striped">
-                            <colgroup>
-                                <col style="width: 10%">
-                                <col style="width: 75%">
-                                <col style="width: 15%">
-                            </colgroup>
-
-                            <thead class="table-secondary">
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Équipage</th>
-                                    <th>Pénalités</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="table-{{ categoryKey }}"></tbody>
-                        </table>
-                    </div>
-                </div>
-            {% endfor %}
+        <div style="flex:0 0 120px;">
+            <img src="{{ asset('images/logo_ffa_sports.png') }}"
+                style="max-height:80px; max-width:100%;">
         </div>
+
+        <div style="flex:1; text-align:center;">
+            <h3 style="margin:0;">
+                <strong>Compétition {{ competition.name }}</strong>
+            </h3>
+
+            <h2 style="margin:0;">
+                {% if resultsValidated %}
+                    Résultats –
+                {% else %}
+                    Résultats provisoires –
+                {% endif %}
+                {{ testName }}
+            </h2>
+        </div>
+
     </div>
+    <div class="kiosk-row">
+
+        {% for categoryKey, rows in scoreByCategory %}           
+            {% set categoryLabels = {
+                'elite': 'Elite',
+                'honneur': 'Honneur'
+            } %}
+            <div class="kiosk-col">
+                <h4 class="text-center">
+                    {{ categoryLabels[categoryKey]|default(categoryKey) }}
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm text-center table-striped">
+                        <colgroup>
+                            <col style="width: 10%">
+                            <col style="width: 75%">
+                            <col style="width: 15%">
+                        </colgroup>
+
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Rang</th>
+                                <th>Équipage</th>
+                                <th>Pénalités</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-{{ categoryKey }}"></tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
