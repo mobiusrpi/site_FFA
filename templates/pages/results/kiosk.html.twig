@@ -62,23 +62,29 @@
             }
         }
     </style>
-    <div class="row align-items-center mb-3 no-print">
-        <div class="col-md-2 col-12 text-center text-md-start">
-            <img src="{{ asset('images/logo_ffa_sports.png') }}" style="max-height:80px; max-width:100%;">
-        </div>
-        <div class="col-md-10 col-12 text-center">
-            <h3 class="text-center">
-                <strong>Compétition {{ competition.name }}</strong></br> 
-            </h3>
-            <h2 class="text-center mb-4">
-                {% if resultsValidated %} 
-                    Résultats – 
-                {% else %}
-                    Résultats provisoires – 
-                {% endif %}
-                {{ testName }}
-            </h2>
-        </div>
+    <div class="d-flex align-items-center mb-3 no-print">
+
+    <div style="flex: 0 0 120px;">
+        <img src="{{ asset('images/logo_ffa_sports.png') }}"
+             style="max-height:80px; max-width:100%;">
+    </div>
+
+    <div class="flex-grow-1 text-center">
+        <h3 class="mb-1">
+            <strong>Compétition {{ competition.name }}</strong>
+        </h3>
+
+        <h2 class="mb-0">
+            {% if resultsValidated %} 
+                Résultats –
+            {% else %}
+                Résultats provisoires –
+            {% endif %}
+            {{ testName }}
+        </h2>
+    </div>
+
+</div>
         <div class="kiosk-row">
 
             {% for categoryKey, rows in scoreByCategory %}           
