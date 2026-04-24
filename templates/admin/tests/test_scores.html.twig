@@ -7,7 +7,7 @@
 
 {% block main %}
 
-    {% set competType = test.competition.typecompetition.id %}
+    {% set competType = test.competition.typecompetition.id ?? null %}
     {% set isANR = competType == 3 %}
 
     {% set showNav = test.type in [
@@ -18,18 +18,14 @@
 
     {% set showObs = showNav and not isANR %}
 
-    {% set showTheo = (test.type in [
-        constant('App\\Entity\\Enum\\TestCompet::NAVIGATION')
-    ]) and not isANR %}
+    {% set showTheo = test.type == constant('App\\Entity\\Enum\\TestCompet::NAVIGATION') and not isANR %}
 
     {% set showAtt = test.type in [
         constant('App\\Entity\\Enum\\TestCompet::LANDING'),
         constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'),
         constant('App\\Entity\\Enum\\TestCompet::NAV_TG')
-    ] or (isANR and showNav) %} 
+    ] or (isANR and showNav) %}
     
-
-
     <div class="card">
         <div class="card-body">
             <form method="post">

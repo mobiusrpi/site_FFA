@@ -164,6 +164,7 @@ class CompetitionScoringService
                     'att'   => $isOut ? null : $att,
                     'total' => $isOut ? null : $sum,
                     'dns'   => $status,
+                    'type'  => $test->getType()->value, 
                 ];
             }
         }
@@ -172,6 +173,8 @@ class CompetitionScoringService
         foreach ($scoreByCategory as &$list) {
             foreach ($list as &$crewData) {
                 $total = 0;
+                $navTheo = 0; // navigation + théorie (hors observation)
+                $landing = 0; // atterrissages
                 $status = 0; // 0=normal, -1=DNS, 1=DNF
 
                 foreach ($crewData['tests'] as $t) {
@@ -183,27 +186,68 @@ class CompetitionScoringService
                         $status = -1;
                         break;
                     }
-                    if ($t['total'] !== null) {
-                        $total += $t['total'];
+                    if ($t['total'] === null) {
+                        continue;
+                    }
+
+                    $total += $t['total'];
+
+                    // NAV / THEO uniquement sur tests NAV*
+                    if (in_array($t['type'] ?? null, ['nav', 'nav_att', 'nav_tg'], true)) {
+                        $navTheo += ($t['nav'] ?? 0);
+                    }
+
+                    // LANDING uniquement sur tests concernés
+                    if (in_array($t['type'] ?? null, ['landing', 'nav_att', 'nav_tg'], true)) {
+                        $landing += ($t['att'] ?? 0);
                     }
                 }
-
                 $crewData['total'] = $status !== 0 ? null : $total;
+                $crewData['navTheo'] = $status !== 0 ? null : $navTheo;
+                $crewData['landing'] = $status !== 0 ? null : $landing;
                 $crewData['dns'] = $status;
             }
         }
 
+        $typeId = (int) $competition->getTypecompetition()?->getId();
+
         // --- Tri final : DNS en bas ---
         foreach ($scoreByCategory as &$list) {
-            uasort($list, function ($a, $b) {
-                $aOut = $a['dns'] !== 0;
-                $bOut = $b['dns'] !== 0;
 
-                if ($aOut !== $bOut) {
-                    return $aOut ? 1 : -1;
+            uasort($list, function ($a, $b) use ($typeId) {
+
+                // 1. DNS / DNF toujours en bas
+                if ($a['dns'] !== 0 || $b['dns'] !== 0) {
+                    return $a['dns'] !== 0 ? 1 : -1;
                 }
 
-                return ($a['total'] ?? PHP_INT_MAX) <=> ($b['total'] ?? PHP_INT_MAX);
+                // 2. TOTAL
+                $cmp = ($a['total'] ?? PHP_INT_MAX) <=> ($b['total'] ?? PHP_INT_MAX);
+                if ($cmp !== 0) {
+                    return $cmp;
+                }
+
+                // TYPE 1
+                if ($typeId === 1) {
+                    return ($a['nav'] ?? PHP_INT_MAX) <=> ($b['nav'] ?? PHP_INT_MAX);
+                }
+
+                // TYPE 2
+                if ($typeId === 2) {
+                    $cmp = ($a['navTheo'] ?? PHP_INT_MAX) <=> ($b['navTheo'] ?? PHP_INT_MAX);
+                    if ($cmp !== 0) {
+                        return $cmp;
+                    }
+
+                    return ($a['landing'] ?? PHP_INT_MAX) <=> ($b['landing'] ?? PHP_INT_MAX);
+                }
+
+                // TYPE 3
+                if ($typeId === 3) {
+                    return ($a['landing'] ?? PHP_INT_MAX) <=> ($b['landing'] ?? PHP_INT_MAX);
+                }
+
+                return 0;
             });
         }
 

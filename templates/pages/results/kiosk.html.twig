@@ -12,9 +12,32 @@
             background-color: #cd7f32;
         }
         .scroll-container {
-            max-height: 300px;
+            max-height: 300px;  
             overflow-y: auto;
             scrollbar-gutter: stable;
+        }
+        .kiosk-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .kiosk-col {
+            flex: 1;
+            min-width: 0; /* évite débordements */
+        }
+
+        /* Sécurité écran large */
+        @media (min-width: 768px) {
+            .kiosk-row {
+                flex-direction: row;
+            }
+        }
+
+        /* Mobile fallback */
+        @media (max-width: 767px) {
+            .kiosk-row {
+                flex-direction: column;
+            }
         }
     </style>
     <div class="row align-items-center mb-3 no-print">
@@ -34,46 +57,33 @@
                 {{ testName }}
             </h2>
         </div>
-        <div class="row">
-            {% for categoryKey, rows in scoreByCategory %}
-                <div class="col-md-6 mb-4">
-                    <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm text-center table-striped">
-                            <thead class="table-secondary">
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Équipage</th>
-                                    <th>Pénalités</th>
-                                </tr>
-                            </thead>
-                        </table>
+   <div class="kiosk-row">
+    {% for categoryKey, rows in scoreByCategory %}
+        <div class="kiosk-col">
+            <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
 
-                        <!-- TOP 3 FIXE -->
-                        <table class="table table-bordered table-sm text-center table-striped mb-0">
-                            <colgroup>
-                                <col style="width: 10%">
-                                <col style="width: 75%">
-                                <col style="width: 15%">
-                            </colgroup>                            
-                            <tbody id="top3-{{ categoryKey }}"></tbody>
-                        </table>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm text-center table-striped">
+                    <colgroup>
+                        <col style="width: 10%">
+                        <col style="width: 75%">
+                        <col style="width: 15%">
+                    </colgroup>
 
-                        <!-- SCROLL -->
-                        <div class="scroll-container">
-                            <table class="table table-bordered table-sm text-center table-striped">
-                                <colgroup>
-                                    <col style="width: 10%">
-                                    <col style="width: 75%">
-                                    <col style="width: 15%">
-                                </colgroup>
-                                <tbody id="scroll-{{ categoryKey }}"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Rang</th>
+                            <th>Équipage</th>
+                            <th>Pénalités</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="table-{{ categoryKey }}"></tbody>
+                </table>
+            </div>
         </div>
+    {% endfor %}
+</div>
     </div>
 {% endblock %}
 
@@ -97,18 +107,15 @@
         }
 
         function updateTable(category, rows) {
-            const top3 = document.querySelector(`#top3-${category}`);
-            const scroll = document.querySelector(`#scroll-${category}`);
-
-            top3.innerHTML = '';
-            scroll.innerHTML = '';
+            const table = document.querySelector(`#table-${category}`);
+            table.innerHTML = '';
 
             if (rows.length === 0) {
-                scroll.innerHTML = '<tr><td colspan="3"><em>Aucun résultat</em></td></tr>';
+                table.innerHTML = '<tr><td colspan="3"><em>Aucun résultat</em></td></tr>';
                 return;
             }
 
-            rows.forEach((row, index) => {
+            rows.forEach((row) => {
                 const tr = document.createElement('tr');
 
                 let cssClass = '';
@@ -124,64 +131,8 @@
                     <td class="${cssClass}">${row.total}</td>
                 `;
 
-                if (index < 3) {
-                    top3.appendChild(tr);
-                } else {
-                    scroll.appendChild(tr);
-                }
+                table.appendChild(tr);
             });
-
-            startAutoScroll(category);
         }
-
-        let scrollInterval = null;
-        let isPaused = false;
-
-        function startAutoScroll() {
-            const c = document.querySelector('.scroll-container');
-            if (!c) return;
-
-            if (scrollInterval) {
-                clearInterval(scrollInterval);
-            }
-
-            let direction = 1; // 1 = descendre, -1 = remonter (optionnel)
-            let speed = 1;
-
-            function pause(ms) {
-                isPaused = true;
-                setTimeout(() => {
-                    isPaused = false;
-                }, ms);
-            }
-
-            // 👉 pause au début
-            c.scrollTop = 0;
-            pause(2000);
-
-            scrollInterval = setInterval(() => {
-                if (isPaused) return;
-
-                const max = c.scrollHeight - c.clientHeight;
-                if (max <= 0) return;
-
-                c.scrollTop += speed * direction;
-
-                // 👉 arrivée en bas
-                if (c.scrollTop >= max) {
-                    c.scrollTop = max;
-                    pause(2000);
-
-                    // reset après pause
-                    setTimeout(() => {
-                        c.scrollTop = 0;
-                        pause(2000); // pause en haut
-                    }, 2000);
-                }
-
-            }, 30);
-        }
-        loadData();
-        setInterval(loadData, 10000);
     </script>
 {% endblock %}
