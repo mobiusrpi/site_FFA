@@ -80,10 +80,16 @@
             </h2>
         </div>
         <div class="kiosk-row">
-            {% for categoryKey, rows in scoreByCategory %}
-                <div class="kiosk-col">
-                    <h4 class="text-center text-uppercase">{{ categoryKey }}</h4>
 
+            {% for categoryKey, rows in scoreByCategory %}           
+                {% set categoryLabels = {
+                    'elite': 'Elite',
+                    'honneur': 'Honneur'
+                } %}
+                <div class="kiosk-col">
+                    <h4 class="text-center">
+                        {{ categoryLabels[categoryKey]|default(categoryKey) }}
+                    </h4>
                     <div class="table-responsive">
                         <table class="table table-bordered table-sm text-center table-striped">
                             <colgroup>
@@ -111,8 +117,6 @@
 
 {% block javascripts %}
     <script>
-        console.log("JS chargé !");
-
         let lastData = null;
 
         async function loadData() {
