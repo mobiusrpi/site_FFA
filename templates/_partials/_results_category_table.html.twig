@@ -111,11 +111,11 @@
                 <td style="white-space: nowrap;">
   
                     {% if pilot %}
-                        {{ pilot.lastName }} {{ pilot.firstName }}<br>
+                        {{ pilot.fullName }}<br>
                     {% endif %}
 
                     {% if navigator %}
-                        {{ navigator.lastName }} {{ navigator.firstName }}
+                        {{ navigator.fullName }}
                     {% endif %}
 
                     {% if not pilot %}

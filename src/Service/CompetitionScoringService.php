@@ -337,8 +337,10 @@ class CompetitionScoringService
         foreach ($results as $result) {
             $crew = $result->getCrew();
             if ($crew) {
-                $crewName = $crew->getPilot()->getFullName(); // ou autre méthode pour Rallye/ANR
-                $crewId = $crew->getId();
+                $pilot     = ($crew->getPilot()?->getFullName() ?? '');
+                $navigator = ($crew->getNavigator()?->getFullName() ?? '');
+                $crewName  = $typeId === 2 ? $pilot : trim("$pilot - $navigator");
+                $crewId    = $crew->getId();
             } elseif ($result->getLiteralCrew()) {
                 $crewName = $result->getLiteralCrew();
                 $crewId = md5($crewName); // clé unique pour le tableau

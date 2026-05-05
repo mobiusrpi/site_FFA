@@ -7,7 +7,7 @@
             {% if competTypeId == 2 %}
                 Pilote
             {% else %}
-                Équipage 
+                Équipage
             {% endif %}</th>
             <th class="text-center sort-column" data-key="nav">NAV <i class="fa-solid fa-sort sort-arrow ms-2"></i></th>
 
@@ -33,18 +33,28 @@
                         {{ crewData.crew }}
                     </small>
                 </td>
-                <td class="text-center" data-value="{{ crewData.nav ?? 0 }}">{{ crewData.nav is not null ? crewData.nav : '_' }}</td>
+                <td class="text-center" data-value="{{ crewData.nav ?? 0 }}">
+                    {{ crewData.nav is not null ? crewData.nav : '_' }}
+                </td>
 
                 {% if competTypeId < 3 %}
-                    <td class="text-center" data-value="{{ crewData.obs ?? 0 }}">{{ crewData.obs is not null ? crewData.obs : '_' }}</td>
+                    <td class="text-center" data-value="{{ crewData.obs ?? 0 }}">
+                        {{ crewData.obs is not null ? crewData.obs : '_' }}
+                    </td>
                 {% endif %}
                 {% if competTypeId == 2 %}
-                    <td class="text-center" data-value="{{ crewData.flightPlanning ?? 0 }}">{{ crewData.flightPlanning is not null ? crewData.flightPlanning : '_' }}</td>
+                    <td class="text-center" data-value="{{ crewData.flightPlanning ?? 0 }}">
+                        {{ crewData.flightPlanning is not null ? crewData.flightPlanning : '_' }}
+                    </td>
                 {% else %}
-                    <td class="text-center" data-value="{{ crewData.att ?? 0 }}">{{ crewData.att is not null ? crewData.att : '_' }}</td>
+                    <td class="text-center" data-value="{{ crewData.att ?? 0 }}">
+                        {{ crewData.att is not null ? crewData.att : '_' }}
+                    </td>
                 {% endif %}
 
-                <td class="text-center" data-value="{{ crewData.total ?? 0 }}"><strong>{{ crewData.total is not null ? crewData.total : '_' }}</strong></td>
+                <td class="text-center" data-value="{{ crewData.total ?? 0 }}">
+                    <strong>{{ crewData.total is not null ? crewData.total : '_' }}</strong>
+                </td>
             </tr>
         {% endfor %}
     </tbody>
