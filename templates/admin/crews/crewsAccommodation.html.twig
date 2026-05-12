@@ -1,6 +1,6 @@
 {% extends '@EasyAdmin/layout.html.twig' %}
 
-{% block title %}Hébergement{% endblock %}
+{% block title %}Type d\'inscription{% endblock %}
 
 {% block main %}
     {{ parent() }}
@@ -8,7 +8,7 @@
         <div class="row justify-content-center">
             <div class="row">
                 <div class='col-10'>
-                    <h3 class='mx-auto text-center fw-bold'>Hébergement pour le {{ crews[0].competition.name }}</h3>
+                    <h3 class='mx-auto text-center fw-bold'>Type d\'inscription pour le {{ crews[0].competition.name }}</h3>
                 </div>
                 <div class="text-end col-2">
                     <span>
@@ -29,7 +29,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Concurrent</th>
-                        <th>Hébergements</th>
+                        <th>Type d'inscription</th>
                         <th>Prix</th>
                         <th>Validation paiement</th>
                     </tr>
@@ -48,8 +48,7 @@
                                 {% for ca in crew.competitionAccommodation %}
                                     {{ ca.accommodation.room }}<br>
                                 {% else %}
-                                    Aucun hébergement
-                                {% endfor %}
+                                    Aucun type d\'inscription de sélectionné                               {% endfor %}
                             </td>
                             <td>    
                                 {% for ca in crew.competitionAccommodation %}

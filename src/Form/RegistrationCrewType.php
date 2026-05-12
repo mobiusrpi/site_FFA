@@ -209,14 +209,14 @@ class RegistrationCrewType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'by_reference' => true, 
-                'label' => 'Type d\'hébergement',
+                'label' => 'Type d\'inscription',
                 'label_attr' => [
                     'class' => 'form-label'                
                 ],
                 'constraints' => [
                     new Count([
                         'min' => 1,
-                        'minMessage' => 'Vous devez sélectionner au moins un type d’hébergement.',
+                        'minMessage' => 'Vous devez sélectionner au moins un type d’inscription.',
                     ]),
                 ],
 

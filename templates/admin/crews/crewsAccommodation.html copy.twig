@@ -1,13 +1,13 @@
 {% extends '@EasyAdmin/layout.html.twig' %}
 
-{% block title %}Hébergement{% endblock %}
+{% block title %}Type d'inscription{% endblock %}
 
 {% block main %}
     {{ parent() }}
     <section class="container">
         <div class="row justify-content-center">
             <div class='col-10'>
-                <h3 class='mx-auto text-center fw-bold'>Hébergement {{ registants[0].competition.name }}</h3>
+                <h3 class='mx-auto text-center fw-bold'>Type d'inscription pour {{ registants[0].competition.name }}</h3>
             </div>
         </div>
         {% for message in app.flashes('success') %}

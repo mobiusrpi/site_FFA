@@ -29,7 +29,7 @@ class CrewsType extends AbstractType
             ->add('competitionAccommodation', EntityType::class, [
                 'class' => CompetitionAccommodation::class,
                 'choices' => [], // Placeholder; updated dynamically
-                'placeholder' => 'Sélectionner un hébergement',
+                'placeholder' => 'Sélectionner un type d\'inscription',
                 'required' => false,
                 'multiple' => true,  
                 'expanded' => true, // checkboxes 👍

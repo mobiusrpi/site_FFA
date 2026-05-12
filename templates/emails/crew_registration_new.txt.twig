@@ -14,12 +14,12 @@ Indicatif avion : {{ crew.callsign }}\n
 Vitesse : {{ crew.aircraftSpeed.value }} Kt
 
 {% if crew.competitionAccommodation|length > 0 %}
-Hébergement(s) sélectionné(s) :
+Type d'inscription(s) sélectionné(s) :
 {% for ca in crew.competitionAccommodation %} 
     - {{ ca.accommodation.room }} - Prix : {{ (ca.price / 100)|number_format(2, ',', ' ') }} €
 {% endfor %}
 {% else %}
-Aucun hébergement sélectionné.
+Aucun type d'inscription de sélectionné.
 {% endif %}
 
 

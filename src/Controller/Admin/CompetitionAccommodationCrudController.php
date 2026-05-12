@@ -36,7 +36,7 @@ class CompetitionAccommodationCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setPageTitle('index', 'Hébergement et restauration')   
+            ->setPageTitle('index', 'Type d\'inscription')   
             ->setPageTitle('new', 'Paramétres d\'un service');
     }
 
@@ -46,7 +46,7 @@ public function configureFields(string $pageName): iterable
     $competitionId = $request->query->get('competition');
 
     $competitionField = AssociationField::new('competition', 'Compétition');
-    $accommodationField = AssociationField::new('accommodation', 'Hébergement');
+    $accommodationField = AssociationField::new('accommodation', 'Type d\'inscription');
 
     if ($competitionId && in_array($pageName, [Crud::PAGE_NEW, Crud::PAGE_EDIT])) {
         $competitionField = $competitionField->setFormTypeOption('disabled', true);
@@ -72,7 +72,7 @@ public function configureFields(string $pageName): iterable
     if ($pageName === Crud::PAGE_INDEX) {
         // Use TextField instead of AssociationField to prevent linking
         $competitionField = TextField::new('competition.name', 'Compétition');
-        $accommodationField = TextField::new('accommodation.room', 'Hébergement');
+        $accommodationField = TextField::new('accommodation.room', 'Type d\'inscription');
     }
 
     return [
@@ -145,7 +145,7 @@ public function configureFields(string $pageName): iterable
         $entity = $context->getEntity()->getInstance();
 
         if (!$entity instanceof CompetitionAccommodation) {    
-            $this->addFlash('warning', 'Pas de d\'hébergement pour cette compétition.');
+            $this->addFlash('warning', 'Pas de type d\'inscription de défini pour cette compétition.');
 
             // ✅ Redirect to EasyAdmin Competitions index page
             return $this->redirect($this->generateUrl('admin', [

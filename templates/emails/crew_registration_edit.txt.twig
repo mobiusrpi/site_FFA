@@ -1,0 +1,37 @@
+Inscription
+
+Bonjour ,
+
+Modification d'une inscription à la compétition 
+{{ competition.name }} - {{ competition.typecompetition.typecomp }}
+
+Pilote :{{ crew.pilot.fullname }}/n
+{% if crew.navigator %}
+  Navigateur : {{ crew.navigator.fullname }}/n
+{% endif %}
+Indicatif avion : {{ crew.callsign }}/n
+Vitesse : {{ crew.aircraftSpeed.value }} Kt
+
+{% for field, values in changes %}
+        {{ field }}: \n
+        {{ values[0] }} → {{ values[1] }}\n
+{% endfor %}
+
+{% if addedAccommodations is not empty %}
+Hébergements ajoutés :/n
+
+    {% for acc in addedAccommodations %}
+        - {{ acc }}/n
+    {% endfor %}
+
+{% endif %}
+
+{% if removedAccommodations is not empty %}
+Hébergements supprimés :\n
+
+    {% for acc in removedAccommodations %}
+        - {{ acc }}/n
+    {% endfor %}
+{% endif %}
+
+Merci

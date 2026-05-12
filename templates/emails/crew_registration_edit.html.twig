@@ -1,0 +1,46 @@
+<h2>Inscription</h2>
+
+<p>Bonjour ,</p>
+
+<p>
+Modification d'une inscription à la compétition 
+<strong>{{ competition.name }} - {{ competition.typecompetition.typecomp }}</strong> 
+</p>
+
+<p>
+Pilote :{{ crew.pilot.fullname }}</br>
+{% if crew.navigator %}
+  Navigateur : {{ crew.navigator.fullname }}</br>
+{% endif %}
+Indicatif avion : {{ crew.callsign }}</br>
+Vitesse : {{ crew.aircraftSpeed.value }} Kt
+</p>
+
+<ul>
+{% for field, values in changes %}
+    <li>
+        <strong>{{ field }}</strong> :
+        {{ values[0] }} → {{ values[1] }}
+    </li>
+{% endfor %}
+</ul>
+
+{% if addedAccommodations is not empty %}
+<p>Hébergements ajoutés :</p>
+<ul>
+    {% for acc in addedAccommodations %}
+        <li>{{ acc }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if removedAccommodations is not empty %}
+<p>Hébergements supprimés :</p>
+<ul>
+    {% for acc in removedAccommodations %}
+        <li>{{ acc }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<p>Merci 👍</p>

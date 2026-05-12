@@ -18,7 +18,7 @@ class AccommodationSelectType extends AbstractType
             'allow_add' => false,
             'allow_delete' => false,
             'by_reference' => false,
-            'label' => 'Hébergements',
+            'label' => 'Type d\'inscription',
         ]);
 
     }

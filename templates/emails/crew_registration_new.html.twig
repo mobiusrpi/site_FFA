@@ -18,7 +18,7 @@ Vitesse : {{ crew.aircraftSpeed.value }} Kt
 
 <p>
 {% if crew.competitionAccommodation|length > 0 %}
-<p><strong>Hébergement(s) sélectionné(s) :</strong></p>
+<p><strong>Type d'inscription(s) sélectionné(s) :</strong></p>
 <ul>
     {% for ca in crew.competitionAccommodation %}
         <li>
@@ -27,7 +27,7 @@ Vitesse : {{ crew.aircraftSpeed.value }} Kt
     {% endfor %}
 </ul>
 {% else %}
-<p>Aucun hébergement sélectionné.</p>
+<p>Aucun type d'inscription de sélectionné.</p>
 {% endif %}
 </p>
 

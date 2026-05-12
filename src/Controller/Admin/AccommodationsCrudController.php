@@ -78,7 +78,7 @@ class AccommodationsCrudController extends AbstractCrudController
         $entity = $context->getEntity()->getInstance();
 
         if (!$entity instanceof Accommodations) {      
-            $this->addFlash('warning', 'Type d\'hébergement inattendu.');
+            $this->addFlash('warning', 'Type d\'inscription inattendu.');
 
             // ✅ Redirect to EasyAdmin Competitions index page
             return $this->redirect($this->generateUrl('admin', [

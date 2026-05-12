@@ -174,9 +174,9 @@ public function __construct(
             return $this->redirectToRoute('competitions_list');
         }
 
-        // 🔹 Vérification de l'hébergement avant même d'afficher le formulaire
+        // 🔹 Vérification du choix de l'inscription avant même d'afficher le formulaire
         if ($compet->getCompetitionAccommodation() === null || count($compet->getCompetitionAccommodation()) === 0) {
-            $this->addFlash('danger', 'L’hébergement de la compétition n’a pas été configuré. Veuillez contacter le gestionnaire.');
+            $this->addFlash('danger', 'Les types d’inscrption pour la compétition n’ont pas été configurés. Veuillez contacter le gestionnaire.');
             return $this->redirectToRoute('competitions_list');
         }
  
@@ -325,7 +325,6 @@ public function __construct(
                         'crew' => $crew,
                     ]
                 );
-
             }
 
             $this->addFlash('success', 'Votre inscription a été enregistrée avec succès.');
@@ -459,14 +458,18 @@ public function registration_list(
  */
     #[Route('/crews/edit/registration/{competId}', name: 'edit_crew')]
     public function editCrew(
-        Competitions $competId,
+        int $competId,
         Request $request,   
         CrewsRepository $repositoryCrew,   
         AircraftsRepository $repositoryAircraft,                 
         CompetitionsRepository $repositoryCompetition,                 
         EntityManagerInterface $entityManager,
-        Security $security              
+        Security $security,
+        SendMailService $mailService      
     ): Response {
+        $compet = $repositoryCompetition
+            ->findWithCrewsAndUsersById($competId);
+    
         /** @var Users|null $user */
         $user = $security->getUser();
 
@@ -494,7 +497,6 @@ public function registration_list(
         
         };
     
-        $compet = $repositoryCompetition->find($competId);  
         $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
         $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
@@ -563,7 +565,23 @@ public function registration_list(
 
                 $entityManager->persist($aircraft);
             }
-            // delete accommodation if checkbox unchecked
+
+            $managers = $crew->getCompetition()->getCompetitionsUsers()->filter(function($cu) {
+                return in_array($cu->getRole(), [CompetitionRole::DIRECTOR, CompetitionRole::ROUTER]);
+            });
+
+
+            if ($fixSpeed instanceof SpeedList) {
+                $crew->setAircraftSpeed($fixSpeed);
+            }            
+
+            $uow = $entityManager->getUnitOfWork();
+            $uow->computeChangeSets();
+
+            $changes = $uow->getEntityChangeSet($crew);
+            unset($changes['updatedAt']);
+            unset($changes['createdAt']);
+
             foreach ($originalAccommodations as $acc) {
                 if (!$crew->getCompetitionAccommodation()->contains($acc)) {
                     $acc->removeCrewAccommodation($crew);
@@ -572,17 +590,51 @@ public function registration_list(
 
             foreach ($crew->getCompetitionAccommodation() as $acc) {
                 $acc->addCrewAccommodation($crew);
-                $entityManager->persist($acc); // 🔥 très important
-            }
-            $entityManager->persist($crew);
-            
-            if ($fixSpeed instanceof SpeedList) {
-                $crew->setAircraftSpeed($fixSpeed);
+                $entityManager->persist($acc);
             }
 
+            $entityManager->persist($crew);
             $entityManager->flush();
+
+            $removedAccommodations = [];
+            foreach ($originalAccommodations as $acc) {
+                if (!$crew->getCompetitionAccommodation()->contains($acc)) {
+                    $removedAccommodations[] = $acc->getAccommodation()?->getRoom();
+                }
+            }
+            $addedAccommodations = [];
+            foreach ($crew->getCompetitionAccommodation() as $acc) {
+                if (!$originalAccommodations->contains($acc)) {
+                    $addedAccommodations[] = $acc->getAccommodation()?->getRoom();
+                }
+            }
+            
+            $hasChanges =
+                !empty($changes)
+                || !empty($addedAccommodations)
+                || !empty($removedAccommodations);
+
+            if ($hasChanges) {
+                foreach ($managers as $manager) {
+                    $this->mailService->send(
+                        $manager->getUser()->getEmail(),
+                        'Modification d\'un concurrent',
+                        'crew_registration_edit', // => templates/emails/crew_registration_new.html.twig
+                        [
+                            'pilot' => $crew->getPilot(),
+                            'competition' => $crew->getCompetition(),
+                            'crew' => $crew,
+                            'changes' => $changes,
+                            'addedAccommodations' => $addedAccommodations,
+                            'removedAccommodations' => $removedAccommodations,
+                        ]
+                    );
+                }
+            }
+
             return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
        }
+
         return $this->render('pages/crews/editCrew.html.twig', [
             'compet' => $compet,            
             'user' => $user,

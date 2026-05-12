@@ -277,7 +277,7 @@ class CompetitionsCrudController extends AbstractCrudController
                     ];
                 });
 
-        $accommodationByCrewAction = Action::new('accommodationByCrewAction', 'Hébergement')
+        $accommodationByCrewAction = Action::new('accommodationByCrewAction', 'Type d\'inscription')
             ->setIcon('fa fa-hotel')
             ->linkToRoute('admin_accommodation_by_crew',                
                 function (Competitions $competition) {
