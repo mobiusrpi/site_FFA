@@ -229,7 +229,21 @@ class CompetitionScoringService
 
                 // TYPE 1
                 if ($typeId === 1) {
-                    return ($a['nav'] ?? PHP_INT_MAX) <=> ($b['nav'] ?? PHP_INT_MAX);
+
+                    // 1. vitesse (plus grande = mieux classé => donc ordre DESC)
+                    $cmp = ($b['speed'] ?? 0) <=> ($a['speed'] ?? 0);
+                    if ($cmp !== 0) {
+                        return $cmp;
+                    }
+
+                    // 2. pénalités navigation (plus petite = mieux classé)
+                    $cmp = ($a['nav'] ?? PHP_INT_MAX) <=> ($b['nav'] ?? PHP_INT_MAX);
+                    if ($cmp !== 0) {
+                        return $cmp;
+                    }
+
+                    // 3. égalité stricte
+                    return 0;
                 }
 
                 // TYPE 2
