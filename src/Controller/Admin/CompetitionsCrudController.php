@@ -7,6 +7,7 @@ use App\Entity\CompetitionAccommodation;
 use App\Entity\Competitions;
 use App\Entity\CompetitionsUsers;
 use App\Entity\Crews;
+use App\Entity\Enum\CompetitionRole;
 use App\Entity\Users;
 use App\Form\CompetitionEmailType;
 use App\Form\CompetitionsUsersType;
@@ -646,7 +647,6 @@ class CompetitionsCrudController extends AbstractCrudController
             ]));
         }
 
-
         $maxRanking = $request->query->get('maxRanking');
 
         return $this->render('admin/results_by_type.html.twig', [
@@ -676,7 +676,7 @@ class CompetitionsCrudController extends AbstractCrudController
                 'action' => 'index',
             ]);
         }
-
+            
         $form = $this->createForm(CompetitionEmailType::class, null, [
             'competitionName' => $competition->getName(),
             'userEmail' => $userEmail,
@@ -721,7 +721,7 @@ class CompetitionsCrudController extends AbstractCrudController
                         }
                     }
 
-                    foreach ($users as $user) {
+                     foreach ($users as $user) {
                         $personalizedMessage = str_replace('<Prénom>', htmlspecialchars($user->getFirstname()), $data['message']);
 
                         $mailService->send(
@@ -736,6 +736,42 @@ class CompetitionsCrudController extends AbstractCrudController
                             ],
                             null, // pas de texte brut, on passe tout dans Twig
                             $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : []
+                        );
+                    }
+
+                    foreach ($competition->getCompetitionsUsers() as $competitionUser) {
+                        $user = $competitionUser->getUser();
+
+                        if ($user && $user->getEmail()) {
+                            $users[$user->getEmail()] = $user;
+                        }
+                        $mailService->send(
+                            $user->getEmail(),
+                            $data['subject'],
+                            'competition_email', // le template Twig
+                            [
+                                'firstname' => $user->getFirstname(),
+                                'message' => nl2br($personalizedMessage),
+                                'subject' => $data['subject'],
+                                'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
+                            ],
+                            null, // pas de texte brut, on passe tout dans Twig
+                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : []
+                        );
+                    }
+
+                    if ($connected && $connected->getEmail()) {
+
+                        $mailService->send(
+                            $connected->getEmail(),
+                            'Confirmation d’envoi des emails',
+                            'competition_send_confirmation',
+                            [
+                                'user' => $connected,
+                                'competition' => $competition,
+                                'recipientsCount' => count($users),
+                                'subject' => $data['subject'],
+                            ]
                         );
                     }
 

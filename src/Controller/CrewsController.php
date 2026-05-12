@@ -56,7 +56,8 @@ public function __construct(
         EntityManagerInterface $entityManager,
         CompetitionsRepository $repositoryCompetition,
         CrewsRepository $repositoryCrew,
-        Security $security    
+        Security $security,
+        SendMailService $mailService   
     ): Response
     {   
        /** @var Users|null $user */
@@ -92,6 +93,28 @@ public function __construct(
         if ($this->isCsrfTokenValid('delete'.$competId, $submittedToken)) {
             $entityManager->remove($crew);
             $entityManager->flush();
+            $organizers = $compet->getCompetitionsUsers();
+
+            foreach ($organizers as $cu) {
+
+                $userOrg = $cu->getUser();
+
+                if (!$userOrg || !$userOrg->getEmail()) {
+                    continue;
+                }
+
+                $mailService->send(
+                    $userOrg->getEmail(),
+                    'Désinscription d’un équipage',
+                    'crew_unsubscribe_notification',
+                    [
+                        'organizer' => $userOrg,
+                        'competition' => $compet,
+                        'pilot' => $crew->getPilot(),
+                        'navigator' => $crew->getNavigator(),
+                    ]
+                );
+            }
         }
 
         return $this->redirectToRoute('user_registrations_list', ['competId'=>$competId], Response::HTTP_SEE_OTHER);
@@ -272,12 +295,19 @@ public function __construct(
                 return in_array($cu->getRole(), [CompetitionRole::DIRECTOR, CompetitionRole::ROUTER]);
             });
 
-            $this->mailService->send(
+            $recipients = [
                 $crew->getPilot()->getEmail(),
+            ];
+
+            if ($crew->getNavigator() && $crew->getNavigator()->getEmail()) {
+                $recipients[] = $crew->getNavigator()->getEmail();
+            }
+
+            $this->mailService->sendToMultiple(
+                $recipients,
                 'Confirmation d\'inscription',
                 'crew_registration_confirmation', // => templates/emails/crew_registration_confirmation.html.twig
                 [
-                    'pilot' => $crew->getPilot(),
                     'competition' => $crew->getCompetition(),
                     'managers' => $managers, 
                     'crew' => $crew,
@@ -297,7 +327,6 @@ public function __construct(
                 );
 
             }
-
 
             $this->addFlash('success', 'Votre inscription a été enregistrée avec succès.');
 

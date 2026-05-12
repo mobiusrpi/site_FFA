@@ -1,0 +1,12 @@
+Bonjour {{ organizer.firstname }},
+
+Un équipage vient de se désinscrire de la compétition : \n
+
+Compétition : {{ competition.name }}\n
+
+Pilote :{{ pilot.fullname }}\n
+{% if navigator %}
+Navigateur : {{ navigator.fullname }}\n
+{% endif %}
+
+Merci

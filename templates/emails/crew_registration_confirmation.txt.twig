@@ -1,6 +1,6 @@
 Confirmation d'inscription
 
-Bonjour {{ pilot.firstname }},
+Bonjour {{ crew.pilot.firstname }}, {% if crew.navigator %}{{ crew.navigator.firstname }},{% endif %}
 
 Votre inscription à la compétition 
 {{ competition.name }} - {{ competition.typecompetition.typecomp }} 
@@ -9,8 +9,9 @@ a bien été enregistrée.
 Indicatif avion : {{ crew.callsign }} \n
 Vitesse : {{ crew.aircraftSpeed.value }} Kt
 
+Pilot : {{ crew.pilot.fullname }}
 {% if crew.navigator %}
-    Navigateur : {{ crew.navigator.firstname }} {{ crew.navigator.lastname }}
+Navigateur : {{ crew.navigator.fullname }}
 {% endif %}
 
 

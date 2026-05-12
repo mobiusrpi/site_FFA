@@ -8,9 +8,9 @@ Nouvelle inscription à la compétition
 </p>
 
 <p>
-Pilote :{{ pilot.fullname }}</br>
+Pilote :{{ crew.pilot.fullname }}</br>
 {% if crew.navigator %}
-    Navigateur : {{ crew.navigator.fullname }}</br>
+  Navigateur : {{ crew.navigator.fullname }}</br>
 {% endif %}
 Indicatif avion : {{ crew.callsign }}</br>
 Vitesse : {{ crew.aircraftSpeed.value }} Kt

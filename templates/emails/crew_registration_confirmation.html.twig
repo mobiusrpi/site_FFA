@@ -1,6 +1,9 @@
 <h2>Confirmation d'inscription</h2>
 
-<p>Bonjour {{ pilot.firstname }},</p>
+<p>Bonjour {{ crew.pilot.firstname }}, 
+{% if crew.navigator %}
+  {{ crew.navigator.firstname }},
+{% endif %}</p>
 
 <p>
 Votre inscription à la compétition 
@@ -13,10 +16,13 @@ Indicatif avion : {{ crew.callsign }}</br>
 Vitesse : {{ crew.aircraftSpeed.value }} Kt
 </p>
 
-{% if crew.navigator %}
 <p>
-Navigateur : {{ crew.navigator.firstname }} {{ crew.navigator.lastname }}
+Pilot : {{ crew.pilot.fullname }}
 </p>
+{% if crew.navigator %}
+    <p>
+    Navigateur : {{ crew.navigator.fullname }}
+    </p>
 {% endif %}
 
 <p>

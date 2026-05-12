@@ -77,30 +77,58 @@ class SendMailService
         $this->mailer->send($email);
     }
 
-    public function sendToMultiple(
-        array $recipients,
+    public function sendToMultiple( 
+        string|array $to,
         string $subject,
-        string $html,
+        ?string $template = null,
+        array $context = [],
+        ?string $html = null,
+        array $attachments = [],
         ?string $replyTo = null
     ): void {
 
-        if (empty($recipients)) {
-            return;
+        if ($template) {
+            $email = (new TemplatedEmail())
+                ->from($this->from)
+                ->subject($subject)
+                ->htmlTemplate("emails/$template.html.twig")
+                ->textTemplate("emails/$template.txt.twig")
+                ->context($context);
+
+        } elseif ($html) {
+            $email = (new Email())
+                ->from($this->from)
+                ->subject($subject)
+                ->html($html);
+
+        } else {
+            throw new \InvalidArgumentException(
+                'Vous devez fournir un template Twig ou du HTML.'
+            );
         }
 
-        $email = (new Email())
-            ->from($this->from)
-            ->to($this->from) // obligatoire
-            ->bcc(...$recipients)
-            ->subject($subject)
-            ->html($html);
+        // Gestion des destinataires
+        if (is_array($to)) {
+            $email->to(...$to);
+        } else {
+            $email->to($to);
+        }
 
+        // Reply-To
         if ($replyTo) {
             $email->replyTo($replyTo);
         }
 
-        $this->logger->info('Envoi email multiple à ' . count($recipients) . ' destinataires.');
+        // Pièces jointes
+        foreach ($attachments as $path => $filename) {
+            $email->attachFromPath($path, $filename);
+        }
+
+        $this->logger->info(
+            'Envoi email à '.(is_array($to) ? implode(', ', $to) : $to)
+        );
 
         $this->mailer->send($email);
     }
+
 }
