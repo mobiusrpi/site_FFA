@@ -40,6 +40,15 @@ class CompetitionScoringService
         return $has ? $sum : null;
     }
 
+    private function getCrewKey(?Crew $crew, ?string $literalCrew): string
+    {
+        if ($crew) {
+            return 'C_' . $crew->getId();
+        }
+
+        return 'L_' . md5(trim($literalCrew));
+    }
+
     public function calculateScores(Competitions $competition): array
     {
         $scoreByCategory = [
@@ -231,12 +240,7 @@ class CompetitionScoringService
                 if ($cmp !== 0) {
                     return $cmp;
                 }
-if ($typeId === 1) {
 
-    $logger->debug('Structure complète', [
-        'a' => $a,
-    ]);
-}
                 // TYPE 1
                 if ($typeId === 1) {
 
@@ -275,13 +279,6 @@ if ($typeId === 1) {
         return $scoreByCategory;
     }
 
-     /**
-     * Calcul des scores pour un live kiosk.
-     *
-     * @param Competitions $competition
-     * @param int $typeId Type du test (1=Équipage, 2=Solo, 3=Autre)
-     * @return array
-     */
     public function calculateScoresLive( int $typeId, ?array $results = []): array
     {
         $scoreByCategory = [
@@ -350,231 +347,207 @@ if ($typeId === 1) {
             ]);
         return $scoreByCategory;
     }
-    
+
     public function calculateAggregateScores(array $results, int $typeId): array
     {
         $scoresByCategory = [];
 
         foreach ($results as $result) {
+
             $crew = $result->getCrew();
+
+            // =========================
+            // IDENTITÉ ÉQUIPAGE
+            // =========================
             if ($crew) {
-                $pilot     = ($crew->getPilot()?->getFullName() ?? '');
-                $navigator = ($crew->getNavigator()?->getFullName() ?? '');
-                $crewName  = $typeId === 2 ? $pilot : trim("$pilot - $navigator");
-                $crewId    = $crew->getId();
+                $crewName = $typeId === 2
+                    ? ($crew->getPilot()?->getFullName() ?? '')
+                    : trim(
+                        ($crew->getPilot()?->getFullName() ?? '')
+                        . ' - ' .
+                        ($crew->getNavigator()?->getFullName() ?? '')
+                    );
+
+                $crewId = $crew->getId();
             } elseif ($result->getLiteralCrew()) {
                 $crewName = $result->getLiteralCrew();
-                $crewId = md5($crewName); // clé unique pour le tableau
+                $crew = null;
+                $crewId = 'L_' . md5($crewName); // évite collision avec int IDs
             } else {
-                continue; // pas de crew connu, ignorer
+                continue;
             }
 
-            $crewCategory = $crew?->getCategory()?->value
+            // =========================
+            // CATÉGORIE FIGÉE ICI (IMPORTANT)
+            // =========================
+            $category = $crew?->getCategory()?->value
                 ?? $result->getCategory()
                 ?? 'Hors Catégorie';
 
-            if (!isset($scoresByCategory[$crewCategory][$crewId])) {
+            // =========================
+            // INIT STRUCTURE
+            // =========================
+            if (!isset($scoresByCategory[$category][$crewId])) {
 
-                $scoresByCategory[$crewCategory][$crewId] = [
-                    'crew'           => $crewName,
-                    'crewEntity'     => $crew,
-                    'nav'            => null,
-                    'obs'            => null,
-                    'att'            => null,
-                    'flightPlanning' => null,
-                    'total'          => 0,
-                    'dns'            => false,
-                    'speed'          => $crew?->getAircraftSpeed()?->value ?? 0,
-                    'tests'          => [],
+                $scoresByCategory[$category][$crewId] = [
+                    'crew'       => $crew,        // peut être null (literalCrew OK)
+                    'crewName'   => $crewName,
+
+                    'nav' => 0,
+                    'obs' => 0,
+                    'att' => 0,
+                    'flightPlanning' => 0,
+
+                    'total' => 0,
+                    'dns' => false,
+
+                    'speed' => $crew?->getAircraftSpeed()?->value ?? 0,
+
+                    'tests' => [],
                 ];
             }
 
+            $testId = $result->getTest()->getId();
+
+            // =========================
+            // VALEURS BRUTES
+            // =========================
+            $nav = (int) $result->getNavigation();
+            $obs = (int) $result->getObservation();
+            $att = (int) $result->getLanding();
+            $fp  = (int) $result->getFlightPlanning();
+
+            // =========================
+            // STOCK TEST (OBLIGATOIRE POUR TWIG)
+            // =========================
+            $scoresByCategory[$category][$crewId]['tests'][$testId] = [
+                'nav' => $nav,
+                'obs' => $obs,
+                'att' => $att,
+                'flightPlanning' => $fp,
+                'total' => $nav + $obs + $att + $fp,
+                'dns' => $result->isDns() ? 1 : 0,
+            ];
+
+            // =========================
+            // DNS
+            // =========================
+            if ($result->isDns()) {
+                $scoresByCategory[$category][$crewId]['dns'] = true;
+                continue;
+            }
+
+            // =========================
+            // AGRÉGATION
+            // =========================
             $code = strtoupper(substr($result->getTest()->getCode(), 0, 3));
 
             switch ($code) {
+
                 case 'NAV':
-                    // Accumuler navigation
-                    $scoresByCategory[$crewCategory][$crewId]['nav'] = 
-                        ($scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
+                    $scoresByCategory[$category][$crewId]['nav'] += $nav;
+                    $scoresByCategory[$category][$crewId]['obs'] += $obs;
 
-                    // Accumuler observation
-                    $scoresByCategory[$crewCategory][$crewId]['obs'] = 
-                        ($scoresByCategory[$crewCategory][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
-
-                    if ($typeId === 1) { 
-                        $scoresByCategory[$crewCategory][$crewId]['att'] =
-                                ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    if ($typeId === 1 || $typeId === 3) {
+                        $scoresByCategory[$category][$crewId]['att'] += $att;
                     }
 
-                    if ($typeId === 2) { // Précision
-                        $scoresByCategory[$crewCategory][$crewId]['flightPlanning'] = 
-                            ($scoresByCategory[$crewCategory][$crewId]['flightPlanning'] ?? 0) + ($result->getFlightPlanning() ?? 0);
-                    }
-
-                    if (str_contains(strtoupper($result->getTest()->getCode()), 'ATT')) {
-                        $scoresByCategory[$crewCategory][$crewId]['att'] = 
-                            ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    if ($typeId === 2) {
+                        $scoresByCategory[$category][$crewId]['flightPlanning'] += $fp;
                     }
                     break;
 
                 case 'ATT':
-                    $scoresByCategory[$crewCategory][$crewId]['att'] = 
-                        ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    $scoresByCategory[$category][$crewId]['att'] += $att;
                     break;
 
                 case 'ANR':
-                    $scoresByCategory[$crewCategory][$crewId]['nav'] = 
-                        ($scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
-                    $scoresByCategory[$crewCategory][$crewId]['att'] = 
-                        ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    $scoresByCategory[$category][$crewId]['nav'] += $nav;
+                    $scoresByCategory[$category][$crewId]['att'] += $att;
                     break;
 
-                default:    
-                    if ($typeId === 1) { // Rallye
-                        $scoresByCategory[$crewCategory][$crewId]['nav'] = 
-                            ($scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
-                        $scoresByCategory[$crewCategory][$crewId]['obs'] = 
-                            ($scoresByCategory[$crewCategory][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
-                        $scoresByCategory[$crewCategory][$crewId]['att'] = 
-                            ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
-                    }        
+                default:
+                    $scoresByCategory[$category][$crewId]['nav'] += $nav;
+                    $scoresByCategory[$category][$crewId]['obs'] += $obs;
+                    $scoresByCategory[$category][$crewId]['att'] += $att;
                     break;
             }
 
-            // Gestion DNS
-            if ($result->isDns()) {
-                $scoresByCategory[$crewCategory][$crewId]['dns'] = true;
-                $scoresByCategory[$crewCategory][$crewId]['total'] = null;
-            } else {
-                // Recalcule du total (null si une épreuve non faite)
-                $nav   = $scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0;
-                $obs   = $scoresByCategory[$crewCategory][$crewId]['obs'] ?? 0;
-                $att   = $scoresByCategory[$crewCategory][$crewId]['att'] ?? 0;
-                $fp    = $scoresByCategory[$crewCategory][$crewId]['flightPlanning'] ?? 0;
-
-                $scoresByCategory[$crewCategory][$crewId]['total'] = $nav + $obs + $att + $fp;
-            }
+            // =========================
+            // TOTAL GLOBAL
+            // =========================
+            $scoresByCategory[$category][$crewId]['total'] =
+                $scoresByCategory[$category][$crewId]['nav']
+                + $scoresByCategory[$category][$crewId]['obs']
+                + $scoresByCategory[$category][$crewId]['att']
+                + $scoresByCategory[$category][$crewId]['flightPlanning'];
         }
 
-        // Trie par catégorie → par total croissant (DNS à la fin)
+        // =========================
+        // SORT
+        // =========================
         foreach ($scoresByCategory as &$categoryScores) {
 
             usort($categoryScores, function ($a, $b) use ($typeId) {
 
-                // DNS à la fin
-                if ($a['dns'] && !$b['dns']) {
-                    return 1;
-                }
+                // =========================
+                // 1. DNS toujours en bas
+                // =========================
+                if ($a['dns'] && !$b['dns']) return 1;
+                if (!$a['dns'] && $b['dns']) return -1;
 
-                if (!$a['dns'] && $b['dns']) {
-                    return -1;
-                }
+                // =========================
+                // 2. TOTAL (clé principale)
+                // =========================
+                $cmp = ($a['total'] ?? PHP_INT_MAX) <=> ($b['total'] ?? PHP_INT_MAX);
+                if ($cmp !== 0) return $cmp;
 
-                // TOTAL
-                $cmp = ($a['total'] ?? PHP_INT_MAX)
-                    <=> ($b['total'] ?? PHP_INT_MAX);
-
-                if ($cmp !== 0) {
-                    return $cmp;
-                }
-
-                // ================= TYPE 1 =================
+                // =========================
+                // 3. EX AEQUO TYPE 1
+                // =========================
                 if ($typeId === 1) {
 
-                    // vitesse décroissante
-                    $cmp = ($b['speed'] ?? 0)
-                        <=> ($a['speed'] ?? 0);
+                    $cmp = ($b['speed'] ?? 0) <=> ($a['speed'] ?? 0);
+                    if ($cmp !== 0) return $cmp;
 
-                    if ($cmp !== 0) {
-                        return $cmp;
-                    }
-
-                    // navigation croissante
-                    $cmp = ($a['nav'] ?? PHP_INT_MAX)
-                        <=> ($b['nav'] ?? PHP_INT_MAX);
-
-                    if ($cmp !== 0) {
-                        return $cmp;
-                    }
-
-                    return 0;
+                    $cmp = ($a['nav'] ?? PHP_INT_MAX) <=> ($b['nav'] ?? PHP_INT_MAX);
+                    if ($cmp !== 0) return $cmp;
                 }
 
-                // ================= TYPE 2 =================
+                // =========================
+                // 4. EX AEQUO TYPE 2
+                // =========================
                 if ($typeId === 2) {
 
-                    // 1. Nav + Théorique
-                    $scoreA = ($a['flightPlanning'] ?? 0)
-                            + ($a['nav'] ?? 0);
-
-                    $scoreB = ($b['flightPlanning'] ?? 0)
-                            + ($b['nav'] ?? 0);
+                    // Nav + Théorique
+                    $scoreA = ($a['nav'] ?? 0) + ($a['flightPlanning'] ?? 0);
+                    $scoreB = ($b['nav'] ?? 0) + ($b['flightPlanning'] ?? 0);
 
                     $cmp = $scoreA <=> $scoreB;
+                    if ($cmp !== 0) return $cmp;
 
-                    if ($cmp !== 0) {
-                        return $cmp;
-                    }
-
-                    // 2. Atterrissages
-                    $cmp = ($a['att'] ?? PHP_INT_MAX)
-                        <=> ($b['att'] ?? PHP_INT_MAX);
-
-                    if ($cmp !== 0) {
-                        return $cmp;
-                    }
-
-                    // 3. Véritable égalité
-                    return 0;
+                    // Atterrissages
+                    $cmp = ($a['att'] ?? PHP_INT_MAX) <=> ($b['att'] ?? PHP_INT_MAX);
+                    if ($cmp !== 0) return $cmp;
                 }
 
-                // ================= TYPE 3 =================
+                // =========================
+                // 5. EX AEQUO TYPE 3
+                // =========================
                 if ($typeId === 3) {
 
-                    // moins de pénalités navigation
-                    $cmp = ($a['nav'] ?? PHP_INT_MAX)
-                        <=> ($b['nav'] ?? PHP_INT_MAX);
-
-                    if ($cmp !== 0) {
-                        return $cmp;
-                    }
-
-                    // vraie égalité
-                    return 0;
+                    $cmp = ($a['nav'] ?? PHP_INT_MAX) <=> ($b['nav'] ?? PHP_INT_MAX);
+                    if ($cmp !== 0) return $cmp;
                 }
+
+                // =========================
+                // 6. DERNIER DEPARTAGE (CRUCIAL)
+                // =========================
+                return strcmp(
+                    $a['crewKey'] ?? $a['crewName'],
+                    $b['crewKey'] ?? $b['crewName']
+                );
             });
-        }
-
-        $rank = 0;
-        $position = 0;
-        $previousKey = null;
-
-        foreach ($categoryScores as &$row) {
-
-            if ($row['dns']) {
-                $row['rank'] = '-';
-                continue;
-            }
-
-            $position++;
-
-            // clé complète d'égalité
-            $currentKey = sprintf(
-                '%s-%s-%s-%s-%s',
-                $row['total'] ?? '',
-                $row['speed'] ?? '',
-                $row['nav'] ?? '',
-                $row['flightPlanning'] ?? '',
-                $row['att'] ?? ''
-            );
-
-            if ($currentKey !== $previousKey) {
-                $rank = $position;
-            }
-
-            $row['rank'] = $rank;
-
-            $previousKey = $currentKey;
         }
 
         return $scoresByCategory;

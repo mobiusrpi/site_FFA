@@ -40,10 +40,16 @@
     </thead>
     <tbody>
         {% for rank, crewData in crews %}
-            {# Détecte si le crew a au moins une épreuve DNS ou DNF #}
-            {% set hasOut = crewData.tests|filter(t => t.dns != 0)|length > 0 %}
+
+            {% set hasOut = false %}
+            {% for t in crewData.tests %}
+                {% if t.dns is not same as(0) %}
+                    {% set hasOut = true %}
+                {% endif %}
+            {% endfor %}
 
             <tr data-score="{{ crewData.total ?? -1 }}">
+
                 <td class="text-center class-col">
                     {% if hasOut %}
                         --
@@ -51,30 +57,45 @@
                         {{ loop.index }}
                     {% endif %}
                 </td>
+
                 <td>
                     <small>
-                        {{ crewData.crew is iterable ? (crewData.crew.fullName ?? crewData.crew.name ?? '—') : crewData.crew }}
+                        {{ crewData.crewName ?? '—' }}
                     </small>
                 </td>
+
                 {% for testKey, displayName in testNames %}
-                    {% set result = crewData.tests[testKey] ?? {'nav': null, 'att': null, 'total': null, 'dns': 0} %}
+
+                    {% set result = crewData.tests[testKey] ?? null %}
+
                     <td class="text-center"
-                        data-key="{{ loop.index }}"
-                        data-value="{{ result.total ?? -1 }}">
-                    {% if result.dns == -1 %}
-                        DNS
-                    {% elseif result.dns == 1 %}
-                        DNF
-                    {% else %} 
-                        {{ result.total is same as(null) ? '_' : result.total }}
-                    {% endif %}
+                        data-key="{{ testKey }}"
+                        data-value="{{ result ? result.total : -1 }}">
+
+                        {% if result is null %}
+                            _
+                        {% elseif result.dns == 1 %}
+                            DNS
+                        {% elseif result.dns == -1 %}
+                            DNF
+                        {% else %}
+                            {{ result.total }}
+                        {% endif %}
+
                     </td>
+
                 {% endfor %}
+
                 <td class="text-center"
                     data-key="total"
                     data-value="{{ hasOut ? -1 : crewData.total ?? -1 }}">
-                    <strong>{{ hasOut ? '--' : (crewData.total is same as(null) ? '_' : crewData.total) }}</strong>
-                </td>          
+
+                    <strong>
+                        {{ hasOut ? '--' : (crewData.total ?? '_') }}
+                    </strong>
+
+                </td>
+
             </tr>
         {% endfor %}
     </tbody>
