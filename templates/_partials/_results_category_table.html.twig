@@ -2,7 +2,7 @@
 
 {% set hasCrewEntity = false %}
 {% for row in ranking %}
-    {% if not hasCrewEntity and row.crew.pilot is defined and row.crew.pilot is not null %}
+    {% if not hasCrewEntity and row.crewEntity.pilot is defined and row.crewEntity.pilot is not null %}
         {% set hasCrewEntity = true %}
     {% endif %}
 {% endfor %}
@@ -74,38 +74,26 @@
             </th>
         </tr>
     </thead>
-    <tbody>
-        {% set lastScore = null %}
-        {% set rank = 0 %}
-        {% set position = 0 %}
+    <tbody> 
 
         {% for row in ranking %}
-            {% set isDNS = row.dns == -1 %}
-            {% set isDNF = row.dns == 1 %}
-            {% set isOut = isDNS or isDNF %}
-            {% set crew = row.crew ?? null %}
+            {% set isDNS      = row.dns == -1 %}
+            {% set isDNF      = row.dns == 1 %}
+            {% set isOut      = isDNS or isDNF %}
+            {% set crewEntity = row.crewEntity ?? null %}
 
-            {% if crew and crew.pilot is defined %}
-                {% set pilot = crew.pilot %}
-                {% set navigator = crew.navigator ?? null %}
+           {% if crewEntity and crewEntity.pilot is defined %}
+                {% set pilot = crewEntity.pilot %}
+                {% set navigator = crewEntity.navigator ?? null %}
             {% else %}
                 {% set pilot = null %}
                 {% set navigator = null %}
             {% endif %}
 
-            {% if not isOut %}
-                {% set position = position + 1 %}
-
-                {% if row.total != lastScore %}
-                    {% set rank = position %}
-                {% endif %}
-            {% else %}
-                {% set rank = '-' %}
-            {% endif %}
 
             <tr>
 
-                <td class="text-center">{{ rank }}</td>
+                <td  class="text-center">{{ row.rank }}</td>
 
                 {# --- NOMS --- #}
                 <td style="white-space: nowrap;">
@@ -139,7 +127,7 @@
                         {% endif %}
 
                     </td>
-
+ 
                     {# --- CLUB PILOTE --- #}
                     <td>
                         {{ pilot and pilot.flyingclub ? pilot.flyingclub : '-' }}
@@ -147,7 +135,7 @@
 
                     {# --- CLUB AVION --- #}
                     <td>    
-                        {{ crew and crew.aircraftFlyingclub ? crew.aircraftFlyingclub : '-' }}
+                        {{ crewEntity and crewEntity.aircraftFlyingclub ? crewEntity.aircraftFlyingclub : '-' }}
                     </td>
 
                     {# --- COMITE --- #}
@@ -172,21 +160,21 @@
                 {# --- SCORES --- #}
                 <td class="text-center"
                     data-key="navigation"
-                    data-value="{{ row.navigation ?? -1 }}">
-                    {{ isOut ? '-' : (row.navigation ?? '-') }}
+                    data-value="{{ row.nav ?? -1 }}">
+                    {{ isOut ? '-' : (row.nav ?? '-') }}
                 </td>
 
                 {% if competition.typecompetition and competTypeId != 3 %}
                     <td class="text-center"
                         data-key="observation"
-                        data-value="{{ row.observation ?? -1 }}">
-                        {{ isOut ? '-' : (row.observation ?? '-') }}
+                        data-value="{{ row.obs ?? -1 }}">
+                        {{ isOut ? '-' : (row.obs ?? '-') }}
                     </td>
                 {% endif %}
                 <td class="text-center"
                     data-key="landing"
-                    data-value="{{ row.landing ?? -1 }}">
-                    {{ isOut ? '-' : (row.landing ?? '-') }}
+                    data-value="{{ row.att ?? -1 }}">
+                    {{ isOut ? '-' : (row.att ?? '-') }}
                 </td>
 
                 {% if  competition.typecompetition and competTypeId == 2 %}
@@ -209,10 +197,6 @@
                     {% endif %}
                 </td>
             </tr>
-
-            {% if not isOut %}
-                {% set lastScore = row.total %}
-            {% endif %}
 
         {% endfor %}
 

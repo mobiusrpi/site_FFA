@@ -322,7 +322,8 @@ final class TestResultsController extends AbstractController
     public function resultsPerCategory(
         int $id,
         string $category,
-        CompetitionsRepository $repositoryCompetition
+        CompetitionsRepository $repositoryCompetition,
+        CompetitionScoringService $scoringService
     ): Response {
         $competition = $repositoryCompetition->findWithCrewsPilotsNavigators($id); 
 
@@ -330,85 +331,37 @@ final class TestResultsController extends AbstractController
             throw $this->createNotFoundException('Compétition non trouvée');
         }
 
-        $ranking = [];
+        $results = [];
 
         foreach ($competition->getTests() as $test) {
-            if (!$test->isResultsValidated()) continue;
+
+            if (!$test->isResultsValidated()) {
+                continue;
+            }
 
             foreach ($test->getTestResults() as $result) {
-                // Catégorie : pour literalCrew, on utilise la catégorie du résultat
+
                 $crew = $result->getCrew();
 
-                $categoryLabel = $crew?->getCategory()?->value ?? $result->getCategory();
+                $categoryLabel = $crew?->getCategory()?->value
+                    ?? $result->getCategory();
 
                 if ($categoryLabel !== $category) {
                     continue;
                 }
 
-                // DNS/DNF/Normal
-                $dns = $result->getDns() ?? 0;
-
-                if ($dns === 0 &&
-                    $result->getNavigation() === null &&
-                    $result->getObservation() === null &&
-                    $result->getLanding() === null &&
-                    $result->getFlightPlanning() === null
-                ) {
-                    $dns = -1; // DNS
-                }
-
-                // Clé pour le classement : crewId si existe, sinon literalCrew
-                $key = $crew ? $crew->getId() : $result->getLiteralCrew();
-
-                // Initialisation
-                if (!isset($ranking[$key])) {
-                    $ranking[$key] = [
-                        'crew' => $crew ?? $result->getLiteralCrew(),
-                        'navigation' => 0,
-                        'observation' => 0,
-                        'landing' => 0,
-                        'flightPlanning' => 0,
-                        'total' => 0,
-                        'dns' => $dns,
-                    ];
-                }
-
-                // Ajouter les points uniquement si DNS/DNF = 0
-                if ($dns === 0) {
-                    $ranking[$key]['navigation'] += $result->getNavigation() ?? 0;
-                    if ($competition->getTypecompetition()->getId() != 3) {
-                        $ranking[$key]['observation'] += $result->getObservation() ?? 0;
-                    }
-                    $ranking[$key]['landing'] += $result->getLanding() ?? 0;
-                    if ($competition->getTypecompetition()->getId() == 2) {
-                        $ranking[$key]['flightPlanning'] += $result->getFlightPlanning() ?? 0;
-                    }
-
-                    $ranking[$key]['total'] = $ranking[$key]['navigation']
-                                            + ($competition->getTypecompetition()->getId() != 3 ? $ranking[$key]['observation'] : 0)
-                                            + $ranking[$key]['landing']
-                                            + ($competition->getTypecompetition()->getId() == 2 ? $ranking[$key]['flightPlanning'] : 0);
-                }
-
-                // Toujours stocker DNS/DNF
-                $ranking[$key]['dns'] = $dns;
+                $results[] = $result;
             }
         }
-        // Convertir en tableau indexé
-        $ranking = array_values($ranking);
 
-        // Tri : DNS/DNF en dernier, total croissant pour les valides
-        usort($ranking, function($a, $b) {
-            // Priorité : normal < DNS < DNF
-            $priority = fn($val) => $val['dns'] === 0 ? 0 : ($val['dns'] === -1 ? 1 : 2);
+        $typeId = $competition->getTypecompetition()->getId();
 
-            $pa = $priority($a);
-            $pb = $priority($b);
+        $scoresByCategory = $scoringService->calculateAggregateScores(
+            $results,
+            $typeId
+        );
 
-            if ($pa !== $pb) return $pa - $pb;
-
-            return $a['total'] <=> $b['total'];
-        });
+        $ranking = array_values($scoresByCategory[$category] ?? []); 
 
         $topRoles = array_slice(CompetitionRole::cases(), 0, 3);
 
@@ -438,9 +391,43 @@ final class TestResultsController extends AbstractController
         if (!$competition) {
             throw $this->createNotFoundException('Compétition non trouvée');
         }
-
-        $scoreByCategory = $scoringService->calculateScores($competition);
+        $detailedScores = $scoringService->calculateDetailedScores($competition);
         
+        $results = [];
+
+        foreach ($competition->getTests() as $test) {
+
+            if (!$test->isResultsValidated()) {
+                continue;
+            }
+
+            foreach ($test->getTestResults() as $result) {
+                $results[] = $result;
+            }
+        }
+
+        $aggregateScores = $scoringService->calculateAggregateScores(
+            $results,
+            $competition->getTypecompetition()->getId()
+        );     
+        
+        foreach ($aggregateScores as $category => &$rows) {
+
+            foreach ($rows as &$row) {
+
+                foreach ($detailedScores[$category] ?? [] as $detail) {
+
+                    if ($detail['crew'] === $row['crew']) {
+
+                        $row['tests'] = $detail['tests'];
+                        break;
+                    }
+                }
+            }
+        }
+
+        $scoreByCategory = $aggregateScores;
+
         $testsWithResults = [];
 
         foreach ($scoreByCategory as $category => $crews) {

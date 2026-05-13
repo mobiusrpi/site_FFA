@@ -1,0 +1,18 @@
+Depuis le serveur de production :
+Commande msqldump pour copier la database
+root@FFA-Sport:/home/joel_t# mysqldump -u root --single-transaction --routines  --triggers  --events sports_ffa > backup_prod_sports_ffa.sql
+
+Compression
+gzip backup_prod_sports_ffa.sql
+
+Copier le fichier avec FileZilla
+/home/joel_t/backup_prod_sports_ffa.sql.gz dans C:\wamp64\www\site_ffa\
+
+
+Démarrer wamp64 et phpmyadmin
+Se connecter avec le compte FFA
+Selectionner la database ff-sport-db
+
+Cocher toutes les tables et Supprimer
+
+Operation importer et mettre le fichier backup_prod_sports_ffa.sql.gz

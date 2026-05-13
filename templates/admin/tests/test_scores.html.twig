@@ -18,8 +18,10 @@
 
     {% set showObs = showNav and not isANR %}
 
-    {% set showTheo = test.type == constant('App\\Entity\\Enum\\TestCompet::NAVIGATION') and not isANR %}
-
+    {% set showTheo =
+        competType == 2
+        and test.type == constant('App\\Entity\\Enum\\TestCompet::NAVIGATION')
+    %}
     {% set showAtt = test.type in [
         constant('App\\Entity\\Enum\\TestCompet::LANDING'),
         constant('App\\Entity\\Enum\\TestCompet::NAV_ATT'),
