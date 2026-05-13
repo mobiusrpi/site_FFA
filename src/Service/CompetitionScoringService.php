@@ -548,6 +548,64 @@ class CompetitionScoringService
                     $b['crewKey'] ?? $b['crewName']
                 );
             });
+            // =========================
+            // CALCUL DES RANGS
+            // =========================
+            $rank = 0;
+            $position = 0;
+            $previousKey = null;
+
+            foreach ($categoryScores as &$row) {
+
+                // DNS / DNF
+                if ($row['dns']) {
+                    $row['rank'] = '-';
+                    continue;
+                }
+
+                $position++;
+
+                // clé d'égalité selon règlement
+                if ($typeId === 1) {
+
+                    $currentKey = sprintf(
+                        '%s-%s-%s',
+                        $row['total'] ?? '',
+                        $row['speed'] ?? '',
+                        $row['nav'] ?? ''
+                    );
+
+                } elseif ($typeId === 2) {
+
+                    $currentKey = sprintf(
+                        '%s-%s-%s',
+                        $row['total'] ?? '',
+                        ($row['flightPlanning'] ?? 0) + ($row['nav'] ?? 0),
+                        $row['att'] ?? ''
+                    );
+
+                } elseif ($typeId === 3) {
+
+                    $currentKey = sprintf(
+                        '%s-%s',
+                        $row['total'] ?? '',
+                        $row['nav'] ?? ''
+                    );
+
+                } else {
+
+                    $currentKey = (string) ($row['total'] ?? '');
+                }
+
+                // même rang si égalité complète
+                if ($currentKey !== $previousKey) {
+                    $rank = $position;
+                }
+
+                $row['rank'] = $rank;
+
+                $previousKey = $currentKey;
+            }
         }
 
         return $scoresByCategory;

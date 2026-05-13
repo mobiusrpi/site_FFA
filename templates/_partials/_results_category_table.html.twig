@@ -1,11 +1,10 @@
     {# _partials/_results_category_table.html.twig #}
 
 {% set hasCrewEntity = false %}
-{% for row in ranking %}
-    {% if not hasCrewEntity and row.crewEntity.pilot is defined and row.crewEntity.pilot is not null %}
-        {% set hasCrewEntity = true %}
-    {% endif %}
-{% endfor %}
+{% set hasCrewEntity = ranking
+    |filter(r => r.crew is defined and r.crew is not null)
+    |length > 0 %}
+
 {% set competTypeId = competition.typecompetition.id %}
 <table class="table table-bordered table-sm print-table w-100">
     <thead>
@@ -80,7 +79,7 @@
             {% set isDNS      = row.dns == -1 %}
             {% set isDNF      = row.dns == 1 %}
             {% set isOut      = isDNS or isDNF %}
-            {% set crewEntity = row.crewEntity ?? null %}
+            {% set crewEntity = row.crew ?? null %}
 
            {% if crewEntity and crewEntity.pilot is defined %}
                 {% set pilot = crewEntity.pilot %}
@@ -93,7 +92,7 @@
 
             <tr>
 
-                <td  class="text-center">{{ row.rank }}</td>
+                <td  class="text-center">{{ row.rank ?? '-' }}</td>
 
                 {# --- NOMS --- #}
                 <td style="white-space: nowrap;">
@@ -107,7 +106,7 @@
                     {% endif %}
 
                     {% if not pilot %}
-                        {{ row.crew ?? '-' }}
+                        {{ row.crewName ?? row.crew ?? '-' }}
                     {% endif %}
   
                 </td>
