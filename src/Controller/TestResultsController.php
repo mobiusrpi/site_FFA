@@ -392,7 +392,7 @@ final class TestResultsController extends AbstractController
             throw $this->createNotFoundException('Compétition non trouvée');
         }
         $detailedScores = $scoringService->calculateDetailedScores($competition);
-        
+
         $results = [];
 
         foreach ($competition->getTests() as $test) {
@@ -432,7 +432,7 @@ final class TestResultsController extends AbstractController
 
         foreach ($scoreByCategory as $category => $crews) {
             foreach ($crews as $crewData) {
-                foreach ($crewData['tests'] as $tid => $result) {
+                foreach (($crewData['tests'] ?? []) as $tid => $result) {
                     if (($result['total'] ?? null) !== null) {
                         $testsWithResults[$tid] = true;
                     }

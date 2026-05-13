@@ -382,6 +382,7 @@ if ($typeId === 1) {
                     'total'          => 0,
                     'dns'            => false,
                     'speed'          => $crew?->getAircraftSpeed()?->value ?? 0,
+                    'tests'          => [],
                 ];
             }
 
