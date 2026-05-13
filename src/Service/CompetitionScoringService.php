@@ -369,10 +369,13 @@ if ($typeId === 1) {
                 continue; // pas de crew connu, ignorer
             }
 
-            $category = $result->getCategory() ?? 'Hors Catégorie';
+            $crewCategory = $crew?->getCategory()?->value
+                ?? $result->getCategory()
+                ?? 'Hors Catégorie';
 
-            if (!isset($scoresByCategory[$category][$crewId])) {
-                $scoresByCategory[$category][$crewId] = [
+            if (!isset($scoresByCategory[$crewCategory][$crewId])) {
+
+                $scoresByCategory[$crewCategory][$crewId] = [
                     'crew'           => $crewName,
                     'crewEntity'     => $crew,
                     'nav'            => null,
@@ -391,65 +394,65 @@ if ($typeId === 1) {
             switch ($code) {
                 case 'NAV':
                     // Accumuler navigation
-                    $scoresByCategory[$category][$crewId]['nav'] = 
-                        ($scoresByCategory[$category][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
+                    $scoresByCategory[$crewCategory][$crewId]['nav'] = 
+                        ($scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
 
                     // Accumuler observation
-                    $scoresByCategory[$category][$crewId]['obs'] = 
-                        ($scoresByCategory[$category][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
+                    $scoresByCategory[$crewCategory][$crewId]['obs'] = 
+                        ($scoresByCategory[$crewCategory][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
 
                     if ($typeId === 1) { 
-                        $scoresByCategory[$category][$crewId]['att'] =
-                                ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                        $scoresByCategory[$crewCategory][$crewId]['att'] =
+                                ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     }
 
                     if ($typeId === 2) { // Précision
-                        $scoresByCategory[$category][$crewId]['flightPlanning'] = 
-                            ($scoresByCategory[$category][$crewId]['flightPlanning'] ?? 0) + ($result->getFlightPlanning() ?? 0);
+                        $scoresByCategory[$crewCategory][$crewId]['flightPlanning'] = 
+                            ($scoresByCategory[$crewCategory][$crewId]['flightPlanning'] ?? 0) + ($result->getFlightPlanning() ?? 0);
                     }
 
                     if (str_contains(strtoupper($result->getTest()->getCode()), 'ATT')) {
-                        $scoresByCategory[$category][$crewId]['att'] = 
-                            ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                        $scoresByCategory[$crewCategory][$crewId]['att'] = 
+                            ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     }
                     break;
 
                 case 'ATT':
-                    $scoresByCategory[$category][$crewId]['att'] = 
-                        ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    $scoresByCategory[$crewCategory][$crewId]['att'] = 
+                        ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     break;
 
                 case 'ANR':
-                    $scoresByCategory[$category][$crewId]['nav'] = 
-                        ($scoresByCategory[$category][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
-                    $scoresByCategory[$category][$crewId]['att'] = 
-                        ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                    $scoresByCategory[$crewCategory][$crewId]['nav'] = 
+                        ($scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
+                    $scoresByCategory[$crewCategory][$crewId]['att'] = 
+                        ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     break;
 
                 default:    
                     if ($typeId === 1) { // Rallye
-                        $scoresByCategory[$category][$crewId]['nav'] = 
-                            ($scoresByCategory[$category][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
-                        $scoresByCategory[$category][$crewId]['obs'] = 
-                            ($scoresByCategory[$category][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
-                        $scoresByCategory[$category][$crewId]['att'] = 
-                            ($scoresByCategory[$category][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
+                        $scoresByCategory[$crewCategory][$crewId]['nav'] = 
+                            ($scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0) + ($result->getNavigation() ?? 0);
+                        $scoresByCategory[$crewCategory][$crewId]['obs'] = 
+                            ($scoresByCategory[$crewCategory][$crewId]['obs'] ?? 0) + ($result->getObservation() ?? 0);
+                        $scoresByCategory[$crewCategory][$crewId]['att'] = 
+                            ($scoresByCategory[$crewCategory][$crewId]['att'] ?? 0) + ($result->getLanding() ?? 0);
                     }        
                     break;
             }
 
             // Gestion DNS
             if ($result->isDns()) {
-                $scoresByCategory[$category][$crewId]['dns'] = true;
-                $scoresByCategory[$category][$crewId]['total'] = null;
+                $scoresByCategory[$crewCategory][$crewId]['dns'] = true;
+                $scoresByCategory[$crewCategory][$crewId]['total'] = null;
             } else {
                 // Recalcule du total (null si une épreuve non faite)
-                $nav   = $scoresByCategory[$category][$crewId]['nav'] ?? 0;
-                $obs   = $scoresByCategory[$category][$crewId]['obs'] ?? 0;
-                $att   = $scoresByCategory[$category][$crewId]['att'] ?? 0;
-                $fp    = $scoresByCategory[$category][$crewId]['flightPlanning'] ?? 0;
+                $nav   = $scoresByCategory[$crewCategory][$crewId]['nav'] ?? 0;
+                $obs   = $scoresByCategory[$crewCategory][$crewId]['obs'] ?? 0;
+                $att   = $scoresByCategory[$crewCategory][$crewId]['att'] ?? 0;
+                $fp    = $scoresByCategory[$crewCategory][$crewId]['flightPlanning'] ?? 0;
 
-                $scoresByCategory[$category][$crewId]['total'] = $nav + $obs + $att + $fp;
+                $scoresByCategory[$crewCategory][$crewId]['total'] = $nav + $obs + $att + $fp;
             }
         }
 
