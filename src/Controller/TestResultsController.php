@@ -146,6 +146,11 @@ final class TestResultsController extends AbstractController
             if (!$category) {
                 continue;
             }
+             // Exclure Découverte
+            if ($category === Category::Discovery->value) {
+                continue;
+            }
+
             $dns = $result->getDns() ?? 0;
             $crewKey = $crew ? $crew->getId() : $result->getLiteralCrew();
 
@@ -205,7 +210,12 @@ final class TestResultsController extends AbstractController
                 $category = $result->getCategory();
             }
 
-            if (!$category) continue;
+            if (!$category) 
+                continue;
+
+            if ($category === Category::Discovery->value) {
+                continue;
+            }
 
             $dns = $result->getDns() ?? 0;
 
@@ -275,6 +285,10 @@ final class TestResultsController extends AbstractController
                 continue;
             }
 
+            if ($category === Category::Discovery->value) {
+                continue;
+            }
+
             $crewId = $crew->getId();
             $dns = $result->getDns() ?? 0;
 
@@ -331,22 +345,26 @@ final class TestResultsController extends AbstractController
             throw $this->createNotFoundException('Compétition non trouvée');
         }
 
+        $categoryEnum = Category::from($category);
+
         $results = [];
 
         foreach ($competition->getTests() as $test) {
 
             if (!$test->isResultsValidated()) {
-                continue;
+                continue; 
             }
 
             foreach ($test->getTestResults() as $result) {
 
                 $crew = $result->getCrew();
+                $crewCategory = $crew?->getCategory();
 
-                $categoryLabel = $crew?->getCategory()?->value
-                    ?? $result->getCategory();
+                if ($crewCategory === Category::Discovery) {
+                    continue;
+                }
 
-                if ($categoryLabel !== $category) {
+                if ($crewCategory !== $categoryEnum) {
                     continue;
                 }
 
@@ -402,6 +420,15 @@ final class TestResultsController extends AbstractController
             }
 
             foreach ($test->getTestResults() as $result) {
+
+                $crew = $result->getCrew();
+                $category = $crew?->getCategory();
+
+                // Exclure Découverte
+                if ($category === Category::Discovery) {
+                    continue;
+                }
+
                 $results[] = $result;
             }
         }

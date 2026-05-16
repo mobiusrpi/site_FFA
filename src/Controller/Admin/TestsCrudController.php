@@ -280,10 +280,8 @@ class TestsCrudController extends AbstractCrudController
             return $this->redirectToRoute('home');
         }
 
-        $tests = $this->testsRepository->findByCompetitions($competitions);
-
         $competitions = $this->competitionsRepository
-            ->findAccessibleCompetitionsForUserByYear($user, $userRoles, $year);
+            ->findAccessibleCompetitionsForUserByYear($user, $userRoles, $year); 
 
         $grouped = [];
 

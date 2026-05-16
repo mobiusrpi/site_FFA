@@ -394,7 +394,7 @@ class CrewsCrudController extends AbstractCrudController
 
 
         $crews = $this->crewsRepository->findByCompetitions($competitionIds);
-
+    
         $grouped = [];
 
         foreach ($crews as $crew) {
@@ -416,7 +416,16 @@ class CrewsCrudController extends AbstractCrudController
             $grouped[$competitionId]['crews'][] = $crew;
         }    
         
-        ksort($grouped);
+        uasort($grouped, function ($a, $b) {
+            $dateA = $a['competition']->getStartDate();
+            $dateB = $b['competition']->getStartDate();
+
+            if ($dateA == $dateB) {
+                return 0;
+            }
+
+            return $dateA <=> $dateB;
+        });
 
         return $this->render('admin/crews/crew_index_grouped.html.twig', [
             'grouped' => $grouped,
