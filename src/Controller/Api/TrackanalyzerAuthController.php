@@ -88,6 +88,9 @@ class TrackanalyzerAuthController extends AbstractController
             'saved' => $saved,
             'isHitAfterSave' => $cache->getItem($cacheKey)->isHit(),
         ]);
+        if (!$saved) {
+            return $this->xmlError('CACHE_ERROR');
+        }
         $logger->info('Token stored in cache by :', [
             'email' => $user->getEmail()
         ]);
