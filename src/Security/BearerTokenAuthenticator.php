@@ -51,6 +51,7 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
 
     public function authenticate(Request $request): Passport
     {
+
         $authHeader = $request->headers->get('Authorization');
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             throw new AuthenticationException('No Bearer token found');
@@ -63,6 +64,11 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
         }
         $email = $cacheItem->get();
 
+        $this->logger->critical('TOKEN CACHE READ', [
+            'key' => 'trackanalyzer_token_' . $token,
+            'isHit' => $cacheItem->isHit(),
+        ]);
+        
         return new SelfValidatingPassport(
             new UserBadge($email, function (string $identifier) {
                 return $this->userProvider->loadUserByIdentifier($identifier);
