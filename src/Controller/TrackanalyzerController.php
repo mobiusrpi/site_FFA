@@ -276,7 +276,7 @@ class TrackanalyzerController extends AbstractController
     public function importResultsScores(Request $request, LoggerInterface $logger,): JsonResponse
     {
         $rawJson = $request->getContent(); // ← ce que Symfony a reçu
-        $logger->critical('JSON DATA', [
+        $logger->debug('JSON DATA', [
             'json' => $rawJson,
         ]);  
         

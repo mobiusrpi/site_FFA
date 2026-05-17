@@ -108,9 +108,15 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            $now = new \DateTimeImmutable();
+
             $token = $jwt->generate(
                 ['type' => 'JWT', 'alg' => 'HS256'],
-                ['user_id' => $user->getId()],
+                [
+                    'user_id' => $user->getId(),
+                    'iat' => $now->getTimestamp(),
+                    'exp' => $now->modify('+2 hour')->getTimestamp()
+                ],             
                 $this->getParameter('app.jwtsecret')
             );
 
