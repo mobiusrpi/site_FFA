@@ -64,6 +64,11 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
         }
         $email = $cacheItem->get();
 
+        $this->logger->critical('TOKEN CACHE READ', [
+            'key' => 'trackanalyzer_token_' . $token,
+            'isHit' => $cacheItem->isHit(),
+        ]);
+        
         return new SelfValidatingPassport(
             new UserBadge($email, function (string $identifier) {
                 return $this->userProvider->loadUserByIdentifier($identifier);
