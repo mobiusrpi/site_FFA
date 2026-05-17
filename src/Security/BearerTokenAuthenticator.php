@@ -63,11 +63,6 @@ class BearerTokenAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Token invalid');
         }
         $email = $cacheItem->get();
-
-        $this->logger->critical('TOKEN CACHE READ', [
-            'key' => 'trackanalyzer_token_' . $token,
-            'isHit' => $cacheItem->isHit(),
-        ]);
         
         return new SelfValidatingPassport(
             new UserBadge($email, function (string $identifier) {
