@@ -107,10 +107,15 @@ class RegistrationController extends AbstractController
 
             $entityManager->persist($user);
             $entityManager->flush();
-
+            
+            $now = time();
             $token = $jwt->generate(
                 ['type' => 'JWT', 'alg' => 'HS256'],
-                ['user_id' => $user->getId()],
+                [
+                    'user_id' => $user->getId(),
+                    'iat' => $now,
+                    'exp' => $now + 7200,                
+                ],
                 $this->getParameter('app.jwtsecret')
             );
 
