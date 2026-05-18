@@ -622,7 +622,7 @@ class TrackanalyzerController extends AbstractController
 
             return new JsonResponse([
                 'success'     => true,
-                'competition' => $competition->getCode(),
+                'competition' => $testCode,
                 'competitor'  => $crewId
             ]);
 
