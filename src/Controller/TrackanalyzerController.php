@@ -477,7 +477,7 @@ class TrackanalyzerController extends AbstractController
     ): JsonResponse {
 
         try {
-            $competitor = $request->request->get('competitor');
+            $crewId = $request->request->get('competitor');
             $testCode = $request->request->get('test');
             $testCode = strtoupper(trim($testCode));
             /**
@@ -486,7 +486,7 @@ class TrackanalyzerController extends AbstractController
             $zipFile = $request->files->get('file');
 
             // Vérifications
-            if (!$competitor) {
+            if (!$crewId) {
                 return new JsonResponse([
                     'success' => false,
                     'error'   => 'Missing competitor'
@@ -506,6 +506,7 @@ class TrackanalyzerController extends AbstractController
                     'error'   => 'Missing ZIP file'
                 ], 400);
             }
+
             $test = $em
                 ->getRepository(Tests::class)
                 ->findOneBy([
@@ -532,7 +533,7 @@ class TrackanalyzerController extends AbstractController
                 ->getRepository(Crews::class)
                 ->findOneBy([
                     'competition'  => $competition,
-                    'competitorNum' => $competitor
+                    'id' => $crewId
                 ]);
 
             if (!$crew) {
@@ -548,7 +549,7 @@ class TrackanalyzerController extends AbstractController
                 . '/storage/competitions/'
                 . $testCode
                 . '/competitors/'
-                . $competitor;
+                . $crewId;
 
             if (!is_dir($targetDir)) {
                 mkdir(
@@ -622,7 +623,7 @@ class TrackanalyzerController extends AbstractController
             return new JsonResponse([
                 'success'     => true,
                 'competition' => $competition->getCode(),
-                'competitor'  => $competitor
+                'competitor'  => $crewId
             ]);
 
         } catch (\Exception $e) {
