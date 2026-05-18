@@ -41,90 +41,146 @@
                     {% endif %}
                 </tr>
             </thead>
-            <tbody>     
-                {% for compet in competByUser_list %} 
+            <tbody>
+                {% for crew in crews %}
                     <tr>
-                        <th scope="row">{{ compet.name }}</td>
-                        <td>{{ compet.typecompetition.typeComp }}</td> 
-                        <td>{{ compet.location }}</td>
-                        <td class='text-center min-width-70'> {{ compet.startRegistration|date('d-m') }}</td>  
-                        {% if compet.endRegistration <= date('now') %}
-                            <td class='text-center text-danger min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
-                        {% else %}
-                            <td class='text-center text-dark min-width-70'>{{ compet.endRegistration|date('d-m') }}</td>
-                        {% endif %}                         
-                        <td>{{ compet.startDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
-                        <td>{{ compet.endDate|format_datetime(locale='fr',pattern='dd MMMM YYYY') }}</td>
-                        {% if is_granted('ROLE_USER') %}                               
-                            <td>                             
-  
-                                <div class="d-flex justify-content-center gap-2">
-                                    {# Edit button #}
-                                    <a href="{{ path('edit_crew',{'competId': compet.id} ) }}"
+
+                        <th scope="row">
+                            {{ crew.competition.name }}
+                        </th>
+
+                        <td>
+                            {{ crew.competition.typecompetition.typeComp }}
+                        </td>
+
+                        <td>
+                            {{ crew.competition.location }}
+                        </td>
+
+                        <td class="text-center min-width-70">
+                            {{ crew.competition.startRegistration|date('d-m') }}
+                        </td>
+
+                        <td class="text-center min-width-70">
+                            {{ crew.competition.endRegistration|date('d-m') }}
+                        </td>
+
+                        <td>
+                            {{ crew.competition.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                        </td>
+
+                        <td>
+                            {{ crew.competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                        </td>
+
+                        {% if is_granted('ROLE_USER') %}
+
+                            {% if date('now') <= crew.competition.endDate %}
+
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+
+                                        <a href="{{ path('edit_crew', {'competId': crew.competition.id}) }}"
                                         class="btn btn-outline-success btn-sm"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        title="Modifier l'insciption">
+                                        title="Modifier l'inscription">
                                             <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                    {# Delete button #}
-                                    {% if compet.startDate > date('now') %}
-                                        <form method="post" action="{{ path('crews_delete', {'competId': compet.id}) }}"
-                                            onsubmit="return confirm('Confirmer la suppression de votre inscription ?');">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ compet.id) }}">
+                                        </a>
+
+                                        <form method="post"
+                                            action="{{ path('crews_delete', {'competId': crew.competition.id}) }}"
+                                            onsubmit="return confirm('Confirmer la suppression ?');">
+
+                                            <input type="hidden" name="_token"
+                                                value="{{ csrf_token('delete' ~ crew.competition.id) }}">
+
                                             <button class="btn btn-outline-danger btn-sm"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
                                                     title="Supprimer l'inscription">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
-                                    {% endif %}    
-                                </div>                                                       
-                            </td>                              
-                        {% endif %}       
+                                    </div>
+                                </td>
+                            {% else %}
+                                <td>
+                                    {% if crew.hasFiles %}
+                                        <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
+                                        class="btn btn-outline-primary btn-sm"
+                                        title="Télécharger les fichiers">
+                                            <i class="fa-solid fa-download"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        {% endif %}
                     </tr>
-                {% endfor %} 
+                {% endfor %}
             </tbody>
         </table>
         <!-- Cards for small screens -->
         <div class="d-md-none">
-            {% for compet in competByUser_list %}
+            {% for crew in crews %}
                 <div class="card mb-3 shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">{{ compet.name }}</h5>
-                        <p class="card-text mb-1"><strong>Type:</strong> {{ compet.typecompetition.typeComp }}</p>
-                        <p class="card-text mb-1"><strong>Lieu:</strong> {{ compet.location }}</p>
-                        <p class="card-text mb-1"><strong>Inscription:</strong> 
-                            {{ compet.startRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
-                            <span class="{{ compet.endRegistration <= date('now') ? 'text-danger' : '' }}">
-                                {{ compet.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                        <h5 class="card-title">
+                            {{ crew.competition.name }}
+                        </h5>
+                        <p class="card-text mb-1">
+                            <strong>Type:</strong>
+                            {{ crew.competition.typecompetition.typeComp }}
+                        </p>
+                        <p class="card-text mb-1">
+                            <strong>Lieu:</strong>
+                            {{ crew.competition.location }}
+                        </p>
+                        <p class="card-text mb-1">
+                            <strong>Inscription:</strong>
+                            {{ crew.competition.startRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                            –
+                            <span class="{{ crew.competition.endRegistration <= date('now') ? 'text-danger' : '' }}">
+                                {{ crew.competition.endRegistration|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                             </span>
                         </p>
-                        <p class="card-text mb-2"><strong>Compétition:</strong> 
-                            {{ compet.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }} – 
-                            {{ compet.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                        <p class="card-text mb-2">
+                            <strong>Compétition:</strong>
+                            {{ crew.competition.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
+                            –
+                            {{ crew.competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                         </p>
-
                         {% if is_granted('ROLE_USER') %}
-                            <div class="d-flex gap-2 justify-content-center mt-3">
-
-                                    <a href="{{ path('edit_crew', {'competId': compet.id}) }}"
+                            {% if date('now') <= crew.competition.endDate %}
+                                <div class="d-flex flex-column gap-2 mt-3">
+                                    <a href="{{ path('edit_crew', {'competId': crew.competition.id}) }}"
                                     class="btn btn-outline-success btn-sm">
-                                        <i class="fa-solid fa-pen-to-square me-1"></i> Modifier
+                                        <i class="fa-solid fa-pen-to-square me-1"></i>
+                                        Modifier
                                     </a>
-
-                                    {% if compet.startDate > date('now') %}
-                                        <form method="post" action="{{ path('crews_delete', {'competId': compet.id}) }}"
+                                    {% if crew.competition.startDate > date('now') %}
+                                        <form method="post"
+                                            action="{{ path('crews_delete', {'competId': crew.competition.id}) }}"
                                             onsubmit="return confirm('Confirmer la suppression de votre inscription ?');">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ compet.id) }}">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                <i class="fa-solid fa-trash me-1"></i> Supprimer
+
+                                            <input type="hidden" name="_token"
+                                                value="{{ csrf_token('delete' ~ crew.competition.id) }}">
+
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm">
+                                                <i class="fa-solid fa-trash me-1"></i>
+                                                Supprimer
                                             </button>
                                         </form>
+                                    {% endif %} 
+                                </div>                            
+                            {% else %}
+                                <div>  
+                                    {% if crew.hasFiles %}
+                                        <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
+                                        class="btn btn-outline-primary btn-sm">
+                                            <i class="fa-solid fa-download me-1"></i>
+                                            Télécharger
+                                        </a>
                                     {% endif %}
-
-                            </div>
+                                </div>                                      
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>

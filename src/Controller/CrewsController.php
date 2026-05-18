@@ -430,18 +430,46 @@ public function __construct(
 
 #[Route('/crews/userRegistration/list', name: 'user_registrations_list')]
 #[IsGranted('ROLE_USER')]
-public function registration_list(
+    public function registration_list(
         CrewsRepository $repositoryCrew,
-        Security $security,                 
-    ): Response 
-    {       
-        /** @var Users|null $user */
+        Security $security
+    ): Response {
+
         $user = $security->getUser();
 
-        $competByUser = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
+        $crews = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
+
+        $projectDir = $this->getParameter('kernel.project_dir');
+
+        foreach ($crews as $crew) {
+
+            $competition = $crew->getCompetition();
+
+            $hasFiles = false;
+
+            foreach ($competition->getTests() as $test) {
+
+                $testCode = $test->getCode();
+
+                $directory =
+                    $projectDir
+                    . '/storage/competitions/'
+                    . $testCode
+                    . '/competitors/'
+                    . $crew->getId();
+
+                if (glob($directory . '/*.zip')) {
+                    $hasFiles = true;
+                    break;
+                }
+            }
+
+            // propriété dynamique (OK pour Twig)
+            $crew->hasFiles = $hasFiles;
+        }
 
         return $this->render('pages/crews/registrationCrewsList.html.twig', [
-            'competByUser_list' => $competByUser            
+            'crews' => $crews
         ]);
     }
 
@@ -642,4 +670,65 @@ public function registration_list(
         ]);
     }
 
+    #[Route('/crew/{crewId}/download-all-files', name: 'crew_download_all_files', methods: ['GET'])]
+    public function downloadAllFiles(
+        int $crewId,
+        EntityManagerInterface $em
+    ): Response {
+
+        $crew = $em->getRepository(Crews::class)->find($crewId);
+
+        if (!$crew) {
+            throw $this->createNotFoundException('Crew not found');
+        }
+
+        $competition = $crew->getCompetition();
+
+        if (!$competition) {
+            throw $this->createNotFoundException('Competition not found');
+        }
+
+        $projectDir = $this->getParameter('kernel.project_dir');
+
+        $tmpZipPath = sys_get_temp_dir() . '/crew_' . $crewId . '_all.zip';
+
+        $zip = new \ZipArchive();
+
+        if ($zip->open($tmpZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            throw new \RuntimeException('Cannot create zip');
+        }
+
+        foreach ($competition->getTests() as $test) {
+
+            $testCode = $test->getCode();
+
+            $dir =
+                $projectDir
+                . '/storage/competitions/'
+                . $testCode
+                . '/competitors/'
+                . $crewId;
+
+            if (!is_dir($dir)) {
+                continue;
+            }
+
+            foreach (glob($dir . '/*') as $file) {
+
+                if (!is_file($file)) {
+                    continue;
+                }
+
+                // structure dans le zip
+                $zip->addFile(
+                    $file,
+                    $testCode . '/' . basename($file)
+                );
+            }
+        }
+
+        $zip->close();
+
+        return $this->file($tmpZipPath, 'crew_' . $crewId . '.zip');
+    }
 }

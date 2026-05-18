@@ -612,6 +612,7 @@ class TrackanalyzerController extends AbstractController
                 }
 
                 $zip->close();
+                unlink($zipPath);
 
             } else {
                 return new JsonResponse([

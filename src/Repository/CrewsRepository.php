@@ -20,16 +20,16 @@ class CrewsRepository extends ServiceEntityRepository
 
     public function getQueryRegistrationsCrews($id)
     {
-        return $this->createQueryBuilder('crew') 
-            ->select('compet')  
-            ->leftJoin('App\Entity\Competitions', 'compet','WITH',' crew.competition = compet.id')        
-            ->where('crew.pilot = :userId OR crew.navigator = :userId')  
-            ->andWhere('compet.endDate > CURRENT_DATE()')  
-            ->setParameter('userId',$id)                
-            ->orderBy('compet.startDate', 'ASC')         
+        return $this->createQueryBuilder('crew')
+            ->leftJoin('crew.competition', 'compet')
+            ->addSelect('compet')
+            ->leftJoin('compet.tests', 'test')
+            ->addSelect('test')
+            ->where('crew.pilot = :userId OR crew.navigator = :userId')
+            ->setParameter('userId', $id)
+            ->orderBy('compet.startDate', 'ASC')
             ->getQuery()
-            ->getResult()   
-        ;
+            ->getResult();
     }
 
     public function getQueryCrewCompetition($userId,$competId)
