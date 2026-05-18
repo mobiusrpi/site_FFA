@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Crews;
 use App\Entity\Tests;
+use App\Entity\Competitions;
 use App\Entity\TestResults;
 use Psr\Log\LoggerInterface;
 use App\Entity\TestStartOrder;
@@ -463,6 +464,168 @@ class TrackanalyzerController extends AbstractController
         return $this->json(['status' => 'ok']);
     }   
     
+    /**
+ * load competitor file function
+ *
+ * @param Request $request
+ * @param EntityManagerInterface $em
+ */
+    #[Route('/3rdparty/trackanalyzer/load-competitor-files', name: 'trackanalyzer_load_competitor_files', methods: ['POST'])]
+    public function loadCompetitorFiles(
+        Request $request,
+        EntityManagerInterface $em
+    ): JsonResponse {
+
+        try {
+            $competitor = $request->request->get('competitor');
+            $testCode = $request->request->get('test');
+            $testCode = strtoupper(trim($testCode));
+            /**
+             * @var UploadedFile|null $zipFile
+             */
+            $zipFile = $request->files->get('file');
+
+            // Vérifications
+            if (!$competitor) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Missing competitor'
+                ], 400);
+            }
+
+            if (!$testCode) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Missing test code'
+                ], 400);
+            }
+
+            if (!$zipFile) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Missing ZIP file'
+                ], 400);
+            }
+
+            // Recherche compétition
+            $competition = $em
+                ->getRepository(Competitions::class)
+                ->findOneBy(['code' => $testCode ]);
+
+            if (!$competition) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Competition not found'
+                ], 404);
+
+            }
+
+            $crew = $em
+                ->getRepository(Crews::class)
+                ->findOneBy([
+                    'competition'  => $competition,
+                    'competitorNum' => $competitor
+                ]);
+
+            if (!$crew) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Competitor not found'
+                ], 404);
+            }
+
+            // Répertoire cible
+            $targetDir =
+                $this->getParameter('kernel.project_dir')
+                . '/storage/competitions/'
+                . $testCode
+                . '/competitors/'
+                . $competitor;
+
+            if (!is_dir($targetDir)) {
+                mkdir(
+                    $targetDir,
+                    0777,
+                    true
+                );
+            }
+
+            // Nom fichier ZIP
+            $zipFilename =
+                $zipFile->getClientOriginalName();
+
+            // Sauvegarde ZIP
+            $zipFile->move(
+                $targetDir,
+                $zipFilename
+            );
+
+            $zipPath =
+                $targetDir . '/'
+                . $zipFilename;
+
+            // Décompression
+            $zip = new \ZipArchive();
+
+            if ($zip->open($zipPath) === true) {
+                for (
+                    $i = 0;
+                    $i < $zip->numFiles;
+                    $i++
+                ) {
+                    $entry =
+                        $zip->getNameIndex($i);
+
+                    // sécurité
+                    if (
+                        str_contains($entry, '..')
+                    ) {
+                        continue;
+                    }
+
+                    $stream =
+                        $zip->getStream($entry);
+
+                    if (!$stream) {
+                        continue;
+                    }
+
+                    $content =
+                        stream_get_contents($stream);
+
+                    fclose($stream);
+
+                    file_put_contents(
+                        $targetDir . '/'
+                        . basename($entry),
+                        $content
+                    );
+                }
+
+                $zip->close();
+
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Invalid ZIP'
+                ], 400);
+            }
+
+            return new JsonResponse([
+                'success'     => true,
+                'competition' => $competition->getCode(),
+                'competitor'  => $competitor
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+
+    }   
+
     #[Route('/3rdparty/trackanalyzer/copy-start-order', name: 'trackanalyzer_copy_start_order', methods: ['POST'])]
     public function copyStartOrder(
         Request $request, 

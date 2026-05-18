@@ -8,6 +8,7 @@ parameters:
     apiUrlSmileDetails: '%env(API_URL_SMILE_DETAILS)%'
     programmes_directory: '%kernel.project_dir%/public/uploads/programmes'
     mailer_from: '%env(MAILER_FROM)%'
+    app.storage_dir: '%kernel.project_dir%/storage'
     
 services:
     # default configuration for services in *this* file
