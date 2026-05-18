@@ -549,7 +549,7 @@ class TrackanalyzerController extends AbstractController
                 . '/storage/competitions/'
                 . $testCode
                 . '/competitors/'
-                . $crewId;
+                . (int)$crew->getId();
 
             if (!is_dir($targetDir)) {
                 mkdir(
