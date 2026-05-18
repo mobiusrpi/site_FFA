@@ -506,18 +506,26 @@ class TrackanalyzerController extends AbstractController
                     'error'   => 'Missing ZIP file'
                 ], 400);
             }
+            $test = $em
+                ->getRepository(Tests::class)
+                ->findOneBy([
+                    'code' => $testCode
+                ]);
+
+            if (!$test) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error' => 'Test not found'
+                ], 404);
+            }
 
             // Recherche compétition
-            $competition = $em
-                ->getRepository(Competitions::class)
-                ->findOneBy(['code' => $testCode ]);
-
+            $competition = $test->getCompetition();
             if (!$competition) {
                 return new JsonResponse([
                     'success' => false,
                     'error'   => 'Competition not found'
                 ], 404);
-
             }
 
             $crew = $em
