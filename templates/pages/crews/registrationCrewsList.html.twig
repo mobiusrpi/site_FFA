@@ -44,42 +44,31 @@
             <tbody>
                 {% for crew in crews %}
                     <tr>
-
                         <th scope="row">
                             {{ crew.competition.name }}
                         </th>
-
                         <td>
                             {{ crew.competition.typecompetition.typeComp }}
                         </td>
-
                         <td>
                             {{ crew.competition.location }}
                         </td>
-
                         <td class="text-center min-width-70">
                             {{ crew.competition.startRegistration|date('d-m') }}
                         </td>
-
                         <td class="text-center min-width-70">
                             {{ crew.competition.endRegistration|date('d-m') }}
                         </td>
-
                         <td>
                             {{ crew.competition.startDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                         </td>
-
                         <td>
                             {{ crew.competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                         </td>
-
                         {% if is_granted('ROLE_USER') %}
-
-                            {% if date('now') <= crew.competition.endDate %}
-
-                                <td>
-                                    <div class="d-flex justify-content-center gap-2">
-
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    {% if date('now') <= crew.competition.endDate %}
                                         <a href="{{ path('edit_crew', {'competId': crew.competition.id}) }}"
                                         class="btn btn-outline-success btn-sm"
                                         title="Modifier l'inscription">
@@ -98,19 +87,17 @@
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
-                                    </div>
-                                </td>
-                            {% else %}
-                                <td>
-                                    {% if crew.hasDownloadFiles %} 
+                                    {% elseif crew.hasDownloadFiles %} 
                                         <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
                                         class="btn btn-outline-primary btn-sm"
                                         title="Télécharger les fichiers">
                                             <i class="fa-solid fa-download"></i>
                                         </a>
-                                    {% endif %}
-                                </td>
-                            {% endif %}
+                                    {% else %}
+                                       Résultats validés
+                                    {% endif %}                                    
+                                </div>
+                            </td>
                         {% endif %}
                     </tr>
                 {% endfor %}
@@ -147,9 +134,8 @@
                             {{ crew.competition.endDate|format_datetime(locale='fr', pattern='dd MMMM YYYY') }}
                         </p>
                         {% if is_granted('ROLE_USER') %}
-                            {% if date('now') <= crew.competition.endDate %}
-                                <div class="d-flex flex-column gap-2 mt-3">
-                                    <a href="{{ path('edit_crew', {'competId': crew.competition.id}) }}"
+                            <div class="d-flex flex-column gap-2 mt-3">
+                                {% if date('now') <= crew.competition.endDate %}                                    <a href="{{ path('edit_crew', {'competId': crew.competition.id}) }}"
                                     class="btn btn-outline-success btn-sm">
                                         <i class="fa-solid fa-pen-to-square me-1"></i>
                                         Modifier
@@ -167,17 +153,15 @@
                                                 <i class="fa-solid fa-trash me-1"></i>
                                                 Supprimer
                                             </button>
-                                        </form>
-                                    {% endif %} 
-                                </div>                            
-                            {% else %}
-                                <div>  
-                                    {% if crew.hasDownloadFiles %}
+                                        </form>                 
+                                    {% elseif crew.hasDownloadFiles %}
                                         <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
                                         class="btn btn-outline-primary btn-sm">
                                             <i class="fa-solid fa-download me-1"></i>
                                             Télécharger
                                         </a>
+                                    {% else %}
+                                        Résultats validés
                                     {% endif %}
                                 </div>                                      
                             {% endif %}
