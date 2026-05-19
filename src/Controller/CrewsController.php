@@ -445,7 +445,7 @@ public function __construct(
 
             $competition = $crew->getCompetition();
 
-            $hasFiles = false;
+
 
             foreach ($competition->getTests() as $test) {
 
@@ -458,14 +458,9 @@ public function __construct(
                     . '/competitors/'
                     . $crew->getId();
 
-                if (glob($directory . '/*.zip')) {
-                    $hasFiles = true;
-                    break;
-                }
+
             }
 
-            // propriété dynamique (OK pour Twig)
-            $crew->hasFiles = $hasFiles;
         }
 
         return $this->render('pages/crews/registrationCrewsList.html.twig', [

@@ -485,27 +485,27 @@ class TrackanalyzerController extends AbstractController
              */
             $zipFile = $request->files->get('file');
 
-            // Vérifications
-            if (!$crewId) {
-                return new JsonResponse([
-                    'success' => false,
-                    'error'   => 'Missing competitor'
-                ], 400);
-            }
-
-            if (!$testCode) {
-                return new JsonResponse([
-                    'success' => false,
-                    'error'   => 'Missing test code'
-                ], 400);
-            }
-
             if (!$zipFile) {
                 return new JsonResponse([
                     'success' => false,
                     'error'   => 'Missing ZIP file'
                 ], 400);
             }
+
+            if (!$crewId) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Missing competitor : ' + $crewId
+                ], 400);
+            }
+
+            if (!$testCode) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error'   => 'Missing test code : ' + $testCode
+                ], 400);
+            }
+
 
             $test = $em
                 ->getRepository(Tests::class)

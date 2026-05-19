@@ -54,7 +54,7 @@
                     {% set immat = crew.callsign() %}
                     {% set immatriculations = immatriculations|merge({ (immat): (immatriculations[immat]|default(0)) + 1 }) %}
                 {% endfor %}
-
+  
                 {% for crew in groupData.crews %}
                     {% set immat = crew.callsign() %}
                     <tr>
@@ -70,17 +70,41 @@
                         {% else %}
                             <td>{{ crew.callsign() }}</td>                          
                         {% endif %}
-                     
+
+                        {% set resultsValidated = false %}
+
+                        {% for test in groupData.competition.tests %}
+                            {% if test.resultsValidated %}
+                                {% set resultsValidated = true %}
+                            {% endif %}
+                        {% endfor %}
+
                         <td>
                             <div class="d-flex gap-2">
-                                <a href="{{ ea_url().setAction('edit').setEntityId(crew.id) }}" class="btn btn-sm btn-primary">Modifier</a>
-                                <form method="post" action="{{ ea_url().setAction('delete').setEntityId(crew.id) }}"
-                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet équipage ?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ crew.id) }}">
-                                    <button class="btn btn-sm btn-outline text-danger">
-                                        <i class="fas fa-trash"></i> Supprimer
-                                    </button>
-                                </form>
+                                {% if not resultsValidated %}
+                                    <a href="{{ ea_url().setAction('edit').setEntityId(crew.id) }}"
+                                    class="btn btn-sm btn-primary">
+                                        Modifier
+                                    </a>
+
+                                    <form method="post"
+                                        action="{{ ea_url().setAction('delete').setEntityId(crew.id) }}"
+                                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet équipage ?');">
+                                        <input type="hidden"
+                                            name="_token"
+                                            value="{{ csrf_token('delete' ~ crew.id) }}">
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                {% elseif crew.hasDownloadZip %}
+                                    <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
+                                    class="btn btn-sm btn-success"
+                                    title="Télécharger les fichiers">
+                                        <i class="fa-solid fa-download me-1"></i>
+                                        Télécharger
+                                    </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

@@ -426,6 +426,13 @@ class Crews
         return $this->startOrders;
     }    
 
+    public function hasDownloadZip(): bool
+    {
+        $zipPath = sys_get_temp_dir() . '/crew_' . $this->getId() . '_all.zip';
+
+        return file_exists($zipPath);
+    }
+
     public function __toString(): string
     {
        return 'crew_inconnu';

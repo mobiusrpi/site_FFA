@@ -40,3 +40,6 @@ public/uploads/
 /public/css/*.css
 /public/js/*.js
 send_daily_mail.php
+
+# --- Storage track file ---
+storage/competitions/
