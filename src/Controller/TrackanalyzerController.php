@@ -495,17 +495,16 @@ class TrackanalyzerController extends AbstractController
             if (!$crewId) {
                 return new JsonResponse([
                     'success' => false,
-                    'error'   => 'Missing competitor : ' . $crewId
+                    'error'   => 'Missing competitor' 
                 ], 400);
             }
 
             if (!$testCode) {
                 return new JsonResponse([
                     'success' => false,
-                    'error'   => 'Missing test code : ' . $testCode
+                    'error'   => 'Missing test code'
                 ], 400);
             }
-
 
             $test = $em
                 ->getRepository(Tests::class)

@@ -23,7 +23,7 @@ class SendMailService
     ) {
         $this->mailer = $mailer;
         $this->logger = $logger;
-        $this->from   = $params->get('app.mail_from');
+        $this->from   = $params->get('app.mailer_from');
         $this->defaultReplyTo = $params->get('app.mail_reply_to');
     }
 
