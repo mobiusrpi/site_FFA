@@ -102,7 +102,7 @@
                                 </td>
                             {% else %}
                                 <td>
-                                    {% if crew.hasDownloadZip %} 
+                                    {% if crew.hasDownloadFiles %} 
                                         <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
                                         class="btn btn-outline-primary btn-sm"
                                         title="Télécharger les fichiers">
@@ -172,7 +172,7 @@
                                 </div>                            
                             {% else %}
                                 <div>  
-                                    {% if crew.hasDownloadZip %}
+                                    {% if crew.hasDownloadFiles %}
                                         <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
                                         class="btn btn-outline-primary btn-sm">
                                             <i class="fa-solid fa-download me-1"></i>

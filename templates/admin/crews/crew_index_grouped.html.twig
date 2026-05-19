@@ -97,7 +97,7 @@
                                             <i class="fas fa-trash"></i> Supprimer
                                         </button>
                                     </form>
-                                {% elseif crew.hasDownloadZip %}
+                                {% elseif crew.hasDownloadFiles %}
                                     <a href="{{ path('crew_download_all_files', {'crewId': crew.id}) }}"
                                     class="btn btn-sm btn-success"
                                     title="Télécharger les fichiers">

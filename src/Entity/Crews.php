@@ -426,11 +426,30 @@ class Crews
         return $this->startOrders;
     }    
 
-    public function hasDownloadZip(): bool
+    public function hasDownloadFiles(): bool
     {
-        $zipPath = sys_get_temp_dir() . '/crew_' . $this->getId() . '_all.zip';
+        $projectDir = dirname(__DIR__, 2);
 
-        return file_exists($zipPath);
+        foreach ($this->getCompetition()->getTests() as $test) {
+
+            $directory =
+                $projectDir
+                . '/storage/competitions/'
+                . $test->getCode()
+                . '/competitors/'
+                . $this->getId();
+
+            if (is_dir($directory)) {
+
+                $files = array_diff(scandir($directory), ['.', '..']);
+
+                if (count($files) > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function __toString(): string
