@@ -632,8 +632,7 @@ class UsersCrudController extends AbstractCrudController
             $data = $form->getData();
             $attachment = $form->get('attachment')->getData();
 
-            // Forcer subject et body en string
-            $replyTo = $form->get('replyTo')->getData() ?? $this->getParameter('mailer_from');
+            $replyTo = $userEmail;
 
             /** @var SubmitButton $previewButton */
             $previewButton = $form->get('preview');
@@ -660,10 +659,8 @@ class UsersCrudController extends AbstractCrudController
 
             // 🟢 BOUTON ENVOYER
             if ($sendButton->isClicked()) {
-
                 try {
                     foreach ($users as $user) {
-
                         $personalizedMessage = str_replace(
                             '<Prénom>',
                             htmlspecialchars($user->getFirstname()),
@@ -671,15 +668,7 @@ class UsersCrudController extends AbstractCrudController
                         );
 
                         $message = nl2br($personalizedMessage);
-        /*                $mailService->send(
-                            $user->getEmail(),
-                            $data['subject'],
-                            'user_email',   // pas de template
-                            [],
-                            $message,
-                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
-                            $replyTo
-                        );  */
+
                         $mailService->send(
                             $user->getEmail(),
                             $data['subject'],

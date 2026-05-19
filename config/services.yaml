@@ -7,8 +7,9 @@ parameters:
     app.jwtsecret: "%env(JWT_SECRET)%"
     apiUrlSmileDetails: '%env(API_URL_SMILE_DETAILS)%'
     programmes_directory: '%kernel.project_dir%/public/uploads/programmes'
-    mailer_from: '%env(MAILER_FROM)%'
+    app.mailer_from: '%env(MAILER_FROM)%'
     app.storage_dir: '%kernel.project_dir%/storage'
+    app.mail_reply_to: '%env(MAIL_REPLY_TO)%'
     
 services:
     # default configuration for services in *this* file

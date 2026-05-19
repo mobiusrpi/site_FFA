@@ -495,14 +495,14 @@ class TrackanalyzerController extends AbstractController
             if (!$crewId) {
                 return new JsonResponse([
                     'success' => false,
-                    'error'   => 'Missing competitor : ' + $crewId
+                    'error'   => 'Missing competitor : ' . $crewId
                 ], 400);
             }
 
             if (!$testCode) {
                 return new JsonResponse([
                     'success' => false,
-                    'error'   => 'Missing test code : ' + $testCode
+                    'error'   => 'Missing test code : ' . $testCode
                 ], 400);
             }
 

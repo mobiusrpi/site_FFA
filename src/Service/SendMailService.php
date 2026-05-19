@@ -4,24 +4,27 @@ namespace App\Service;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
 class SendMailService
 {
-    private MailerInterface $mailer;
-    private LoggerInterface $logger;
-    private string $from;
 
-    public function __construct(
-        MailerInterface $mailer,
-        LoggerInterface $logger,
+    private string $from;
+    private string $defaultReplyTo;
+
+    public function __construct(        
+        private MailerInterface $mailer,
+        private LoggerInterface $logger,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire('%env(MAILER_FROM)%')]
-        string $mailerFrom
+        string $mailerFrom,
+        ParameterBagInterface $params
     ) {
         $this->mailer = $mailer;
         $this->logger = $logger;
-        $this->from   = $mailerFrom;
+        $this->from   = $params->get('app.mail_from');
+        $this->defaultReplyTo = $params->get('app.mail_reply_to');
     }
 
     /**
@@ -63,9 +66,7 @@ class SendMailService
         }
 
         // Ajouter replyTo si défini
-        if ($replyTo) {
-            $email->replyTo($replyTo);
-        }
+        $email->replyTo($replyTo ?? $this->defaultReplyTo);
 
         // Ajouter pièces jointes si présentes
         foreach ($attachments as $path => $filename) {
@@ -114,10 +115,7 @@ class SendMailService
             $email->to($to);
         }
 
-        // Reply-To
-        if ($replyTo) {
-            $email->replyTo($replyTo);
-        }
+        $email->replyTo($replyTo ?? $this->defaultReplyTo);
 
         // Pièces jointes
         foreach ($attachments as $path => $filename) {
