@@ -493,8 +493,14 @@ class UsersCrudController extends AbstractCrudController
     public function sendCompetitionEmails(
         int $id,
         CompetitionsRepository $competitionsRepository,
-        MailerInterface $mailer
+        MailerInterface $mailer,
+        Security $security              
     ): Response {
+
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();
+
         $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
 
         if (!$competition) {
@@ -523,10 +529,13 @@ class UsersCrudController extends AbstractCrudController
             ]);
         }
 
+        $replyTo = $userEmail;
+
         foreach ($users as $user) {
             $email = (new email())
                 ->from('no-reply@ff-aero.fr')
                 ->to($user->getEmail())
+                ->replyTo($replyTo)
                 ->subject('Informations pour la compétition ' . $competition->getName())
                 ->html(sprintf(
                     '<p>Bonjour %s %s,</p><p>Voici un test <strong>%s</strong>.</p>',
@@ -591,7 +600,6 @@ class UsersCrudController extends AbstractCrudController
         Security $security    
     ): Response {
 
-        $today = new \DateTimeImmutable();
         /** @var Users|null $connected */
         $connected = $security->getUser();
         $userEmail = $connected?->getEmail();

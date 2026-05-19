@@ -667,7 +667,7 @@ class CompetitionsCrudController extends AbstractCrudController
         /** @var Users|null $connected */
         $connected = $security->getUser();
         $userEmail = $connected?->getEmail();
-
+        $replyTo   = $userEmail;
         $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
         if (!$competition) {
             $this->addFlash('warning', 'Compétition introuvable.');
@@ -734,8 +734,10 @@ class CompetitionsCrudController extends AbstractCrudController
                                 'subject' => $data['subject'],
                                 'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
                             ],
-                            null, // pas de texte brut, on passe tout dans Twig
-                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : []
+                            null, 
+                            $attachment ? 
+                                [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
+                            $replyTo
                         );
                     }
 
@@ -756,8 +758,9 @@ class CompetitionsCrudController extends AbstractCrudController
                                 'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
                             ],
                             null, // pas de texte brut, on passe tout dans Twig
-                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : []
-                        );
+                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
+                            $replyTo
+                       );
                     }
 
                     if ($connected && $connected->getEmail()) {

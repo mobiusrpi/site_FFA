@@ -3,15 +3,16 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Results;
-use Symfony\Component\Mime\Email;
 use App\Repository\ResultsRepository;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Mailer\MailerInterface;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Security\Core\Security;
 
 class ResultsCrudController extends AbstractCrudController
 {
@@ -20,6 +21,10 @@ class ResultsCrudController extends AbstractCrudController
     {
         return Results::class;
     }
+
+    public function __construct(
+        private Security $security,
+    ) { }
 
     public function configureActions(Actions $actions): Actions
     {
@@ -36,8 +41,15 @@ class ResultsCrudController extends AbstractCrudController
     public function selectedEmail(
         Request $request,
         ResultsRepository $resultsRepository,
-        MailerInterface $mailer
+        MailerInterface $mailer, 
+        Security $security 
     ): RedirectResponse {
+        
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();
+        $replyTo   = $$userEmail();
+
         $typeCompetId = $request->request->get('typeCompetId') ?? $request->query->get('typeCompetId');
 
         return $this->redirectToRoute('admin_results_selection', [
@@ -60,7 +72,7 @@ class ResultsCrudController extends AbstractCrudController
                 'wip' => 1,  // flag to show message
             ]);
         }
-
+        $replyTo = $userEmail;
         // Fetch results with crews
         $results = $resultsRepository->findBy(['id' => $selectedResultIds]);
 
@@ -81,8 +93,11 @@ class ResultsCrudController extends AbstractCrudController
                     'competitionName' => $competition->getName(),
                     'ranking' => $result->getRanking(),
                     'score' => $result->getScore(),
-                    'subject' => 'Notification de Résultats', // utile pour l’en-tête <title>
-                ]
+                    'subject' => 'Notification de Résultats', 
+                ],
+                null,
+                [],
+                $replyTo
             );
 
         }
