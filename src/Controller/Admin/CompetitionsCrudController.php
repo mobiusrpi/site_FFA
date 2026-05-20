@@ -668,6 +668,7 @@ class CompetitionsCrudController extends AbstractCrudController
         $connected = $security->getUser();
         $userEmail = $connected?->getEmail();
         $replyTo   = $userEmail;
+
         $competition = $competitionsRepository->findWithCrewsAndUsersById($id);
         if (!$competition) {
             $this->addFlash('warning', 'Compétition introuvable.');
@@ -724,7 +725,8 @@ class CompetitionsCrudController extends AbstractCrudController
                      foreach ($users as $user) {
                         $personalizedMessage = str_replace('<Prénom>', htmlspecialchars($user->getFirstname()), $data['message']);
 
-                        $mailService->send(
+                        $mailService->sendEmail(
+
                             $user->getEmail(),
                             $data['subject'],
                             'competition_email', // le template Twig
@@ -747,7 +749,8 @@ class CompetitionsCrudController extends AbstractCrudController
                         if ($user && $user->getEmail()) {
                             $users[$user->getEmail()] = $user;
                         }
-                        $mailService->send(
+
+                        $mailService->sendEmail(
                             $user->getEmail(),
                             $data['subject'],
                             'competition_email', // le template Twig
@@ -757,7 +760,7 @@ class CompetitionsCrudController extends AbstractCrudController
                                 'subject' => $data['subject'],
                                 'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
                             ],
-                            null, // pas de texte brut, on passe tout dans Twig
+                            null, 
                             $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
                             $replyTo
                        );
@@ -765,7 +768,7 @@ class CompetitionsCrudController extends AbstractCrudController
 
                     if ($connected && $connected->getEmail()) {
 
-                        $mailService->send(
+                        $mailService->sendEmail(
                             $connected->getEmail(),
                             'Confirmation d’envoi des emails',
                             'competition_send_confirmation',
@@ -774,7 +777,10 @@ class CompetitionsCrudController extends AbstractCrudController
                                 'competition' => $competition,
                                 'recipientsCount' => count($users),
                                 'subject' => $data['subject'],
-                            ]
+                            ],
+                            null,
+                            [],
+                            $replyTo
                         );
                     }
 

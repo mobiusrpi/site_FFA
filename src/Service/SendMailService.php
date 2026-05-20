@@ -38,7 +38,7 @@ class SendMailService
      * @param array $attachments Tableau ['chemin' => 'nom_fichier'] des pièces jointes
      */
 
-    public function send(
+    public function sendEmail(
         string $to,
         string $subject,
         ?string $template = null,
@@ -74,6 +74,11 @@ class SendMailService
         }
 
         $this->logger->info("Envoi email à {$to} avec sujet '{$subject}'");
+dump([
+            'from' => $this->from,
+    'replyTo' => $replyTo,
+]);
+die();
 
         $this->mailer->send($email);
     }

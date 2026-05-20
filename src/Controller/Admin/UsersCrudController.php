@@ -602,8 +602,9 @@ class UsersCrudController extends AbstractCrudController
 
         /** @var Users|null $connected */
         $connected = $security->getUser();
-        $userEmail = $connected?->getEmail();
-
+        $userEmail = $connected?->getEmail();;
+        $replyTo   = $userEmail;
+        
  /*       // Récupérer uniquement les utilisateurs expirés
         $expiredUsers = $usersRepository->createQueryBuilder('u')
             ->where('u.endValidity IS NOT NULL')
@@ -677,7 +678,7 @@ class UsersCrudController extends AbstractCrudController
 
                         $message = nl2br($personalizedMessage);
 
-                        $mailService->send(
+                        $mailService->sendEmail(
                             $user->getEmail(),
                             $data['subject'],
                             'user_email',

@@ -60,17 +60,19 @@ public function __construct(
         SendMailService $mailService   
     ): Response
     {   
-       /** @var Users|null $user */
-        $user = $security->getUser();
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();;
+        $replyTo   = $userEmail;
 
-        if (!$user->isVerified()){
+        if (!$connected->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
         return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
         
         };
 
-        if (!$user->isCompetitor()){
+        if (!$connected->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
         return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
@@ -103,7 +105,7 @@ public function __construct(
                     continue;
                 }
 
-                $mailService->send(
+                $mailService->sendEmail(
                     $userOrg->getEmail(),
                     'Désinscription d’un équipage',
                     'crew_unsubscribe_notification',
@@ -112,7 +114,10 @@ public function __construct(
                         'competition' => $compet,
                         'pilot' => $crew->getPilot(),
                         'navigator' => $crew->getNavigator(),
-                    ]
+                    ],
+                    null, 
+                    [],
+                    $replyTo
                 );
             }
         }
@@ -142,10 +147,12 @@ public function __construct(
         Security $security    
     ): Response
     {     
-        /** @var Users|null $user */
-        $user = $security->getUser();
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();;
+        $replyTo   = $userEmail;
 
-        if (!$user instanceof Users) {       
+        if (!$connected instanceof Users) {       
             $this->addFlash('warning', 'a non authentifié.');
 
             // ✅ Redirect to EasyAdmin Competitions index page
@@ -155,13 +162,13 @@ public function __construct(
             ]));
         }
 
-        if (!$user->isVerified()){
+        if (!$connected->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour vous inscrire');     
 
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
        };
 
-        if (!$user->isCompetitor()){
+        if (!$connected->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
          return $this->redirectToRoute('competitions_list', [], Response::HTTP_SEE_OTHER);
@@ -183,7 +190,7 @@ public function __construct(
         $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
        //Checkif the user is alreadu registered
-        $isAlreadyRegistered = $crewsRepository->userIsRegistered($user->getId(),$compet->getId());
+        $isAlreadyRegistered = $crewsRepository->userIsRegistered($connected->getId(),$compet->getId());
 
         if ( $isAlreadyRegistered ) 
         {
@@ -216,9 +223,9 @@ public function __construct(
         }
         $crew = new Crews();      
         $crew->setRegisteredAt(new \DateTimeImmutable());        
-        $crew->setRegisteredby($user);
+        $crew->setRegisteredby($connected);
         $crew->setCompetition($compet);
-        $crew->setPilot($user);
+        $crew->setPilot($connected);
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
             'compet' => $compet,
@@ -261,7 +268,7 @@ public function __construct(
                 $callsign = $form->get('callsign')->getData();
                 $speed = $form->get('aircraftSpeed')->getData(); // Enum SpeedList
 
-                if ($aircraftsRepository->isDuplicate($user, $callsign, $speed)) {
+                if ($aircraftsRepository->isDuplicate($connected, $callsign, $speed)) {
                     $this->addFlash('danger', 'Cet avion avec cette vitesse est déjà enregistré.');
                     return $this->redirectToRoute('crews_registration', [
                         'competId' => $compet->getId()
@@ -275,7 +282,7 @@ public function __construct(
                 $aircraft->setBrand($form->get('aircraftBrand')->getData());
                 $aircraft->setType($form->get('aircraftType')->getData());
                 $aircraft->setOaci($form->get('aircraftOaci')->getData());
-                $aircraft->setUser($user);
+                $aircraft->setUser($connected);
 
                 $entityManager->persist($aircraft);
             }
@@ -315,7 +322,7 @@ public function __construct(
             );
 
             foreach ($managers as $manager) {
-                $this->mailService->send(
+                $this->mailService->sendEmail(
                     $manager->getUser()->getEmail(),
                     'Inscription d\'un nouveau concurrent',
                     'crew_registration_new', // => templates/emails/crew_registration_new.html.twig
@@ -323,7 +330,10 @@ public function __construct(
                         'pilot' => $crew->getPilot(),
                         'competition' => $crew->getCompetition(),
                         'crew' => $crew,
-                    ]
+                    ],
+                    null,
+                    [],
+                    $replyTo
                 );
             }
 
@@ -334,7 +344,7 @@ public function __construct(
 
         return $this->render('pages/crews/registrationCrew.html.twig', [
             'compet' => $compet,            
-            'user' => $user,
+            'user' => $connected,
             'form' => $form     
         ]);
     }    
@@ -434,33 +444,25 @@ public function __construct(
         CrewsRepository $repositoryCrew,
         Security $security
     ): Response {
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
 
-        $user = $security->getUser();
-
-        $crews = $repositoryCrew->getQueryRegistrationsCrews($user->getId());
+        $crews = $repositoryCrew->getQueryRegistrationsCrews($connected->getId());
 
         $projectDir = $this->getParameter('kernel.project_dir');
 
         foreach ($crews as $crew) {
-
             $competition = $crew->getCompetition();
 
-
-
             foreach ($competition->getTests() as $test) {
-
                 $testCode = $test->getCode();
-
                 $directory =
                     $projectDir
                     . '/storage/competitions/'
                     . $testCode
                     . '/competitors/'
                     . $crew->getId();
-
-
             }
-
         }
 
         return $this->render('pages/crews/registrationCrewsList.html.twig', [
@@ -493,10 +495,12 @@ public function __construct(
         $compet = $repositoryCompetition
             ->findWithCrewsAndUsersById($competId);
     
-        /** @var Users|null $user */
-        $user = $security->getUser();
+        /** @var Users|null $connected */
+        $connected = $security->getUser();
+        $userEmail = $connected?->getEmail();;
+        $replyTo   = $userEmail;
 
-        if (!$user instanceof Users) {     
+        if (!$connected instanceof Users) {     
             $this->addFlash('warning', 'Utilisateurs non authentifié.');
 
             // ✅ Redirect to EasyAdmin Competitions index page
@@ -506,14 +510,14 @@ public function __construct(
             ]));
         }
 
-        if (!$user->isVerified()){
+        if (!$connected->isVerified()){
             $this->addFlash('danger','Votre compte doit être vérifié pour accéder à vos inscriptions');     
 
         return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
         
         };
 
-        if (!$user->isCompetitor()){
+        if (!$connected->isCompetitor()){
             $this->addFlash('danger','Vous n\'êtes pas enregistré en tant que competiteur');     
 
         return $this->redirectToRoute('user_registrations_list', [], Response::HTTP_SEE_OTHER);
@@ -522,7 +526,7 @@ public function __construct(
     
         $fixSpeed = $compet?->getTypecompetition()?->getFixSpeed();
 
-        $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
+        $crew = $repositoryCrew->getQueryCrewCompetition($connected->getId(),$compet->getId());  
 
         $form = $this->createForm(RegistrationCrewType::class, $crew, [
                     'compet' => $compet,
@@ -570,7 +574,7 @@ public function __construct(
                 $callsign = $form->get('callsign')->getData();
                 $speed = $form->get('aircraftSpeed')->getData(); // Enum SpeedList
 
-                if ($repositoryAircraft->isDuplicate($user, $callsign, $speed)) {
+                if ($repositoryAircraft->isDuplicate($connected, $callsign, $speed)) {
                     $this->addFlash('danger', 'Cet avion avec cette vitesse est déjà enregistré.');
                     return $this->redirectToRoute('crews_registration', [
                         'competId' => $compet->getId()
@@ -584,7 +588,7 @@ public function __construct(
                 $aircraft->setBrand($form->get('aircraftBrand')->getData());
                 $aircraft->setType($form->get('aircraftType')->getData());
                 $aircraft->setOaci($form->get('aircraftOaci')->getData());
-                $aircraft->setUser($user);
+                $aircraft->setUser($connected);
 
                 $entityManager->persist($aircraft);
             }
@@ -639,7 +643,7 @@ public function __construct(
 
             if ($hasChanges) {
                 foreach ($managers as $manager) {
-                    $this->mailService->send(
+                    $this->mailService->sendEmail(
                         $manager->getUser()->getEmail(),
                         'Modification d\'un concurrent',
                         'crew_registration_edit', // => templates/emails/crew_registration_new.html.twig
@@ -650,7 +654,10 @@ public function __construct(
                             'changes' => $changes,
                             'addedAccommodations' => $addedAccommodations,
                             'removedAccommodations' => $removedAccommodations,
-                        ]
+                            ],
+                        null,
+                        [],
+                        $replyTo
                     );
                 }
             }
@@ -660,7 +667,7 @@ public function __construct(
 
         return $this->render('pages/crews/editCrew.html.twig', [
             'compet' => $compet,            
-            'user' => $user,
+            'user' => $connected,
             'form' => $form,
         ]);
     }
