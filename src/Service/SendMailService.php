@@ -74,11 +74,6 @@ class SendMailService
         }
 
         $this->logger->info("Envoi email à {$to} avec sujet '{$subject}'");
-dump([
-            'from' => $this->from,
-    'replyTo' => $replyTo,
-]);
-die();
 
         $this->mailer->send($email);
     }
