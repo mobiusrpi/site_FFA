@@ -36,13 +36,13 @@ class TrackanalyzerAuthController extends AbstractController
         }
 
         $user = $userRepository->findOneBy(['email' => $email]);
-        $logger->critical('PASSWORD CHECK DEBUG', [
+/*        $logger->critical('PASSWORD CHECK DEBUG', [
             'apikey'=>$apiKey,
             'email' => $email,
             'plain_received' => $password,
             'hash_in_db' => $user->getPassword(),
             'password_valid' => $passwordHasher->isPasswordValid($user, $password),
-        ]);  
+        ]);  */
 
         if (!$user) {
             return $this->xmlError('INVALID_EMAIL');
