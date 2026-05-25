@@ -119,7 +119,7 @@ class RegistrationController extends AbstractController
                 $this->getParameter('app.jwtsecret')
             );
 
-            $mail->send(
+            $mail->sendEmail(
                 $user->getEmail(),
                'Activation de votre compte sur le site sport-ffa-aero',
                 'register',

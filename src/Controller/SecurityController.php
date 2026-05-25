@@ -83,7 +83,7 @@ class SecurityController extends AbstractController
                 $context = compact('url', 'user');
 
                 // Envoi du mail
-                $mail->send(
+                $mail->sendEmail(
                     $user->getEmail(),
                     'Réinitialisation de mot de passe',
                     'password_reset',

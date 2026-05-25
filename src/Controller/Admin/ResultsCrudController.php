@@ -84,7 +84,7 @@ class ResultsCrudController extends AbstractCrudController
             $personalizedMessage = "Bonjour $crewName,\n\nVoici vos résultats...\nClassement: {$result->getRanking()}\nScore: {$result->getScore()}\n\nCordialement.";
 
             // Compose and send email
-            $mailService->send(
+            $mailService->sendEmail(
                 $crewEmail,
                 'Notification de Résultats',
                 'results_notification',  // nom du template Twig sans extension
