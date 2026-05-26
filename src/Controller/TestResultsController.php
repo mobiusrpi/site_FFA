@@ -600,14 +600,33 @@ final class TestResultsController extends AbstractController
 
         if (!$competition) {
             throw $this->createNotFoundException('Compétition non trouvée');
-        }
-
+        }       
+        
         // Récupération des résultats liés à cette compétition
-        $results = $repositoryResults->resultsByCompetition($competition);
+        foreach ($competition->getTests() as $test) {
+
+            if (!$test->isResultsValidated()) {
+                continue;
+            }
+
+            foreach ($test->getTestResults() as $result) {
+
+                $crew = $result->getCrew();
+                $category = $crew?->getCategory();
+
+                // Exclure Découverte
+                if ($category === Category::Discovery) {
+                    continue;
+                }
+
+                $results[] = $result;
+            }
+        }
+        
 
         // Calcul des scores agrégés PAR CATÉGORIE
         $scoreByCategory = $scoringService->calculateAggregateScores($results, $competition->getTypeCompetition()->getId());
-
+ 
         return $this->render('pages/results/resultsAggregate.html.twig', [
             'competition' => $competition,
             'scoreByCategory' => $scoreByCategory,

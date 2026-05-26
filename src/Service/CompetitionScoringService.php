@@ -40,7 +40,7 @@ class CompetitionScoringService
         return $has ? $sum : null;
     }
 
-    private function getCrewKey(?Crew $crew, ?string $literalCrew): string
+    private function getCrewKey(?Crews $crew, ?string $literalCrew): string
     {
         if ($crew) {
             return 'C_' . $crew->getId();
