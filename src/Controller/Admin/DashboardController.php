@@ -174,7 +174,9 @@ class DashboardController extends AbstractDashboardController
                             (string) $year,
                             'fa fa-angle-right',
                             CompetitionsCrudController::class
-                        )->setQueryParameter('year', $year),
+                        )
+                        ->setAction(Crud::PAGE_INDEX)
+                        ->setQueryParameter('year', $year),
                         $previousYears
                     ));
             }       
