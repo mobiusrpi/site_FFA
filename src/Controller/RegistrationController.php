@@ -341,7 +341,7 @@ class RegistrationController extends AbstractController
 
         $token = $jwt->generate($header, $payload, $this->getParameter('app.jwtsecret'));
 
-        $mail->send(
+        $mail->sendEmail(
             $user->getEmail(),
             'Validation de votre adresse email – Sports FF-Aéro',
             'register',

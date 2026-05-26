@@ -114,24 +114,29 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Management');
 
             // 🔹 Compétitions année en cours
-            yield MenuItem::linkToCrud(
+            yield MenuItem::linkTo(
                 'Compétitions ' . $currentYear,
                 'fas fa-list',
-                Competitions::class
+                CompetitionsCrudController::class
                 )
                 ->setQueryParameter('year', $currentYear);
 
-            yield MenuItem::linkToCrud('Utilisateurs', 'fas fa-user', Users::class);
-            yield MenuItem::linkToCrud(
+            yield MenuItem::linkTo(
+                'Utilisateurs', 
+                'fas fa-user', 
+                UsersCrudController::class
+                );
+
+            yield MenuItem::linkTo(
                 'Concurrents',
                 'fas fa-users',
-                Crews::class
+                CrewsCrudController::class
                 )
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
-            yield MenuItem::linkToCrud(
+            yield MenuItem::linkTo(
                 'Épreuves', 
                 'fas fa-list',
-                Tests::class
+                TestsCrudController::class
                 )
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
     
@@ -159,10 +164,10 @@ class DashboardController extends AbstractDashboardController
             if (!empty($previousYears)) {
                 yield MenuItem::subMenu('Compétitions – années précédentes', 'fa fa-calendar')
                     ->setSubItems(array_map(
-                        fn (int $year) => MenuItem::linkToCrud(
+                        fn (int $year) => MenuItem::linkTo(
                             (string) $year,
                             'fa fa-angle-right',
-                            Competitions::class
+                            CompetitionsCrudController::class
                         )->setQueryParameter('year', $year),
                         $previousYears
                     ));
@@ -186,10 +191,10 @@ class DashboardController extends AbstractDashboardController
             yield MenuItem::subMenu('Gestion', 'fa fa-cog')
                 ->setPermission('ROLE_ADMIN')
                 ->setSubItems([     
-                    MenuItem::linkToCrud('Type de service', 'fas fa-id-card', Accommodations::class),
-                    MenuItem::linkToCrud('Supprimer un service', 'fas fa-trash', CompetitionAccommodation::class),
-                    MenuItem::linkToCrud('Type de competition', 'fas fa-id-card', TypeCompetition::class),
-                    MenuItem::linkToCrud('Epreuves', 'fas fa-id-card', Tests::class),
+                    MenuItem::linkTo('Type de service', 'fas fa-id-card', AccommodationsCrudController::class),
+                    MenuItem::linkTo('Supprimer un service', 'fas fa-trash', CompetitionAccommodationCrudController::class),
+                    MenuItem::linkTo('Type de competition', 'fas fa-id-card', TypeCompetitionCrudController::class),
+                    MenuItem::linkTo('Epreuves', 'fas fa-id-card', TestsCrudController::class),
                     MenuItem::linkToRoute('Export des emails', 'fas fa-id-card', 'admin_export_users_email'),
                     MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
             ]);   
