@@ -9,22 +9,22 @@
                 <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
             </th>
             {% if  competTypeId != 3 %}
-                <th class="text-center" data-key="observation">
+                <th class="text-center sort-column" data-key="observation">
                     Obs
                     <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
                 </th>
             {% endif %}
-                {% if  competTypeId == 2 %}
-                    <th class="text-center" data-key="flightPlanning">
-                        Théo                   
-                        <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                    </th>
-                {% else %}
-                   <th class="text-center" data-key="landing">
-                        Att                  
-                        <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
-                    </th>
-                {% endif %}
+            {% if  competTypeId == 2 %}
+                <th class="text-center  sort-column" data-key="flightPlanning">
+                    Théo                   
+                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                </th>
+            {% else %}
+                <th class="text-center" sort-column data-key="landing">
+                    Att                  
+                    <i class="fa-solid fa-sort sort-arrow ms-2" style="cursor:pointer;"></i>
+                </th>
+            {% endif %}
             <th class="text-center sort-column" data-key="total">
                 <span class="fw-bold">
                     Total
@@ -50,76 +50,81 @@
             {% endif %}
         {% endif %}
 
-    <tr>
-        <td class="text-center">
-            {% if isOut %}
-                –
-            {% else %}
-                {{ rank }}
-            {% endif %}
-        </td>
-
-        <td>
-            <small>
-                {% if row.crew.pilot is defined %}
-                    {% if competTypeId == 2 %}
-                        {{ row.crew.pilot.fullName }}
-                    {% else %}
-                        {{ row.crew.pilot.fullname }}
-                        </br>
-                        {{ row.crew.navigator.fullname }}
-                    {% endif %}
-                {% else %}
-                    {{ row.crew }}
-                {% endif %}
-            </small>
-        </td>
-
-        <td class="text-center">
-           {% if row.dns != 0 %}
-                --
-            {% else %}
-                {{ row.navigation }}
-            {% endif %}
-        </td>
-
-        {% if  competTypeId != 3 %}
+        <tr>
             <td class="text-center">
+                {% if isOut %}
+                    –
+                {% else %}
+                    {{ rank }}
+                {% endif %}
+            </td>
+
+            <td>
+                <small>
+                    {% if row.crew.pilot is defined %}
+                        {% if competTypeId == 2 %}
+                            {{ row.crew.pilot.fullName }}
+                        {% else %}
+                            {{ row.crew.pilot.fullname }}
+                            </br>
+                            {{ row.crew.navigator.fullname }}
+                        {% endif %}
+                    {% else %}
+                        {{ row.crew }}
+                    {% endif %}
+                </small>
+            </td>
+
+            <td class="text-center" data-key="navigation" data-value="{{ row.navigation ?? -1 }}">
                 {% if row.dns != 0 %}
                     --
                 {% else %}
-                    {{ row.observation }}
+                    {{ row.navigation }}
                 {% endif %}
             </td>
+
+            {% if  competTypeId != 3 %}
+                <td class="text-center" data-key="observation" data-value="{{ row.observation ?? -1 }}">
+                    {% if row.dns != 0 %}
+                        --
+                    {% else %}
+                        {{ row.observation }}
+                    {% endif %}
+                </td>
+            {% endif %}
+            <td class="text-center"     
+                data-key="{{ competTypeId == 2 ? 'flightPlanning' : 'landing' }}"
+                    data-value="{{ competTypeId == 2
+                        ? (row.flightPlanning ?? -1)
+                        : (row.landing ?? -1) }}">
+
+                {% if row.dns != 0 %}
+                    --
+                {% else %}
+                    {% if  competTypeId == 2 %}
+                        {{ row.flightPlanning }}
+                    {% else %}
+                        {{ row.landing }}
+                    {% endif %}
+                {% endif %}
+            </td>
+
+
+            <td class="text-center" data-key="total" data-value="{{ row.total ?? -1 }}">
+                {% if row.dns == -1 %}
+                    DNS
+                {% elseif row.dns == 1 %}
+                    DNF
+                {% else %}
+                {{ row.total }}
+                {% endif %}
+            </td>
+        </tr>
+
+        {% if not isOut %}
+            {% set lastScore = row.total %}
         {% endif %}
 
-        <td class="text-center">
-            {% if row.dns != 0 %}
-                --
-            {% else %}
-                {% if  competTypeId == 2 %}
-                    {{ row.flightPlanning }}
-                {% else %}
-                    {{ row.landing }}
-                {% endif %}
-            {% endif %}
-        </td>
-
-        <td class="text-center">
-            {% if row.dns == -1 %}
-                DNS
-            {% elseif row.dns == 1 %}
-                DNF
-            {% else %}
-            {{ row.total }}
-            {% endif %}
-        </td>
-    </tr>
-
-    {% if not isOut %}
-        {% set lastScore = row.total %}
-    {% endif %}
-
-    {% endfor %}
+        {% endfor %}
     </tbody>
 </table>

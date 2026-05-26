@@ -75,53 +75,100 @@
     {# ----------- Script tri actif ----------- #}
     <script>
         document.querySelectorAll('.table').forEach(table => {
-            const headers = table.querySelectorAll('.sort-column');
 
-            headers.forEach(header => {
-                const icon = header.querySelector('.sort-arrow');
-                let ascending = true;
-                const key = header.dataset.key;
+        const headers = table.querySelectorAll('th.sort-column');
 
-                if (icon && key) {
-                    icon.addEventListener('click', e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const tbody = table.querySelector('tbody');
-                        const rows = Array.from(tbody.querySelectorAll('tr'));
+        headers.forEach(header => {
 
-                        rows.sort((a, b) => {
-                            const aCell = a.querySelector(`td[data-key="${key}"]`);
-                            const bCell = b.querySelector(`td[data-key="${key}"]`);
-                            const aVal = parseFloat(aCell?.dataset.value ?? aCell?.textContent ?? -1);
-                            const bVal = parseFloat(bCell?.dataset.value ?? bCell?.textContent ?? -1);
-                            return ascending ? aVal - bVal : bVal - aVal;
-                        });
+            const icon = header.querySelector('.sort-arrow');
 
-                        ascending = !ascending;
-                        rows.forEach(row => tbody.appendChild(row));
+            let ascending = true;
 
-                        headers.forEach(h => {
-                            const i = h.querySelector('.sort-arrow');
-                            if(i) { i.classList.remove('fa-sort-up','fa-sort-down'); i.classList.add('fa-sort'); }
-                        });
-                        icon.classList.remove('fa-sort');
-                        icon.classList.add(ascending ? 'fa-sort-up' : 'fa-sort-down');
+            const key = header.dataset.key;
 
-                        if (key === 'total') {
-                            let previousScore = null, rank = 0, displayRank = 0;
-                            rows.forEach(row => {
-                                const score = parseFloat(row.dataset.score ?? -1);
-                                rank++;
-                                if(score !== previousScore) displayRank = rank;
-                                row.children[0].textContent = displayRank;
-                                previousScore = score;
-                            });
-                        } else {
-                            rows.forEach((row, i) => row.children[0].textContent = i+1);
+            if (icon && key) {
+
+                icon.addEventListener('click', e => {
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const tbody = table.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                    const currentAscending = ascending;
+
+                    rows.sort((a, b) => {
+
+                        const aCell = a.querySelector(`td[data-key="${key}"]`);
+                        const bCell = b.querySelector(`td[data-key="${key}"]`);
+
+                        const aVal = parseFloat(
+                            aCell?.dataset.value ?? aCell?.textContent ?? -1
+                        );
+
+                        const bVal = parseFloat(
+                            bCell?.dataset.value ?? bCell?.textContent ?? -1
+                        );
+
+                        return currentAscending
+                            ? aVal - bVal
+                            : bVal - aVal;
+                    });
+
+                    rows.forEach(row => tbody.appendChild(row));
+
+                    ascending = !ascending;
+
+                    headers.forEach(h => {
+
+                        const i = h.querySelector('.sort-arrow');
+
+                        if (i) {
+                            i.classList.remove('fa-sort-up', 'fa-sort-down');
+                            i.classList.add('fa-sort');
                         }
                     });
-                }
-            });
+
+                    icon.classList.remove('fa-sort');
+
+                    icon.classList.add(
+                        currentAscending
+                            ? 'fa-sort-up'
+                            : 'fa-sort-down'
+                    );
+
+                    // recalcul classement
+                    if (key === 'total') {
+
+                        let previousScore = null;
+                        let rank = 0;
+                        let displayRank = 0;
+
+                        rows.forEach(row => {
+
+                            const score = parseFloat(row.dataset.score ?? -1);
+
+                            rank++;
+
+                            if (score !== previousScore) {
+                                displayRank = rank;
+                            }
+
+                            row.children[0].textContent = displayRank;
+
+                            previousScore = score;
+                        });
+
+                    } else {
+
+                        rows.forEach((row, i) => {
+                            row.children[0].textContent = i + 1;
+                        });
+                    }
+                });
+            }
         });
+    });
     </script>
 {% endblock %}
