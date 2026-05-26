@@ -2,23 +2,24 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Crews;
-use App\Entity\Users;
-use App\Entity\Tests;
-use App\Entity\TestResults;
-use App\Entity\Competitions;
-use App\Entity\TestStartOrder;
 use App\Entity\Accommodations;
-use App\Entity\TypeCompetition;
-use App\Repository\CrewsRepository;
-use App\Repository\TestsRepository;
 use App\Entity\CompetitionAccommodation;
-use App\Repository\TestResultsRepository;
-use App\Service\ResultsImportService;
+use App\Entity\Competitions;
+use App\Entity\Crews;
+use App\Entity\TestResults;
+use App\Entity\Tests;
+use App\Entity\TestStartOrder;
+use App\Entity\TypeCompetition;
+use App\Entity\Users;
 use App\Repository\CompetitionsRepository;
+use App\Repository\CrewsRepository;
+use App\Repository\TestResultsRepository;
+use App\Repository\TestsRepository;
 use App\Repository\TestStartOrderRepository;
+use App\Service\ResultsImportService;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -119,25 +120,30 @@ class DashboardController extends AbstractDashboardController
                 'fas fa-list',
                 CompetitionsCrudController::class
                 )
+                ->setAction(Crud::PAGE_INDEX)
                 ->setQueryParameter('year', $currentYear);
 
             yield MenuItem::linkTo(
                 'Utilisateurs', 
                 'fas fa-user', 
                 UsersCrudController::class
-                );
+                )
+                ->setAction(Crud::PAGE_INDEX);
 
             yield MenuItem::linkTo(
                 'Concurrents',
                 'fas fa-users',
                 CrewsCrudController::class
                 )
+                ->setAction(Crud::PAGE_INDEX)
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
+
             yield MenuItem::linkTo(
                 'Épreuves', 
                 'fas fa-list',
                 TestsCrudController::class
                 )
+                ->setAction(Crud::PAGE_INDEX)
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
     
             yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page') ;
@@ -191,13 +197,42 @@ class DashboardController extends AbstractDashboardController
             yield MenuItem::subMenu('Gestion', 'fa fa-cog')
                 ->setPermission('ROLE_ADMIN')
                 ->setSubItems([     
-                    MenuItem::linkTo('Type de service', 'fas fa-id-card', AccommodationsCrudController::class),
-                    MenuItem::linkTo('Supprimer un service', 'fas fa-trash', CompetitionAccommodationCrudController::class),
-                    MenuItem::linkTo('Type de competition', 'fas fa-id-card', TypeCompetitionCrudController::class),
-                    MenuItem::linkTo('Epreuves', 'fas fa-id-card', TestsCrudController::class),
-                    MenuItem::linkToRoute('Export des emails', 'fas fa-id-card', 'admin_export_users_email'),
-                    MenuItem::linkToRoute('Archivage RGPD', 'fas fa-id-card', 'admin_archiving_users'),
-            ]);   
+                    MenuItem::linkTo(
+                        'Type de service',
+                        'fas fa-id-card',
+                        AccommodationsCrudController::class
+                    )->setAction(Crud::PAGE_INDEX),
+
+                    MenuItem::linkTo(
+                        'Supprimer un service',
+                        'fas fa-trash',
+                        CompetitionAccommodationCrudController::class
+                    )->setAction(Crud::PAGE_INDEX),
+
+                    MenuItem::linkTo(
+                        'Type de competition',
+                        'fas fa-id-card',
+                        TypeCompetitionCrudController::class
+                    )->setAction(Crud::PAGE_INDEX),
+
+                    MenuItem::linkTo(
+                        'Epreuves',
+                        'fas fa-id-card',
+                        TestsCrudController::class
+                    )->setAction(Crud::PAGE_INDEX),
+
+                    MenuItem::linkToRoute(
+                        'Export des emails',
+                        'fas fa-id-card',
+                        'admin_export_users_email'
+                    ),
+
+                    MenuItem::linkToRoute(
+                        'Archivage RGPD',
+                        'fas fa-id-card',
+                        'admin_archiving_users'
+                    ),           
+        ]);   
     }
 
      #[Route('/results-import', name: 'admin_results_import_page')]
