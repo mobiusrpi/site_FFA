@@ -111,7 +111,7 @@ class TrackanalyzerController extends AbstractController
             $em->persist($testResult);
             $results[] = $testResult;
         }
-
+        
         $em->flush();
 
         return new JsonResponse([

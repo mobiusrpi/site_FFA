@@ -66,7 +66,6 @@ class TrackAnalyzerImporter
         $competition = $test->getCompetition();
         $typeCompet = $competition?->getTypecompetition()?->getId();
 
-        $invalidCrew = [];
         $importedCrew = [];
 
         // Récupérer les résultats existants pour ce test
@@ -92,11 +91,20 @@ class TrackAnalyzerImporter
             }
             $incomingCrewIds[] = $crewId;
 
+
             $crew = $this->crewsRepository->find($crewId);
             if (!$crew) {
-                $this->logger->warning('Concurrent non trouvé', ['CrewId' => $crewId]);
-                $invalidCrew[] = $crewId;
-                continue;
+                $this->logger->error('Import rejected : crew unknown', [
+                    'crewId' => $crewId,
+                    'testId' => $data['TestId'] ?? null,
+                ]);
+
+                return [
+                    'error' => 'Crew unknown',
+                    'details' => [
+                        'CrewId' => $crewId
+                    ]
+                ];
             }
 
             $pilotName = $crew->getPilot()?->getLastname() . ' ' . $crew->getPilot()?->getFirstname();
@@ -136,15 +144,18 @@ class TrackAnalyzerImporter
                 }
             }
         }
+$this->logger->critical('TEST RESULT DATA', [
+    'test' => $test->getId(),
+    'crew' => $crew->getId(),
+    'navigation' => $testResult->getNavigation(),
+]);
 
-        $this->logger->critical('FLUSH START');
         $this->em->flush();
-        $this->logger->critical('FLUSH DONE');
+
 
         return [
             'status' => 'ok',
             'importedCrew' => $importedCrew,
-            'invalidCrew' => $invalidCrew,
         ];
     }
 }
