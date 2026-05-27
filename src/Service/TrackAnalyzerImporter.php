@@ -144,11 +144,28 @@ class TrackAnalyzerImporter
                 }
             }
         }
-$this->logger->critical('TEST RESULT DATA', [
-    'test' => $test->getId(),
-    'crew' => $crew->getId(),
-    'navigation' => $testResult->getNavigation(),
-]);
+        $this->logger->critical('FLUSH START');
+
+        try {
+
+            $this->em->flush();
+
+            $this->logger->critical('FLUSH DONE');
+
+        } catch (\Exception $e) {
+
+            $this->logger->critical('FLUSH ERROR', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'error' => 'Erreur flush Doctrine',
+                'details' => [
+                    '-' => $e->getMessage()
+                ]
+            ];
+        }
 
         $this->em->flush();
 
