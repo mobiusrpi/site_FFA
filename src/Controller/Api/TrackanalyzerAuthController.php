@@ -26,83 +26,212 @@ class TrackanalyzerAuthController extends AbstractController
         EntityManagerInterface $entityManager,
         CompetitionsRepository $competitionsRepository
     ): Response {
+        try {
 
-        $apiKey  = $request->request->get('key');
-        $email   = $request->request->get('email');
-        $password = $request->request->get('password');
+            $apiKey  = $request->request->get('key');
+            $email   = $request->request->get('email');
+            $password = $request->request->get('password');
 
-        if ($apiKey !== $_ENV['FFA_API_KEY']) {
-            return $this->xmlError('INVALID_KEY');
-        }
+            $logger->info('Login attempt', [
+                'email' => $email,
+                'ip' => $request->getClientIp(),
+            ]);
 
-        $user = $userRepository->findOneBy(['email' => $email]);
-/*        $logger->critical('PASSWORD CHECK DEBUG', [
-            'apikey'=>$apiKey,
-            'email' => $email,
-            'plain_received' => $password,
-            'hash_in_db' => $user->getPassword(),
-            'password_valid' => $passwordHasher->isPasswordValid($user, $password),
-        ]);  */
-
-        if (!$user) {
-            return $this->xmlError('INVALID_EMAIL');
-        }
-        if (!$user || !$passwordHasher->isPasswordValid($user, $password)) {
-            return $this->xmlError('INVALID_CREDENTIALS');
-        }
-
-//        if (!in_array('ROLE_ADMIN', $user->getRoles()) && !in_array('ROLE_MANAGER', $user->getRoles())) {
-//            return $this->xmlError('ACCESS_DENIED');
-//       }
-        $roles = $user->getRoles();
-        if (in_array('ROLE_ADMIN', $roles)) {
-            // OK
-        }
-        // MANAGER : uniquement s’il a des compétitions accessibles
-        elseif (in_array('ROLE_MANAGER', $roles)) {
-
-            $competitions = $competitionsRepository
-                ->findAccessibleCompetitionsForUser($user, $roles);
-
-            if (count($competitions) === 0) {
-                return $this->xmlError('ACCESS_DENIED_NOT_ASSIGNED');
+            // Vérification paramètres
+            if (empty($apiKey)) {
+                return $this->xmlError(
+                    'MISSING_API_KEY',
+                    'Clé API absente'
+                );
             }
-        }
-        // Autres profils : refus
-        else {
-            return $this->xmlError('ACCESS_DENIED');
-        }
 
-        $user->setApiToken(Uuid::v4()); 
-        $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 day'));
-        $entityManager->flush();
+            if (empty($email)) {
+                return $this->xmlError(
+                    'MISSING_EMAIL',
+                    'Email absent'
+                );
+            }
 
-        $token = bin2hex(random_bytes(16));
-        $cacheKey = 'trackanalyzer_token_' . $token;
-        $cacheItem = $cache->getItem($cacheKey);
-        $cacheItem->set($user->getEmail())->expiresAfter(3600);
-//        $cache->save($cacheItem);
-        $saved = $cache->save($cacheItem);
+            if (empty($password)) {
+                return $this->xmlError(
+                    'MISSING_PASSWORD',
+                    'Mot de passe absent'
+                );
+            }
 
-        if (!$saved) {
-            return $this->xmlError('CACHE_ERROR');
+            // Vérification clé API
+            if ($apiKey !== $_ENV['FFA_API_KEY']) {
+
+                $logger->warning('Invalid API key', [
+                    'email' => $email
+                ]);
+
+                return $this->xmlError(
+                    'INVALID_KEY',
+                    'Clé API invalide'
+                );
+            }
+            // Recherche utilisateur
+            $user = $userRepository->findOneBy(['email' => $email]);
+
+            if (!$user) {
+                $logger->warning('Unknown email', [
+                    'email' => $email
+                ]);
+
+                return $this->xmlError(
+                    'INVALID_EMAIL',
+                    'Utilisateur inconnu'
+                );
+            }
+            
+            // Vérification mot de passe
+            if (!$passwordHasher->isPasswordValid($user, $password)) {
+                $logger->warning('Invalid password', [
+                    'email' => $email
+                ]);
+
+                return $this->xmlError(
+                    'INVALID_CREDENTIALS',
+                    'Mot de passe incorrect'
+                );
+            }
+
+            // Vérification rôles
+            $roles = $user->getRoles();
+
+            if (in_array('ROLE_ADMIN', $roles)) {
+                // OK
+            } elseif (in_array('ROLE_MANAGER', $roles)) {
+                $competitions = $competitionsRepository
+                    ->findAccessibleCompetitionsForUser($user, $roles);
+
+                if (count($competitions) === 0) {
+                    return $this->xmlError(
+                        'ACCESS_DENIED_NOT_ASSIGNED',
+                        'Aucune compétition assignée'
+                    );
+                }
+
+            } else {
+                return $this->xmlError(
+                    'ACCESS_DENIED',
+                    'Accès refusé'
+                );
+            }
+
+            /*
+                $logger->critical('PASSWORD CHECK DEBUG', [
+                    'apikey'=>$apiKey,
+                    'email' => $email,
+                    'plain_received' => $password,
+                    'hash_in_db' => $user->getPassword(),
+                    'password_valid' => $passwordHasher->isPasswordValid($user, $password),
+                ]);  
+            */
+
+                // Génération token
+                $token = bin2hex(random_bytes(16));
+
+                $cacheKey = 'trackanalyzer_token_' . $token;
+
+                $cacheItem = $cache->getItem($cacheKey);
+
+                $cacheItem
+                    ->set($user->getEmail())
+                    ->expiresAfter(3600);
+
+                $saved = $cache->save($cacheItem);
+
+                if (!$saved) {
+
+                    $logger->error('Cache save failed', [
+                        'email' => $email
+                    ]);
+
+                    return $this->xmlError(
+                        'CACHE_ERROR',
+                        'Erreur sauvegarde cache'
+                    );
+                }
+
+                // Token utilisateur
+                $user->setApiToken(Uuid::v4());
+                $user->setApiTokenExpiresAt(
+                    new \DateTimeImmutable('+1 day')
+                );
+
+                $entityManager->flush();
+
+                $logger->info('Login success', [
+                    'email' => $email
+                ]);
+
+                return $this->xmlSuccess(
+                    'OK',
+                    'Connexion réussie',
+                    $token
+                );
+
+        } catch (\Throwable $e) {
+
+            $logger->critical('AUTH API ERROR', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->xmlError(
+                'SERVER_ERROR',
+                $e->getMessage(),
+                500
+            );
         }
-        $logger->info('Token stored in cache by :', [
-            'email' => $user->getEmail()
-        ]);
-        return $this->xmlSuccess('OK', $token);
     }
 
-    private function xmlError(string $message): Response
-    {
-        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><result>{$message}</result></response>";
-        return new Response($xml, 401, ['Content-Type' => 'application/xml']);
+    private function xmlError(
+        string $code,
+        string $message,
+        int $httpCode = 401
+    ): Response {
+
+        $xml = <<<XML
+            <?xml version="1.0" encoding="UTF-8"?>
+            <response>
+                <success>false</success>
+                <code>{$code}</code>
+                <message>{$message}</message>
+            </response>
+        XML;
+
+        return new Response(
+            $xml,
+            $httpCode,
+            ['Content-Type' => 'application/xml']
+        );
     }
 
-    private function xmlSuccess(string $message, string $token): Response
-    {
-        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><result>{$message}</result><token>{$token}</token></response>";
-        return new Response($xml, 200, ['Content-Type' => 'application/xml']);
+    private function xmlSuccess(
+        string $code,
+        string $message,
+        string $token
+    ): Response {
+
+        $xml = <<<XML
+            <?xml version="1.0" encoding="UTF-8"?>
+            <response>
+                <success>true</success>
+                <code>{$code}</code>
+                <message>{$message}</message>
+                <token>{$token}</token>
+            </response>
+        XML;
+
+        return new Response(
+            $xml,
+            200,
+            ['Content-Type' => 'application/xml']
+        );
     }
-    
 }
