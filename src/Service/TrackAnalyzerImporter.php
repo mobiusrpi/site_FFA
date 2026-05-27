@@ -136,11 +136,6 @@ class TrackAnalyzerImporter
                 }
             }
         }
-        
-        return new JsonResponse([
-            'error' => 'Invalid crew',
-            'invalidCrew' => $invalidCrew
-        ], 400);
 
         $this->logger->critical('FLUSH START');
         $this->em->flush();
