@@ -2,7 +2,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Accommodations;
 use App\Entity\CompetitionAccommodation;
 use App\Entity\Competitions;
 use App\Entity\Crews;
@@ -115,35 +114,31 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Management');
 
             // 🔹 Compétitions année en cours
-            yield MenuItem::linkTo(
+            yield MenuItem::linkToCrud(
                 'Compétitions ' . $currentYear,
                 'fas fa-list',
-                CompetitionsCrudController::class
+                Competitions::class
                 )
-                ->setAction(Crud::PAGE_INDEX)
                 ->setQueryParameter('year', $currentYear);
 
-            yield MenuItem::linkTo(
+            yield MenuItem::linkToCrud(
                 'Utilisateurs', 
                 'fas fa-user', 
-                UsersCrudController::class
-                )
-                ->setAction(Crud::PAGE_INDEX);
-
-            yield MenuItem::linkTo(
+                Users::class
+                );
+  
+            yield MenuItem::linkToCrud(
                 'Concurrents',
                 'fas fa-users',
-                CrewsCrudController::class
+                Crews::class
                 )
-                ->setAction(Crud::PAGE_INDEX)
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
 
-            yield MenuItem::linkTo(
+            yield MenuItem::linkToCrud(
                 'Épreuves', 
                 'fas fa-list',
-                TestsCrudController::class
+                Tests::class
                 )
-                ->setAction(Crud::PAGE_INDEX)
                 ->setQueryParameter('year', (new \DateTime())->format('Y'));
     
             yield MenuItem::linkToRoute('Importer des résultats','fa-solid fa-square-poll-vertical', 'admin_results_import_page') ;
@@ -170,12 +165,11 @@ class DashboardController extends AbstractDashboardController
             if (!empty($previousYears)) {
                 yield MenuItem::subMenu('Compétitions – années précédentes', 'fa fa-calendar')
                     ->setSubItems(array_map(
-                        fn (int $year) => MenuItem::linkTo(
+                        fn (int $year) => MenuItem::linkToCrud(
                             (string) $year,
                             'fa fa-angle-right',
-                            CompetitionsCrudController::class
+                            Competitions::class
                         )
-                        ->setAction(Crud::PAGE_INDEX)
                         ->setQueryParameter('year', $year),
                         $previousYears
                     ));
@@ -199,29 +193,29 @@ class DashboardController extends AbstractDashboardController
             yield MenuItem::subMenu('Gestion', 'fa fa-cog')
                 ->setPermission('ROLE_ADMIN')
                 ->setSubItems([     
-                    MenuItem::linkTo(
+                    MenuItem::linkToCrud(
                         'Type de service',
                         'fas fa-id-card',
                         AccommodationsCrudController::class
-                    )->setAction(Crud::PAGE_INDEX),
+                    ),
 
-                    MenuItem::linkTo(
+                    MenuItem::linkToCrud(
                         'Supprimer un service',
                         'fas fa-trash',
-                        CompetitionAccommodationCrudController::class
-                    )->setAction(Crud::PAGE_INDEX),
+                        CompetitionAccommodation::class
+                    ),
 
-                    MenuItem::linkTo(
+                    MenuItem::linkToCrud(
                         'Type de competition',
                         'fas fa-id-card',
-                        TypeCompetitionCrudController::class
-                    )->setAction(Crud::PAGE_INDEX),
+                        TypeCompetition::class
+                    ),
 
-                    MenuItem::linkTo(
+                    MenuItem::linkToCrud(
                         'Epreuves',
                         'fas fa-id-card',
-                        TestsCrudController::class
-                    )->setAction(Crud::PAGE_INDEX),
+                        Tests::class
+                    ),
 
                     MenuItem::linkToRoute(
                         'Export des emails',
