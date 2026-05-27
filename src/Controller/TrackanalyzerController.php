@@ -276,6 +276,13 @@ class TrackanalyzerController extends AbstractController
     #[Route('/3rdparty/trackanalyzer/import-test-scores', name: 'import_trackanalyzer_test_scores', methods: ['POST'])]
     public function importResultsScores(Request $request, LoggerInterface $logger,): JsonResponse
     {
+        $logger->debug('HEADERS', $request->headers->all());
+        $logger->debug('CONTENT TYPE', [
+            'type' => $request->headers->get('Content-Type')
+        ]);
+        $logger->debug('RAW', [
+            'raw' => $request->getContent()
+        ]);
         $rawJson = $request->getContent(); // ← ce que Symfony a reçu
         $logger->debug('JSON DATA', [
             'json' => $rawJson,
