@@ -19,7 +19,6 @@ use App\Repository\TestStartOrderRepository;
 use App\Service\ResultsImportService;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -35,13 +34,13 @@ class DashboardController extends AbstractDashboardController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CompetitionsRepository $competitionsRepository,
-        private Security $security,         
+        private Security $security,
     ) {}
 
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        
+
         // ✅ Important: forwards to EasyAdmin logic
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
@@ -53,25 +52,6 @@ class DashboardController extends AbstractDashboardController
         return Dashboard::new()
             ->setTitle('Administration du site Sports FFA')
             ->setDefaultColorScheme('dark');
-    }
-
-    private function getCompetitionYears(): array
-    {
-        $dates = $this->entityManager->createQuery('
-            SELECT DISTINCT c.startDate
-            FROM App\Entity\Competitions c
-            ORDER BY c.startDate DESC
-        ')->getResult();
-
-        $years = [];
-
-        foreach ($dates as $row) {
-            /** @var \DateTimeImmutable $date */
-            $date = $row['startDate'];
-            $years[] = (int) $date->format('Y');
-        }
-
-        return array_values(array_unique($years));
     }
 
     private function getAccessibleCompetitionYears(int $currentYear): array
@@ -232,7 +212,7 @@ class DashboardController extends AbstractDashboardController
         ]);   
     }
 
-     #[Route('/results-import', name: 'admin_results_import_page')]
+    #[Route('/results-import', name: 'admin_results_import_page')]
     public function importPage(
         Request $request,
         TestsRepository $testsRepository,       
