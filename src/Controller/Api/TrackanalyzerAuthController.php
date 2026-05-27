@@ -2,17 +2,18 @@
 
 namespace App\Controller\Api;
 
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Uid\Uuid;
-use App\Repository\UsersRepository;
-use Psr\Cache\CacheItemPoolInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CompetitionsRepository;
+use App\Repository\TestsRepository;
+use App\Repository\UsersRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Uuid;
 
 class TrackanalyzerAuthController extends AbstractController
 {
@@ -24,7 +25,8 @@ class TrackanalyzerAuthController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         CacheItemPoolInterface $cache,
         EntityManagerInterface $entityManager,
-        CompetitionsRepository $competitionsRepository
+        CompetitionsRepository $competitionsRepository,
+        TestsRepository $testsRepository
     ): Response {
         try {
 
@@ -81,7 +83,7 @@ class TrackanalyzerAuthController extends AbstractController
 
                 return $this->xmlError(
                     'INVALID_EMAIL',
-                    'Utilisateur inconnu'
+                    'Email utilisateur inconnu'
                 );
             }
             
@@ -94,6 +96,32 @@ class TrackanalyzerAuthController extends AbstractController
                 return $this->xmlError(
                     'INVALID_CREDENTIALS',
                     'Mot de passe incorrect'
+                );
+            }
+
+            $navCode = $request->request->get('navcode');
+
+            if (empty($navCode)) {
+                return $this->xmlError(
+                    'MISSING_NAV_CODE',
+                    'Code navigation absent'
+                );
+            }
+
+            $test = $testsRepository->findOneBy([
+                'code' => $navCode
+            ]);
+
+            if (!$test) {
+
+                $logger->warning('Invalid navigation code', [
+                    'navCode' => $navCode,
+                    'email' => $email
+                ]);
+
+                return $this->xmlError(
+                    'INVALID_NAV_CODE',
+                    'Code navigation inconnu'
                 );
             }
 
