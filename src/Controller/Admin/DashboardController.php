@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Accommodations;
 use App\Entity\CompetitionAccommodation;
 use App\Entity\Competitions;
 use App\Entity\Crews;
@@ -196,7 +197,7 @@ class DashboardController extends AbstractDashboardController
                     MenuItem::linkToCrud(
                         'Type de service',
                         'fas fa-id-card',
-                        AccommodationsCrudController::class
+                        Accommodations::class
                     ),
 
                     MenuItem::linkToCrud(
