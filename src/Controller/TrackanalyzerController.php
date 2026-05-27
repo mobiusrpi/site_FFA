@@ -274,48 +274,64 @@ class TrackanalyzerController extends AbstractController
  * @return JsonResponse
  */
     #[Route('/3rdparty/trackanalyzer/import-test-scores', name: 'import_trackanalyzer_test_scores', methods: ['POST'])]
-    public function importResultsScores(Request $request, LoggerInterface $logger,): JsonResponse
+    public function importResultsScores(Request $request): JsonResponse
     {
-        $logger->debug('HEADERS', $request->headers->all());
-        $logger->debug('CONTENT TYPE', [
-            'type' => $request->headers->get('Content-Type')
-        ]);
-        $logger->debug('RAW', [
-            'raw' => $request->getContent()
-        ]);
-        $rawJson = $request->getContent(); // ← ce que Symfony a reçu
-        $data = json_decode($rawJson, true);
-
-        if (!$data) {
-            return new JsonResponse([
-                'error' => 'Invalid JSON'
-            ], 400);
-        }
-
-        $logger->debug('JSON DATA', [
-            'json' => $rawJson,
-        ]);  
-        
         $authHeader = $request->headers->get('Authorization');
+
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            return new JsonResponse(['error' => 'Missing or malformed Authorization header'], 401);
+
+            $this->logger->warning('Missing Authorization header');
+
+            return new JsonResponse([
+                'error' => 'Missing or malformed Authorization header'
+            ], 401);
         }
+
+        $rawJson = $request->getContent();
 
         $data = json_decode($rawJson, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->logger->error('Malformed JSON: ' . json_last_error_msg(), ['raw' => $rawJson]);
-            return new JsonResponse(['error' => 'Malformed JSON: ' . json_last_error_msg()], 400);
+
+            $this->logger->error('Malformed JSON', [
+                'error' => json_last_error_msg(),
+            ]);
+
+            return new JsonResponse([
+                'error' => 'Malformed JSON: ' . json_last_error_msg()
+            ], 400);
         }
 
         if (!is_array($data)) {
-            return new JsonResponse(['error' => 'Invalid or empty JSON'], 400);
+
+            $this->logger->error('Invalid JSON structure');
+
+            return new JsonResponse([
+                'error' => 'Invalid or empty JSON'
+            ], 400);
         }
 
+        $this->logger->info('TrackAnalyzer import request', [
+            'testId' => $data['TestId'] ?? null,
+            'crewCount' => count($data['Crews'] ?? []),
+        ]);
+
         $result = $this->importer->importResultsData($data, true);
+
         if (isset($result['error'])) {
-            return new JsonResponse(['error' => $result['error']], 400);
+
+            $this->logger->warning('TrackAnalyzer import rejected', [
+                'error' => $result['error'],
+                'details' => $result['details'] ?? [],
+            ]);
+
+            return new JsonResponse($result, 400);
         }
+
+        $this->logger->info('TrackAnalyzer import success', [
+            'testId' => $data['TestId'] ?? null,
+            'importedCrew' => $result['importedCrew'] ?? [],
+        ]);
 
         return new JsonResponse($result, 200);
     }

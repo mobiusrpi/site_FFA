@@ -40,7 +40,7 @@ class TrackAnalyzerImporter
         $test = $this->testsRepository->findOneBy(['code' => $data['TestId']]);
 
         if (!$test) {
-            $this->logger->ERROR('Test code inconnu', ['code' => $data['TestId']] );
+            $this->logger->error('Test code inconnu', ['code' => $data['TestId']] );
 
             return [
                 'error' => 'Épreuve inconnue',
@@ -91,7 +91,6 @@ class TrackAnalyzerImporter
             }
             $incomingCrewIds[] = $crewId;
 
-
             $crew = $this->crewsRepository->find($crewId);
             if (!$crew) {
                 $this->logger->error('Import rejected : crew unknown', [
@@ -106,6 +105,24 @@ class TrackAnalyzerImporter
                     ]
                 ];
             }
+            if ($crew->getCompetition()?->getId() !== $competition?->getId()) {
+
+                $this->logger->error('Import refusé : crew hors compétition', [
+                    'crewId' => $crewId,
+                    'crewCompetition' => $crew->getCompetition()?->getId(),
+                    'testCompetition' => $competition?->getId(),
+                    'testId' => $data['TestId'],
+                ]);
+
+                return [
+                    'error' => 'Concurrent hors compétition',
+                    'details' => [
+                        'CrewId' => $crewId,
+                        'TestId' => $data['TestId']
+                    ]
+                ];
+            }
+
 
             $pilotName = $crew->getPilot()?->getLastname() . ' ' . $crew->getPilot()?->getFirstname();
             $navigatorName = $crew->getNavigator()?->getLastname() . ' ' . $crew->getNavigator()?->getFirstname();
@@ -139,37 +156,26 @@ class TrackAnalyzerImporter
         // Supprimer les résultats pour les crews non présents dans le JSON
         if (count($incomingCrewIds) > 1) {
             foreach ($existingResults as $res) {
-                if (!in_array($res->getCrew()->getId(), $incomingCrewIds)) {
+                if ($res->getCrew() && !in_array($res->getCrew()->getId(), $incomingCrewIds)) {
                     $this->em->remove($res);
                 }
             }
         }
-        $this->logger->critical('FLUSH START');
 
         try {
-
             $this->em->flush();
-
-            $this->logger->critical('FLUSH DONE');
-
         } catch (\Exception $e) {
-
-            $this->logger->critical('FLUSH ERROR', [
+            $this->logger->critical('Doctrine flush error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
-                'error' => 'Erreur flush Doctrine',
+                'error' => 'Erreur base de données',
                 'details' => [
                     '-' => $e->getMessage()
                 ]
             ];
         }
-
-        $this->em->flush();
-
-
         return [
             'status' => 'ok',
             'importedCrew' => $importedCrew,
