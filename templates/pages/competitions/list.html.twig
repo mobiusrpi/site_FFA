@@ -86,32 +86,32 @@
                                     {% endfor %}
                                 </ul>
                                 <div class="d-flex gap-2 justify-content-center gap-2 mt-3"> 
-                                  <div style="text-align: center; margin: 20px 0;">
-                                      {% if compet.startRegistration|date('Y-m-d') <= date('now')|date('Y-m-d')
-                                            and date('now')|date('Y-m-d') <= compet.endRegistration|date('Y-m-d') %}
-                                          <form action="{{ path('crews_registration', {'competId': compet.id}) }}" method="get" style="display: inline;">
-                                              <button type="submit"
-                                                  class="btn btn-outline-success btn-sm text-center mt-2"
-                                                  title="Modifier">
-                                                <i class="fa-solid fa-pen-to-square"></i>Inscription
-                                              </button>       
-                                              {% if compet.programmePdf %}  
-                                                  <div class="mt-2">                                       
-                                                      <a href="/uploads/programmes/{{ compet.programmePdf }}" target="_blank" style="color: #0cf; font-size: 1em;">
-                                                          📄 Consulter le programme
-                                                      </a>            
-                                                  </div> 
-                                              {% endif %}
-                                          </form>                                
-                                      {% elseif compet.endRegistration|date('Y-m-d') < date('now')|date('Y-m-d') %}
-                                          <button class="btn btn-outline-danger btn-sm" disabled>
-                                            <i class="fa-solid fa-clock me-1"></i>Hors délai
-                                          </button>
-                                      {% else %}
-                                          <button class="btn btn-outline-warning btn-sm" disabled>
-                                            <i class="fa-solid fa-hourglass-half me-1"></i>En attente
-                                          </button>
-                                      {% endif %}                              
+                                    <div style="text-align: center; margin: 20px 0;">
+                                        {% if compet.startRegistration|date('Y-m-d') <= date('now')|date('Y-m-d')
+                                                and date('now')|date('Y-m-d') <= compet.endRegistration|date('Y-m-d') %}
+                                            <form action="{{ path('crews_registration', {'competId': compet.id}) }}" method="get" style="display: inline;">
+                                                <button type="submit"
+                                                    class="btn btn-outline-success btn-sm text-center mt-2"
+                                                   title="Modifier">
+                                                  <i class="fa-solid fa-pen-to-square"></i>Inscription
+                                                </button>       
+                                            </form>                                
+                                        {% elseif compet.endRegistration|date('Y-m-d') < date('now')|date('Y-m-d') %}
+                                            <button class="btn btn-outline-danger btn-sm" disabled>
+                                              <i class="fa-solid fa-clock me-1"></i>Hors délai
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-outline-warning btn-sm" disabled>
+                                              <i class="fa-solid fa-hourglass-half me-1"></i>En attente
+                                            </button>
+                                        {% endif %} 
+                                        {% if compet.programmePdf %}  
+                                            <div class="mt-2">                                       
+                                                <a href="/uploads/programmes/{{ compet.programmePdf }}" target="_blank" style="color: #0cf; font-size: 1em;">
+                                                    📄 Consulter le programme
+                                                </a>            
+                                            </div> 
+                                        {% endif %}                             
                                     </div>
                                 </div>
                             {% endif %}
