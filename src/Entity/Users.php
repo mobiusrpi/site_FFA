@@ -378,7 +378,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->licenseFfa;
     }
 
-    public function setLicenseFfa(string $licenseFfa): static
+    public function setLicenseFfa(?string $licenseFfa): static
     {
         $this->licenseFfa = $licenseFfa;
 
