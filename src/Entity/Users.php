@@ -449,7 +449,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->committee;
     }
 
-    public function setCommittee(CRAList $committee): static
+    public function setCommittee(?CRAList $committee): static
     {
         $this->committee = $committee;
 

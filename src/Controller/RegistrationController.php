@@ -159,6 +159,10 @@ class RegistrationController extends AbstractController
        
         /** @var Users|null $user */
         $user = $security->getUser();
+        if ($user === null) {
+            // Redirigez vers la page de connexion ou affichez une erreur
+            return $this->redirectToRoute('app_login');
+        }
         $user->setUpdatedAt( new \DateTimeImmutable());  
         $form = $this->createForm(EditProfilType::class, $user);
         $form->handleRequest($request);
