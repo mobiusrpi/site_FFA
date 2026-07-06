@@ -107,7 +107,12 @@
                         <thead class="table-secondary">
                             <tr>
                                 <th>Rang</th>
-                                <th>Équipage</th>
+                                {% if competition.typecompetition.id == 2 %}
+                                    <th>Pilote</th> 
+                                {% else%}        
+                                    <th>Équipage</th>                        
+                                {% endif %}
+
                                 <th>Pénalités</th>
                             </tr>
                         </thead>
