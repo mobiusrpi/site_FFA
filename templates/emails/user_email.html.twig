@@ -1,8 +1,13 @@
 
 <p>{{ message|raw }}</p>
 
-{% if attachmentName %}
-<p>Une pièce jointe est incluse : {{ attachmentName }}</p>
+{% if attachmentNames %}
+<p>Pièces jointes :</p>
+<ul>
+{% for name in attachmentNames %}
+    <li>{{ name }}</li>
+{% endfor %}
+</ul>
 {% endif %}
 
 <p>Ce message vous est envoyé automatiquement. Aucune action n’est requise.</p>

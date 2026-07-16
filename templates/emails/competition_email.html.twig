@@ -9,10 +9,14 @@
             <td>
               <p>{{ message|raw }}</p>
 
-              {% if attachmentName %}
-                <p>Une pièce jointe est incluse : {{ attachmentName }}</p>
+              {% if attachmentNames %}
+              <p>Pièces jointes :</p>
+              <ul>
+              {% for name in attachmentNames %}
+                  <li>{{ name }}</li>
+              {% endfor %}
+              </ul>
               {% endif %}
-
               <p>Ce message vous est envoyé automatiquement. Aucune action n’est requise.</p>
               <p>Si vous voulez répondre, contacter l'email indiquée dans le message.</p>
               <p>Ne pas répondre à l'adresse d'envoi, votre message ne sera pas lu.</p>

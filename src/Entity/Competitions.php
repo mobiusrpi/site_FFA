@@ -102,6 +102,14 @@ class Competitions
     #[ORM\OneToMany(mappedBy: 'competition', targetEntity: Tests::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $tests;
 
+    #[ORM\OneToMany(
+        mappedBy: 'competition',
+        targetEntity: CompetitionDocuments::class,
+        orphanRemoval: true,
+        cascade: ['persist', 'remove']
+    )]
+    private Collection $documents;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -110,6 +118,7 @@ class Competitions
         $this->competitionsUsers = new ArrayCollection();
         $this->results = new ArrayCollection();        
         $this->tests = new ArrayCollection();
+        $this->documents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -461,9 +470,40 @@ class Competitions
 
         return implode(', ', $codes);
     }
+    
+    /**
+     * @return Collection<int, CompetitionDocuments>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(CompetitionDocuments $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setCompetition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(CompetitionDocuments $document): static
+    {
+        if ($this->documents->removeElement($document)) {
+            if ($document->getCompetition() === $this) {
+                $document->setCompetition(null);
+            }
+        }
+
+        return $this;
+    }
 
     public function __toString(): string
     {
         return $this->name ?? 'N/A'; 
     }
+
+
 }

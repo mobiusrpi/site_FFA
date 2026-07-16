@@ -9,7 +9,9 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class CompetitionEmailType extends AbstractType
 {
@@ -28,20 +30,51 @@ class CompetitionEmailType extends AbstractType
                 'data' => "Bonjour <Prénom>,\n\nVoici les informations importantes pour la compétition.",
             ])
             ->add('attachment', FileType::class, [
-                'label' => 'Pièce jointe (PDF ou image, maxi 5 Mo)',
-                'mapped' => false, // car on ne l'enregistre pas en BDD
+                'label' => 'Pièces jointes',
+                'help' => 'Vous pouvez sélectionner plusieurs fichiers. La taille totale ne doit pas dépasser 4 Mo.',
+                'mapped' => false,
                 'required' => false,
+                'multiple' => true,
                 'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'image/*',
+                    // Vérification de chaque fichier
+                    new Assert\All([
+                        'constraints' => [
+                            new File([
+                                'maxSize' => '4M',
+                                'mimeTypes' => [
+                                    'application/pdf',
+                                    'image/*',
+                                    'application/zip',
+                                    'application/x-zip-compressed',
+                                ],
+                                'mimeTypesMessage' => 'Seuls les fichiers PDF, images et ZIP sont autorisés.',
+                            ]),
                         ],
-                        'mimeTypesMessage' => 'Merci de sélectionner un fichier PDF ou une image valide',
-                    ])
-                ]          
-            ])
+                    ]),
+
+                    // Vérification de la taille totale
+                    new Assert\Callback(function ($files, ExecutionContextInterface $context) {
+
+                        if (empty($files)) {
+                            return;
+                        }
+
+                        $totalSize = 0;
+
+                        foreach ($files as $file) {
+                            $totalSize += $file->getSize();
+                        }
+
+                        if ($totalSize > 4 * 1024 * 1024) {
+                            $context
+                                ->buildViolation(
+                                    'La taille totale des pièces jointes ne doit pas dépasser 4 Mo.'
+                                )
+                                ->addViolation();
+                        }
+                    }),
+                ],
+            ])            
             ->add('replyTo', TextType::class, [
                 'label' => 'Adresse de réponse',
                 'mapped' => false,

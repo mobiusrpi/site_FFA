@@ -23,9 +23,20 @@
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.attachment, null, {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.attachment, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                 <div class="mb-3">
+                    {{ form_widget(form.attachment, {
+                        'attr': {
+                            'class': 'form-control',
+                            'multiple': 'multiple'
+                        }
+                    }) }}
+                    {{ form_help(form.attachment) }}
+                    {{ form_errors(form.attachment) }}
+
+                    <div class="form-text">
+                        Vous pouvez sélectionner plusieurs fichiers (Ctrl + clic ou Maj + clic).
+                    </div>
+                </div>                 
+                <div class="mb-3">
                     {{ form_label(form.replyTo, null, {'label_attr': {'class': 'form-label'}}) }}
                     {{ form_widget(form.replyTo) }}
                 </div>

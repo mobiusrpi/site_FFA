@@ -1,0 +1,51 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}
+    Documents de {{ competition.name }}
+{% endblock %}
+
+{% block main %}
+
+<div class="mb-3">
+    <a class="btn btn-success"
+       href="{{ path('admin_competition_document_new', {
+           id: competition.id
+       }) }}">
+        <i class="fa fa-plus"></i>
+        Ajouter un document
+    </a>
+</div>
+
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Type</th>            
+            <th>Document</th>
+            <th>Public</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for document in documents %}
+        <tr>
+            <td>{{ document.type.value }}</td>
+            <td>{{ document.originalFilename }}</td>
+            <td>
+                {{ document.public ? 'Oui' : 'Non' }}
+            </td>
+            <td>
+                Modifier
+                Supprimer
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="5">
+                Aucun document.
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

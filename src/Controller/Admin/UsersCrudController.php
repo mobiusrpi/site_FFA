@@ -638,8 +638,14 @@ class UsersCrudController extends AbstractCrudController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            $attachment = $form->get('attachment')->getData();
+
+            $data = $form->getData();;
+            $attachments = $form->get('attachment')->getData();
+            $files = [];
+
+            foreach ($attachments ?? [] as $attachment) {
+                $files[$attachment->getPathname()] = $attachment->getClientOriginalName();
+            }
 
             $replyTo = $userEmail;
 
@@ -685,10 +691,13 @@ class UsersCrudController extends AbstractCrudController
                             [
                                 'message' => $message,
                                 'firstname' => $user->getFirstname(),
-                                'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null,
+                                'attachmentNames' => array_map(
+                                    fn($attachment) => $attachment->getClientOriginalName(),
+                                    $attachments ?? []
+                                )
                             ],
                             null,
-                            [],
+                            $files,
                             $replyTo
                         );
                     }

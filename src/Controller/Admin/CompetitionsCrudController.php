@@ -49,6 +49,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CompetitionsCrudController extends AbstractCrudController
@@ -177,6 +178,7 @@ class CompetitionsCrudController extends AbstractCrudController
                 'required' => false,
                 'label' => 'Fichier PDF du programme',
             ]);
+    
         $fields[] = DateField::new('createdAt')
             ->onlyOnDetail();
         $fields[] = TextareaField::new('paymentInfo','Informations de règlement')
@@ -197,12 +199,6 @@ class CompetitionsCrudController extends AbstractCrudController
             ->allowAdd()
             ->allowDelete()
             ->setLabel('Organisateurs de la compétition');
-
-
-
-        $fields[] = TextField::new('testCodes', 'Codes')
-            ->onlyOnIndex();
-
 
         return $fields;
     }
@@ -257,7 +253,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     return [
                         'competId' =>$competition->getId(),
                     ];
-                });
+                }
+            );
 
         $newRegistrationAction = Action::new('newRegistrationAction', 'Nouvelle inscription')
             ->setIcon('fa fa-flag')              
@@ -266,7 +263,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     return [
                         'competId' => $competition->getId(),
                     ];
-                });
+                }
+            );
 
         $manageCompetitionAction = Action::new('manageCompetitionAction', 'Prix de l\'inscription')
             ->setIcon('fa fa-money')
@@ -275,7 +273,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     return [
                         'competId' => $competition->getId(),
                     ];
-                });
+                }
+            );
 
         $accommodationByCrewAction = Action::new('accommodationByCrewAction', 'Type d\'inscription')
             ->setIcon('fa fa-hotel')
@@ -284,8 +283,16 @@ class CompetitionsCrudController extends AbstractCrudController
                     return [
                         'competId' => $competition->getId(),
                     ];
-                });
-
+                }
+            );
+        $documentsAction = Action::new('documentsAction', 'Documents')
+            ->setIcon('fa fa-file-pdf')
+            ->linkToRoute('admin_competition_documents', function (Competitions $competition) {
+                return [
+                    'competId' => $competition->getId(),
+                ];
+            });
+ 
         $crewsByCompetitionExportAction = Action::new('crewsByCompetitionExportAction', 'Export data .csv')
             ->setIcon('fa fa-file-export')
             ->linkToRoute('admin_crews_by_competition_export',                
@@ -293,7 +300,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     return [
                         'competId' => $competition->getId(),
                     ];
-                });
+                }
+            );
 
         $exportPipperByCompetitionAction = Action::new('exportPipperByCompetitionAction', 'Export Pipper .csv')
             ->setIcon('fa fa-file-export')
@@ -302,7 +310,8 @@ class CompetitionsCrudController extends AbstractCrudController
                     return [
                         'competId' => $competition->getId(),
                     ];
-                });
+                }
+            );
 
         $user = $this->security->getUser();
         
@@ -342,12 +351,14 @@ class CompetitionsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $newRegistrationAction)  
             ->add(Crud::PAGE_INDEX, $manageCompetitionAction)                       
             ->add(Crud::PAGE_INDEX, $accommodationByCrewAction)
+            ->add(Crud::PAGE_INDEX, $documentsAction)
             ->remove(Crud::PAGE_INDEX, Action::BATCH_DELETE)
             ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)            
             ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
             ->reorder(Crud::PAGE_INDEX, [
                 'registeredListAction',
                 'newRegistrationAction',
+                'documentsAction',
                 'accommodationByCrewAction',
                 'manageCompetitionAction',
                 Action::EDIT,               
@@ -687,7 +698,13 @@ class CompetitionsCrudController extends AbstractCrudController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();;
-            $attachment = $form->get('attachment')->getData();
+            $attachments = $form->get('attachment')->getData();
+            $files = [];
+
+            foreach ($attachments ?? [] as $attachment) {
+                $files[$attachment->getPathname()] = $attachment->getClientOriginalName();
+            }
+
             /** @var SubmitButton $previewButton */
             $previewButton = $form->get('preview');        
             /** @var SubmitButton $sendButton */    
@@ -734,11 +751,13 @@ class CompetitionsCrudController extends AbstractCrudController
                                 'firstname' => $user->getFirstname(),
                                 'message' => nl2br($personalizedMessage),
                                 'subject' => $data['subject'],
-                                'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
+                                'attachmentNames' => array_map(
+                                    fn($attachment) => $attachment->getClientOriginalName(),
+                                    $attachments ?? []
+                                )
                             ],
                             null, 
-                            $attachment ? 
-                                [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
+                            $files,
                             $replyTo
                         );
                     }
@@ -748,22 +767,31 @@ class CompetitionsCrudController extends AbstractCrudController
 
                         if ($user && $user->getEmail()) {
                             $users[$user->getEmail()] = $user;
-                        }
 
-                        $mailService->sendEmail(
-                            $user->getEmail(),
-                            $data['subject'],
-                            'competition_email', // le template Twig
-                            [
-                                'firstname' => $user->getFirstname(),
-                                'message' => nl2br($personalizedMessage),
-                                'subject' => $data['subject'],
-                                'attachmentName' => $attachment ? $attachment->getClientOriginalName() : null
-                            ],
-                            null, 
-                            $attachment ? [$attachment->getPathname() => $attachment->getClientOriginalName()] : [],
-                            $replyTo
-                       );
+                            $personalizedMessage = str_replace(
+                                '<Prénom>',
+                                htmlspecialchars($user->getFirstname()),
+                                $data['message']
+                            );
+
+                            $mailService->sendEmail(
+                                $user->getEmail(),
+                                $data['subject'],
+                                'competition_email',
+                                [
+                                    'firstname' => $user->getFirstname(),
+                                    'message' => nl2br($personalizedMessage),
+                                    'subject' => $data['subject'],
+                                    'attachmentNames' => array_map(
+                                        fn($attachment) => $attachment->getClientOriginalName(),
+                                        $attachments ?? []
+                                    )
+                                ],
+                                null,
+                                $files,
+                                $replyTo
+                            );
+                        }
                     }
 
                     if ($connected && $connected->getEmail()) {
@@ -806,4 +834,5 @@ class CompetitionsCrudController extends AbstractCrudController
             'form' => $form->createView(),
         ]);
     }
+
 }

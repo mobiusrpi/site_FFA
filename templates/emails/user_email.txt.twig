@@ -1,7 +1,12 @@
 {{ message|raw }}
 
-{% if attachmentName %}
-Une pièce jointe est incluse : {{ attachmentName }}
+{% if attachmentNames %}
+<p>Pièces jointes :</p>
+<ul>
+{% for name in attachmentNames %}
+    <li>{{ name }}</li>
+{% endfor %}
+</ul>
 {% endif %}
 
 ------------------------------------------

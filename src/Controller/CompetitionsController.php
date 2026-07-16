@@ -4,50 +4,66 @@ namespace App\Controller;
 
 use App\Entity\Competitions;
 use App\Repository\CrewsRepository;
+use App\Entity\CompetitionDocuments;
 use App\Repository\CompetitionsRepository;
+use App\Repository\CompetitionDocumentsRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+
+
 final class CompetitionsController extends AbstractController
 {
  
-/**
- * Competition list function
- * Displayed sort on start date
- *
- * @param CompetitionsRepository $repository
- * @return Response
- */
+    /**
+     * Competition list function
+     * Displayed sort on start date
+     *
+     * @param CompetitionsRepository $repository
+     * @return Response
+     */
     #[Route(path: '/competitions', name: 'competitions_list', methods:['GET'])]
     public function list(
-        CompetitionsRepository $competitionsRepository, 
-        CrewsRepository $crewsRepository, 
-    ): Response 
+        CompetitionsRepository $competitionsRepository,
+        CrewsRepository $crewsRepository,
+        CompetitionDocumentsRepository $documentsRepository
+    ): Response
     {
         $today = (new \DateTime())->setTime(0, 0, 0);
-        $sortList = $competitionsRepository->getQueryCompetitionSorted($today);
+
+        $sortList = $competitionsRepository
+            ->getQueryCompetitionSorted($today);
 
         $inscriptionsByCompetition = [];
 
+        $documentsByCompetition = [];
+
         foreach ($sortList as $competition) {
-            $inscriptionsByCompetition[$competition->getId()] = 
-                $crewsRepository->countCrewsByCompetitionGroupedByCategory($competition);
+
+            $inscriptionsByCompetition[$competition->getId()] =
+                $crewsRepository
+                    ->countCrewsByCompetitionGroupedByCategory($competition);
+
+            $documentsByCompetition[$competition->getId()] =
+                $documentsRepository
+                    ->findPublicByCompetition($competition);
         }
 
         return $this->render('pages/competitions/list.html.twig', [
-            'competition_list' => $sortList,  
-            'inscriptionsByCompetition' => $inscriptionsByCompetition,          
+            'competition_list' => $sortList,
+            'inscriptionsByCompetition' => $inscriptionsByCompetition,
+            'documentsByCompetition' => $documentsByCompetition,
         ]);
     }
     
     #[Route('/competitions/{id}/results', name: 'competitions_results')]
-/**
- * Competitions results function
- *
- * @param Competitions $competition
- * @return Response
- */
+    /**
+     * Competitions results function
+     *
+     * @param Competitions $competition
+     * @return Response
+     */
     public function results(Competitions $competition): Response
     {
         $allResults = $competition->getResults();
@@ -77,4 +93,31 @@ final class CompetitionsController extends AbstractController
         ]);
     }
 
+    #[Route('/competition/document/{id}/download', name: 'competition_document_download')]
+    public function download(
+        CompetitionDocuments $document
+    ): Response
+    {
+        if (!$document->isPublic()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $path =
+            $this->getParameter('kernel.project_dir')
+            . '/storage/competitions/'
+            . $document->getCompetition()->getId()
+            . '/documents/'
+            . $document->getStoredFilename();
+
+        if (!file_exists($path)) {
+            throw $this->createNotFoundException(
+                'Le fichier n’existe plus.'
+            );
+        }
+
+        return $this->file(
+            $path,
+            $document->getOriginalFilename()
+        );
+    }
 }
