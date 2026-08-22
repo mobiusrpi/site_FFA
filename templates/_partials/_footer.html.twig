@@ -31,6 +31,72 @@
 
             <div class="d-flex justify-content-end">
 
+                {# ===================================================== #}
+                {# WIKI SPORTS FFA                                       #}
+                {# ===================================================== #}
+
+                <div class="dropup me-2">
+
+                    <a
+                        class="btn btn-info btn-sm"
+                        href="https://sports.ffa-aero.fr/docs/index.php/Accueil"
+                        target="_blank"
+                        rel="noopener">
+
+                        🌐Aide - Wiki Sports
+
+                    </a>
+
+                </div>
+
+
+                {# ===================================================== #}
+                {# SOFTWARES                                              #}
+                {# ===================================================== #}
+
+                {% if softwares|length > 0 %}
+
+                    <div class="dropup me-2">
+
+                        <button
+                            class="btn btn-info btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                            Softwares
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            {% for resource in softwares %}
+
+                                {% if resource.filename %}
+
+                                    <li>
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ path(
+                                                'resource_download',
+                                                {'id': resource.id}
+                                            ) }}">
+
+                                            {{ resource.title }}
+
+                                        </a>
+                                    </li>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
+
 
                 {# ===================================================== #}
                 {# DOCUMENTATION                                         #}
@@ -49,7 +115,6 @@
                             Documentation
 
                         </button>
-
 
                         <ul class="dropdown-menu dropdown-menu-end">
 
@@ -73,7 +138,10 @@
 
                                         <a
                                             class="dropdown-item"
-                                            href="{{ path('resource_download', {'id': resource.id}) }}">
+                                            href="{{ path(
+                                                'resource_download',
+                                                {'id': resource.id}
+                                            ) }}">
 
                                             {{ resource.title }}
 
@@ -110,7 +178,6 @@
 
                         </button>
 
-
                         <ul class="dropdown-menu dropdown-menu-end">
 
                             {% for resource in videos %}
@@ -118,7 +185,6 @@
                                 {% if resource.url %}
 
                                     <li>
-
                                         <a
                                             class="dropdown-item"
                                             href="{{ resource.url }}"
@@ -128,55 +194,6 @@
                                             {{ resource.title }}
 
                                         </a>
-
-                                    </li>
-
-                                {% endif %}
-
-                            {% endfor %}
-
-                        </ul>
-
-                    </div>
-
-                {% endif %}
-
-
-                {# ===================================================== #}
-                {# SOFTWARES                                              #}
-                {# ===================================================== #}
-
-                {% if softwares|length > 0 %}
-
-                    <div class="dropup">
-
-                        <button
-                            class="btn btn-info btn-sm dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
-
-                            Softwares
-
-                        </button>
-
-
-                        <ul class="dropdown-menu dropdown-menu-end">
-
-                            {% for resource in softwares %}
-
-                                {% if resource.filename %}
-
-                                    <li>
-
-                                        <a
-                                            class="dropdown-item"
-                                            href="{{ path('resource_download', {'id': resource.id}) }}">
-
-                                            {{ resource.title }}
-
-                                        </a>
-
                                     </li>
 
                                 {% endif %}

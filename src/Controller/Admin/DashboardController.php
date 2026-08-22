@@ -207,7 +207,7 @@ class DashboardController extends AbstractDashboardController
 
                     MenuItem::linkToCrud(
                         'Importation de fichier',
-                        'fas fa-id-file',
+                        'fas fa-file-import',
                         Resources::class
                     ),           
         ]);   
