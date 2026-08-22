@@ -1,75 +1,198 @@
 <footer class="container-fluid bg-light border-top mt-4 py-3">
+
+    {% set year = "now"|date("Y") %}
+
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+
+        {% set documentation =
+            resources_by_category('documentation')
+        %}
+
+        {% set videos =
+            resources_by_category('video')
+        %}
+
+        {% set softwares =
+            resources_by_category('software')
+        %}
+
+    {% endif %}
+
     <div class="d-flex justify-content-between align-items-center">
-        {% set year = "now"|date("Y") %}        
+
         <div class="col-auto">
-            <small class="text-muted">© {{ year }} https://sports.ff-aero.fr</small>
+            <small class="text-muted">
+                © {{ year }} https://sports.ff-aero.fr
+            </small>
         </div>
+
+
         {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+
             <div class="d-flex justify-content-end">
-                {% if app.user.licenseFfa %}
+
+
+                {# ===================================================== #}
+                {# DOCUMENTATION                                         #}
+                {# ===================================================== #}
+
+                {% if app.user.licenseFfa and documentation|length > 0 %}
+
                     <div class="dropup me-2">
-                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        <button
+                            class="btn btn-info btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
                             Documentation
+
                         </button>
+
+
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item"
-                                href="https://documents.ffa-aero.fr/docs/getpdf/10321"
-                                target="_blank"
-                                rel="noopener">
-                                Règlement championnat de Rallye
-                            </a>    
-                            <a class="dropdown-item"
-                                href="https://documents.ffa-aero.fr/docs/getpdf/2338"
-                                target="_blank"
-                                rel="noopener">
-                                Règlement championnat de Pilotage de Précision
-                            </a>                                                                               
-                            <a class="dropdown-item"
-                                href="https://documents.ffa-aero.fr/docs/getpdf/2337"
-                                target="_blank"
-                                rel="noopener">
-                                Règlement championnat ANR
-                            </a>                                                                               
-                            <a class="dropdown-item"
-                                href="https://documents.ffa-aero.fr/docs/getpdf/10327"
-                                target="_blank"
-                                rel="noopener">
-                                Liste des pilotes Elite - Précision
-                            </a>                           
-                            <a class="dropdown-item"
-                                href="https://documents.ffa-aero.fr/docs/getpdf/10326"
-                                target="_blank"
-                                rel="noopener">
-                                Liste des pilotes Elite - Rallye
-                            </a>                            
-                            <li><a class="dropdown-item" href="{{ asset('files/Conseils_precision.pdf') }}" download>Conseils débutants Pilotage de précision</a></li>
-                            <li><a class="dropdown-item" href="{{ asset('files/Conseils_rallye.pdf') }}" download>Conseils débutants Rallye</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <a class="dropdown-item"
-                                href="https://sports.ffa-aero.fr/docs/index.php/Accueil"
-                                target="_blank"
-                                rel="noopener">
-                                🌐 Wiki Sports FFA
-                            </a>
-                         </ul>
+
+                            {% for resource in documentation %}
+
+                                <li>
+
+                                    {% if resource.url %}
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ resource.url }}"
+                                            target="_blank"
+                                            rel="noopener">
+
+                                            {{ resource.title }}
+
+                                        </a>
+
+                                    {% elseif resource.filename %}
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ path('resource_download', {'id': resource.id}) }}">
+
+                                            {{ resource.title }}
+
+                                        </a>
+
+                                    {% endif %}
+
+                                </li>
+
+                            {% endfor %}
+
+                        </ul>
+
                     </div>
-                {% endif %}  
-                <div class="dropup">
-                    <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Tutoriels vidéos
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="https://youtu.be/-9N9HS79SII" target="_blank">Gestion épreuve pilotage précision - Part 1</a></li>
-                        <li><a class="dropdown-item" href="https://youtu.be/T9-OKrGaHZU" target="_blank">Gestion épreuve pilotage précision - Part 2</a></li>
-                        <li><a class="dropdown-item" href="https://youtu.be/KxmyakYt8TE" target="_blank">Tracé épreuve pilotage précision</a></li> 
-                        <li><a class="dropdown-item" href="https://youtu.be/MRkn2MlXhMg" target="_blank">Gestion épreuve ANR</a></li> 
-                        <li><a class="dropdown-item" href="https://youtu.be/NvzPR04hOoY" target="_blank">Tracé épreuve ANR</a></li>
-                        <li><a class="dropdown-item" href="https://youtu.be/gqJ9u641U9Y" target="_blank">Tracé épreuve rallye</a></li>
-                        <li><a class="dropdown-item" href="https://youtu.be/tbP7341uK8o" target="_blank">Logiciel FFA SkyTraq</a></li>
-                        <li><a class="dropdown-item" href="https://youtu.be/gkJ5DoVF7NY" target="_blank">Carte ANR avec OziExplorer</a></li>
-                    </ul>
-                </div>
+
+                {% endif %}
+
+
+                {# ===================================================== #}
+                {# TUTORIELS VIDEOS                                      #}
+                {# ===================================================== #}
+
+                {% if videos|length > 0 %}
+
+                    <div class="dropup me-2">
+
+                        <button
+                            class="btn btn-info btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                            Tutoriels vidéos
+
+                        </button>
+
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            {% for resource in videos %}
+
+                                {% if resource.url %}
+
+                                    <li>
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ resource.url }}"
+                                            target="_blank"
+                                            rel="noopener">
+
+                                            {{ resource.title }}
+
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
+
+
+                {# ===================================================== #}
+                {# SOFTWARES                                              #}
+                {# ===================================================== #}
+
+                {% if softwares|length > 0 %}
+
+                    <div class="dropup">
+
+                        <button
+                            class="btn btn-info btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                            Softwares
+
+                        </button>
+
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            {% for resource in softwares %}
+
+                                {% if resource.filename %}
+
+                                    <li>
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ path('resource_download', {'id': resource.id}) }}">
+
+                                            {{ resource.title }}
+
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
+
             </div>
+
         {% endif %}
+
     </div>
+
 </footer>

@@ -179,7 +179,7 @@ class TrackanalyzerAuthController extends AbstractController
 
                     return $this->xmlError(
                         'CACHE_ERROR',
-                        'Erreur sauvegarde cache'
+                        'Unable to save authentication token in server cache.'
                     );
                 }
 

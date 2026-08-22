@@ -6,6 +6,7 @@ use App\Entity\Accommodations;
 use App\Entity\CompetitionAccommodation;
 use App\Entity\Competitions;
 use App\Entity\Crews;
+use App\Entity\Resources;
 use App\Entity\TestResults;
 use App\Entity\Tests;
 use App\Entity\TestStartOrder;
@@ -204,10 +205,10 @@ class DashboardController extends AbstractDashboardController
                         'admin_export_users_email'
                     ),
 
-                    MenuItem::linkToRoute(
-                        'Archivage RGPD',
-                        'fas fa-id-card',
-                        'admin_archiving_users'
+                    MenuItem::linkToCrud(
+                        'Importation de fichier',
+                        'fas fa-id-file',
+                        Resources::class
                     ),           
         ]);   
     }
