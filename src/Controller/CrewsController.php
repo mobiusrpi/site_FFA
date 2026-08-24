@@ -62,7 +62,7 @@ public function __construct(
     {   
         /** @var Users|null $connected */
         $connected = $security->getUser();
-        $userEmail = $connected?->getEmail();;
+        $userEmail = $connected?->getEmail();
         $replyTo   = $userEmail;
 
         if (!$connected->isVerified()){
@@ -85,7 +85,7 @@ public function __construct(
             throw $this->createNotFoundException();
         }
 
-        $crew = $repositoryCrew->getQueryCrewCompetition($user->getId(),$compet->getId());  
+        $crew = $repositoryCrew->getQueryCrewCompetition($connected->getId(),$compet->getId());  
         if (!$crew) {
             throw $this->createNotFoundException();
         }
@@ -234,7 +234,7 @@ public function __construct(
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) 
+        if ($form->isSubmitted() && $form->isValid())
         {
             $crew = $form->getData();
 
@@ -261,42 +261,76 @@ public function __construct(
             if ($response !== null) {
                 return $response;
             }
-          
+
             $shouldRegisterAircraft = $form->get('aircraftRegistration')->getData();
 
             if ($shouldRegisterAircraft) {
-                $callsign = $form->get('callsign')->getData();
-                $speed = $form->get('aircraftSpeed')->getData(); // Enum SpeedList
 
-                if ($aircraftsRepository->isDuplicate($connected, $callsign, $speed)) {
-                    $this->addFlash('danger', 'Cet avion avec cette vitesse est déjà enregistré.');
+                $callsign = $form->get('callsign')->getData();
+
+                // Vitesse imposée par la compétition ou choisie par l'utilisateur
+                $speed = $fixSpeed ?? $form->get('aircraftSpeed')->getData();
+
+                if (!$speed instanceof SpeedList) {
+                    $this->addFlash(
+                        'danger',
+                        'Veuillez sélectionner une vitesse pour l\'avion.'
+                    );
+
+                    return $this->redirectToRoute('crews_registration', [
+                        'competId' => $compet->getId()
+                    ]);
+                }
+
+                if ($aircraftsRepository->isDuplicate(
+                    $connected,
+                    $callsign,
+                    $speed
+                )) {
+                    $this->addFlash(
+                        'danger',
+                        'Cet avion avec cette vitesse est déjà enregistré.'
+                    );
+
                     return $this->redirectToRoute('crews_registration', [
                         'competId' => $compet->getId()
                     ]);
                 }
 
                 $aircraft = new Aircrafts();
-                $aircraft->setCallsign($form->get('callsign')->getData());
-                $aircraft->setSpeed($form->get('aircraftSpeed')->getData());
-                $aircraft->setFlyingClub($form->get('aircraftFlyingclub')->getData());
-                $aircraft->setBrand($form->get('aircraftBrand')->getData());
-                $aircraft->setType($form->get('aircraftType')->getData());
-                $aircraft->setOaci($form->get('aircraftOaci')->getData());
+
+                $aircraft->setCallsign($callsign);
+                $aircraft->setSpeed($speed);
+                $aircraft->setFlyingClub(
+                    $form->get('aircraftFlyingclub')->getData()
+                );
+                $aircraft->setBrand(
+                    $form->get('aircraftBrand')->getData()
+                );
+                $aircraft->setType(
+                    $form->get('aircraftType')->getData()
+                );
+                $aircraft->setOaci(
+                    $form->get('aircraftOaci')->getData()
+                );
                 $aircraft->setUser($connected);
 
                 $entityManager->persist($aircraft);
             }
 
+            // Pour la compétition à vitesse imposée
             if ($fixSpeed instanceof SpeedList) {
                 $crew->setAircraftSpeed($fixSpeed);
             }
 
             foreach ($crew->getCompetitionAccommodation() as $acc) {
                 $acc->addCrewAccommodation($crew);
-                $entityManager->persist($acc); // 🔥 très important
+                $entityManager->persist($acc);
             }
+
             $entityManager->persist($crew);
             $entityManager->flush();
+
 
             $managers = $crew->getCompetition()->getCompetitionsUsers()->filter(function($cu) {
                 return in_array($cu->getRole(), [CompetitionRole::DIRECTOR, CompetitionRole::ROUTER]);
@@ -492,12 +526,11 @@ public function __construct(
         Security $security,
         SendMailService $mailService      
     ): Response {
-        $compet = $repositoryCompetition
-            ->findWithCrewsAndUsersById($competId);
+        $compet = $repositoryCompetition->findWithCrewsAndUsersById($competId);
     
         /** @var Users|null $connected */
         $connected = $security->getUser();
-        $userEmail = $connected?->getEmail();;
+        $userEmail = $connected?->getEmail();
         $replyTo   = $userEmail;
 
         if (!$connected instanceof Users) {     
