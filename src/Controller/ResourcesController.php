@@ -35,7 +35,7 @@ class ResourcesController extends AbstractController
             $softwareProduct = SoftwareProduct::from($product);
         } catch (\ValueError) {
             throw $this->createNotFoundException(
-                'Produit inconnu.'
+                'Nom du logiciel inconnu.'
             );
         }
         $resource = $this->resourcesRepository

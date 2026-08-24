@@ -193,12 +193,6 @@ class DashboardController extends AbstractDashboardController
                         TypeCompetition::class
                     ),
 
-                    MenuItem::linkToCrud(
-                        'Epreuves',
-                        'fas fa-id-card',
-                        Tests::class
-                    ),
-
                     MenuItem::linkToRoute(
                         'Export des emails',
                         'fas fa-id-card',

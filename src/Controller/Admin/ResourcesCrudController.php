@@ -32,21 +32,23 @@ class ResourcesCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Ressource')
             ->setEntityLabelInPlural('Ressources')
-
             ->setPageTitle(
                 Crud::PAGE_INDEX,
                 'Fichiers et ressources'
             )
-
             ->setPageTitle(
                 Crud::PAGE_NEW,
                 'Ajouter une ressource'
             )
-
             ->setPageTitle(
                 Crud::PAGE_EDIT,
                 'Modifier une ressource'
-            );
+            )
+            ->setDefaultSort([
+                'category' => 'ASC',
+                'position' => 'ASC',
+                'id' => 'DESC',
+            ]);
     }
 
     public function configureFields(
@@ -79,7 +81,7 @@ class ResourcesCrudController extends AbstractCrudController
                     Resources::CATEGORY_SOFTWARE,
             ]);
 
-            yield ChoiceField::new('product', 'Produit')
+            yield ChoiceField::new('product', 'Nom du logiciel (uniquement pour Software)')
                 ->setChoices([
                     'FFA SkyTraq V6' => SoftwareProduct::SKYTRAQ,
                     'TrackAnalyzer' => SoftwareProduct::TRACKANALYZER,
